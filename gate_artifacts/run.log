@@ -1,85 +1,85 @@
 === HITL Spike Verification ===
-Started: 2026-01-24T14:42:58-06:00
-2026-01-24T14:42:58-06:00 [TEST] T0: Build and Start Services
-2026-01-24T14:42:58-06:00 [INFO] Building Docker images...
-2026-01-24T14:43:34-06:00 [INFO] Starting services (db + agent-api)...
-2026-01-24T14:43:39-06:00 [INFO] Waiting for http://localhost:8095/health...
-2026-01-24T14:43:45-06:00 [INFO] Service ready!
-2026-01-24T14:43:45-06:00 [TEST] T0: Health Check
-2026-01-24T14:43:45-06:00 [INFO] Health check PASSED
-2026-01-24T14:43:45-06:00 [TEST] T1: HITL Invoke (transition_deal)
-2026-01-24T14:43:48-06:00 [INFO] HITL invoke PASSED - awaiting_approval returned
-2026-01-24T14:43:48-06:00 [INFO] Approval ID: e771cc10-8735-4e54-a680-f26d641b9d88
-2026-01-24T14:43:48-06:00 [INFO] Thread ID: f7f130f8-4026-4205-a8a9-755c8f7c43ab
-2026-01-24T14:43:48-06:00 [INFO] Tool: transition_deal
-2026-01-24T14:43:48-06:00 [INFO] Tool name check PASSED
-2026-01-24T14:43:48-06:00 [TEST] T2: DB Invariants Check
-2026-01-24T14:43:48-06:00 [INFO] DB invariants written to ./gate_artifacts/db_invariants.sql.out
-2026-01-24T14:43:48-06:00 [TEST] T3: Approve Happy Path
-2026-01-24T14:43:48-06:00 [INFO] Approve PASSED (HTTP 200, status=completed per MDv2)
-2026-01-24T14:43:48-06:00 [TEST] T4: Double-Approve Idempotency
-2026-01-24T14:43:48-06:00 [INFO] Double-approve correctly rejected (HTTP 409)
-2026-01-24T14:43:48-06:00 [TEST] T6: Kill-9 Crash Recovery
-2026-01-24T14:43:48-06:00 [INFO] Creating new pending approval for crash test...
-2026-01-24T14:43:50-06:00 [INFO] Pending approval created: 3375e5bd-dfa6-47e4-be83-923cdebf4ea7
-2026-01-24T14:43:50-06:00 [INFO] Killing container with SIGKILL...
-2026-01-24T14:43:51-06:00 [INFO] Restarting container...
-2026-01-24T14:43:51-06:00 [INFO] Waiting for http://localhost:8095/health...
-2026-01-24T14:43:55-06:00 [INFO] Service ready!
-2026-01-24T14:43:55-06:00 [INFO] Verifying approval survived crash...
-2026-01-24T14:43:55-06:00 [INFO] Crash recovery PASSED - approval survived
-2026-01-24T14:43:55-06:00 [TEST] T5: Concurrent Approvals (N=20)
-2026-01-24T14:43:57-06:00 [INFO] Concurrent test approval: b0fe8d60-fae9-43f3-ac1e-733b17f2c748
-2026-01-24T14:43:57-06:00 [INFO] Sending 20 parallel approve requests...
-2026-01-24T14:43:57-06:00 [INFO] Concurrent results: 200=1, 409=19, 400=0
+Started: 2026-01-24T14:45:33-06:00
+2026-01-24T14:45:33-06:00 [TEST] T0: Build and Start Services
+2026-01-24T14:45:33-06:00 [INFO] Building Docker images...
+2026-01-24T14:46:12-06:00 [INFO] Starting services (db + agent-api)...
+2026-01-24T14:46:17-06:00 [INFO] Waiting for http://localhost:8095/health...
+2026-01-24T14:46:23-06:00 [INFO] Service ready!
+2026-01-24T14:46:23-06:00 [TEST] T0: Health Check
+2026-01-24T14:46:23-06:00 [INFO] Health check PASSED
+2026-01-24T14:46:23-06:00 [TEST] T1: HITL Invoke (transition_deal)
+2026-01-24T14:46:25-06:00 [INFO] HITL invoke PASSED - awaiting_approval returned
+2026-01-24T14:46:25-06:00 [INFO] Approval ID: 7453b613-6e9e-46d1-af6c-15abcaf2e8fd
+2026-01-24T14:46:25-06:00 [INFO] Thread ID: add7ff67-610a-42e4-bdcf-e7523de83774
+2026-01-24T14:46:25-06:00 [INFO] Tool: transition_deal
+2026-01-24T14:46:25-06:00 [INFO] Tool name check PASSED
+2026-01-24T14:46:25-06:00 [TEST] T2: DB Invariants Check
+2026-01-24T14:46:26-06:00 [INFO] DB invariants written to ./gate_artifacts/db_invariants.sql.out
+2026-01-24T14:46:26-06:00 [TEST] T3: Approve Happy Path
+2026-01-24T14:46:26-06:00 [INFO] Approve PASSED (HTTP 200, status=completed per MDv2)
+2026-01-24T14:46:26-06:00 [TEST] T4: Double-Approve Idempotency
+2026-01-24T14:46:26-06:00 [INFO] Double-approve correctly rejected (HTTP 409)
+2026-01-24T14:46:26-06:00 [TEST] T6: Kill-9 Crash Recovery
+2026-01-24T14:46:26-06:00 [INFO] Creating new pending approval for crash test...
+2026-01-24T14:46:28-06:00 [INFO] Pending approval created: d517942b-bba7-4bd4-9c01-8ca93496e0db
+2026-01-24T14:46:28-06:00 [INFO] Killing container with SIGKILL...
+2026-01-24T14:46:28-06:00 [INFO] Restarting container...
+2026-01-24T14:46:29-06:00 [INFO] Waiting for http://localhost:8095/health...
+2026-01-24T14:46:33-06:00 [INFO] Service ready!
+2026-01-24T14:46:33-06:00 [INFO] Verifying approval survived crash...
+2026-01-24T14:46:33-06:00 [INFO] Crash recovery PASSED - approval survived
+2026-01-24T14:46:33-06:00 [TEST] T5: Concurrent Approvals (N=20)
+2026-01-24T14:46:35-06:00 [INFO] Concurrent test approval: e43fa5a1-986d-40a8-8ae2-3692b0f7cc9c
+2026-01-24T14:46:35-06:00 [INFO] Sending 20 parallel approve requests...
+2026-01-24T14:46:35-06:00 [INFO] Concurrent results: 200=1, 409=19, 400=0
 0
-2026-01-24T14:43:57-06:00 [INFO] Concurrent test PASSED - exactly 1 winner
-2026-01-24T14:43:57-06:00 [TEST] T8: Tool Arg Validation (extra=forbid)
-2026-01-24T14:43:58-06:00 [INFO] Tool arg validation PASSED
-2026-01-24T14:43:58-06:00 [TEST] T9: Dependency License Report
-2026-01-24T14:43:58-06:00 [INFO] License report generated: 146 packages
-2026-01-24T14:43:58-06:00 [TEST] T9b: Copyleft License Gate
-2026-01-24T14:43:58-06:00 [INFO] Copyleft gate PASSED: no GPL/AGPL/LGPL detected
-2026-01-24T14:43:58-06:00 [TEST] T10: Audit Log Verification
-2026-01-24T14:43:58-06:00 [INFO] Audit log verification written to ./gate_artifacts/db_invariants.sql.out
-2026-01-24T14:43:58-06:00 [TEST] T11: Mock Safety Check
-2026-01-24T14:43:59-06:00 [INFO] Mock safety check PASSED
-2026-01-24T14:43:59-06:00 [TEST] T12: Streaming (SSE) Test
-2026-01-24T14:43:59-06:00 [INFO] Streaming gate PASSED
-2026-01-24T14:43:59-06:00 [TEST] T13: HITL Scope Test
-2026-01-24T14:44:00-06:00 [INFO] HITL scope test PASSED
-2026-01-24T14:44:00-06:00 [TEST] T14: Auth Negative Tests (JWT Enforcement)
-2026-01-24T14:44:02-06:00 [INFO] Auth test approval created: b6c9bd40-027d-473d-8f39-3bec12747149
-2026-01-24T14:44:02-06:00 [INFO] Generated auth test tokens
-2026-01-24T14:44:02-06:00 [INFO] Restarting container with JWT enforcement...
-2026-01-24T14:44:11-06:00 [INFO] Waiting for http://localhost:8095/health...
-2026-01-24T14:44:11-06:00 [INFO] Service ready!
-2026-01-24T14:44:11-06:00 [INFO] Auth negative tests: 7/7 passed
-2026-01-24T14:44:11-06:00 [INFO]   no_token: 401 (expect 401)
-2026-01-24T14:44:11-06:00 [INFO]   expired: 401 (expect 401)
-2026-01-24T14:44:11-06:00 [INFO]   wrong_iss: 401 (expect 401)
-2026-01-24T14:44:11-06:00 [INFO]   wrong_aud: 401 (expect 401)
-2026-01-24T14:44:11-06:00 [INFO]   missing_role_claim: 401 (expect 401 per Decision Lock §7)
-2026-01-24T14:44:11-06:00 [INFO]   insufficient_role: 403 (expect 403 per Decision Lock §7)
-2026-01-24T14:44:11-06:00 [INFO]   valid: 200 (expect 200/409)
-2026-01-24T14:44:11-06:00 [INFO] Restoring container without JWT enforcement...
-2026-01-24T14:44:16-06:00 [INFO] Waiting for http://localhost:8095/health...
-2026-01-24T14:44:18-06:00 [INFO] Service ready!
-2026-01-24T14:44:18-06:00 [TEST] SUMMARY
-2026-01-24T14:44:18-06:00 [INFO] Running hard gate checks...
-2026-01-24T14:44:18-06:00 [INFO] Auth negative gate PASSED (7/7)
-2026-01-24T14:44:18-06:00 [INFO] Streaming gate PASSED
-2026-01-24T14:44:18-06:00 [INFO] Copyleft gate PASSED (no GPL/AGPL/LGPL)
-2026-01-24T14:44:18-06:00 [INFO] HITL scope gate PASSED
-2026-01-24T14:44:18-06:00 [INFO] Tool arg validation gate PASSED
-2026-01-24T14:44:18-06:00 [INFO] Final health check...
-2026-01-24T14:44:18-06:00 [INFO] Final health: PASSED
-Completed: 2026-01-24T14:44:18-06:00
-2026-01-24T14:44:18-06:00 [INFO] ==========================================
-2026-01-24T14:44:18-06:00 [INFO] BASELINE GATES PASSED - HITL Spike verified!
-2026-01-24T14:44:18-06:00 [INFO] ==========================================
-2026-01-24T14:44:18-06:00 [INFO] Running Phase 0 + Phase 1 gates...
-2026-01-24T14:44:25-06:00 [INFO] Phase 0 + Phase 1 gates completed
-2026-01-24T14:44:25-06:00 [INFO] ==========================================
-2026-01-24T14:44:25-06:00 [INFO] ALL GATES COMPLETED
-2026-01-24T14:44:25-06:00 [INFO] ==========================================
+2026-01-24T14:46:35-06:00 [INFO] Concurrent test PASSED - exactly 1 winner
+2026-01-24T14:46:35-06:00 [TEST] T8: Tool Arg Validation (extra=forbid)
+2026-01-24T14:46:36-06:00 [INFO] Tool arg validation PASSED
+2026-01-24T14:46:36-06:00 [TEST] T9: Dependency License Report
+2026-01-24T14:46:36-06:00 [INFO] License report generated: 146 packages
+2026-01-24T14:46:36-06:00 [TEST] T9b: Copyleft License Gate
+2026-01-24T14:46:36-06:00 [INFO] Copyleft gate PASSED: no GPL/AGPL/LGPL detected
+2026-01-24T14:46:36-06:00 [TEST] T10: Audit Log Verification
+2026-01-24T14:46:36-06:00 [INFO] Audit log verification written to ./gate_artifacts/db_invariants.sql.out
+2026-01-24T14:46:36-06:00 [TEST] T11: Mock Safety Check
+2026-01-24T14:46:36-06:00 [INFO] Mock safety check PASSED
+2026-01-24T14:46:36-06:00 [TEST] T12: Streaming (SSE) Test
+2026-01-24T14:46:37-06:00 [INFO] Streaming gate PASSED
+2026-01-24T14:46:37-06:00 [TEST] T13: HITL Scope Test
+2026-01-24T14:46:37-06:00 [INFO] HITL scope test PASSED
+2026-01-24T14:46:37-06:00 [TEST] T14: Auth Negative Tests (JWT Enforcement)
+2026-01-24T14:46:39-06:00 [INFO] Auth test approval created: 00dc71c5-6ba3-4eb9-89ad-76155b70ff1d
+2026-01-24T14:46:40-06:00 [INFO] Generated auth test tokens
+2026-01-24T14:46:40-06:00 [INFO] Restarting container with JWT enforcement...
+2026-01-24T14:46:49-06:00 [INFO] Waiting for http://localhost:8095/health...
+2026-01-24T14:46:49-06:00 [INFO] Service ready!
+2026-01-24T14:46:49-06:00 [INFO] Auth negative tests: 7/7 passed
+2026-01-24T14:46:49-06:00 [INFO]   no_token: 401 (expect 401)
+2026-01-24T14:46:49-06:00 [INFO]   expired: 401 (expect 401)
+2026-01-24T14:46:49-06:00 [INFO]   wrong_iss: 401 (expect 401)
+2026-01-24T14:46:49-06:00 [INFO]   wrong_aud: 401 (expect 401)
+2026-01-24T14:46:49-06:00 [INFO]   missing_role_claim: 401 (expect 401 per Decision Lock §7)
+2026-01-24T14:46:49-06:00 [INFO]   insufficient_role: 403 (expect 403 per Decision Lock §7)
+2026-01-24T14:46:49-06:00 [INFO]   valid: 200 (expect 200/409)
+2026-01-24T14:46:49-06:00 [INFO] Restoring container without JWT enforcement...
+2026-01-24T14:46:53-06:00 [INFO] Waiting for http://localhost:8095/health...
+2026-01-24T14:46:55-06:00 [INFO] Service ready!
+2026-01-24T14:46:55-06:00 [TEST] SUMMARY
+2026-01-24T14:46:55-06:00 [INFO] Running hard gate checks...
+2026-01-24T14:46:55-06:00 [INFO] Auth negative gate PASSED (7/7)
+2026-01-24T14:46:55-06:00 [INFO] Streaming gate PASSED
+2026-01-24T14:46:55-06:00 [INFO] Copyleft gate PASSED (no GPL/AGPL/LGPL)
+2026-01-24T14:46:55-06:00 [INFO] HITL scope gate PASSED
+2026-01-24T14:46:55-06:00 [INFO] Tool arg validation gate PASSED
+2026-01-24T14:46:55-06:00 [INFO] Final health check...
+2026-01-24T14:46:55-06:00 [INFO] Final health: PASSED
+Completed: 2026-01-24T14:46:55-06:00
+2026-01-24T14:46:55-06:00 [INFO] ==========================================
+2026-01-24T14:46:55-06:00 [INFO] BASELINE GATES PASSED - HITL Spike verified!
+2026-01-24T14:46:55-06:00 [INFO] ==========================================
+2026-01-24T14:46:55-06:00 [INFO] Running Phase 0 + Phase 1 gates...
+2026-01-24T14:47:00-06:00 [INFO] Phase 0 + Phase 1 gates completed
+2026-01-24T14:47:00-06:00 [INFO] ==========================================
+2026-01-24T14:47:00-06:00 [INFO] ALL GATES COMPLETED
+2026-01-24T14:47:00-06:00 [INFO] ==========================================
