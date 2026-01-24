@@ -1,0 +1,73 @@
+# Lab Loop Project Profile - zakops-agent-api
+# This file locks in the working configuration for reliable Lab Loop runs
+# Version: 1.0
+
+project:
+  name: zakops-agent-api
+  description: "ZakOps Agent API - LangGraph orchestration with HITL approvals"
+
+# Environment setup
+environment:
+  venv_path: "./venv"
+  python_version: "3.12"
+  auto_activate_venv: true
+  working_dir: "/home/zaks/zakops-agent-api"
+
+# Gate configuration
+gates:
+  default_cmd: "./scripts/bring_up_tests.sh"
+  fast_cmd: "./scripts/bring_up_tests.sh"
+  full_cmd: "./scripts/bring_up_tests.sh"
+  timeout_seconds: 600
+
+# Safety limits (tuned for this project)
+limits:
+  max_files_per_cycle: 50
+  max_lines_per_cycle: 3000
+  max_uncommitted_files: 100
+  stuck_consecutive_cycles: 3
+
+# Auto-management
+auto:
+  commit_artifacts: true
+  artifact_patterns:
+    - "gate_artifacts/**/*.json"
+    - "gate_artifacts/**/*.log"
+    - "gate_artifacts/**/*.zip"
+  commit_message: "chore(gates): Auto-commit gate artifacts [skip ci]"
+  clean_before_run: true
+
+# Known flaky tests to skip (add as needed)
+skip_tests: []
+
+# Services that should be running
+required_services:
+  - name: "Agent API"
+    health_url: "http://localhost:8095/health"
+    optional: false
+  - name: "vLLM"
+    health_url: "http://localhost:8000/health"
+    optional: false
+  - name: "Langfuse"
+    health_url: "http://localhost:3001/api/public/health"
+    optional: true
+  - name: "Deal API"
+    health_url: "http://localhost:8090/health"
+    optional: true
+
+# QA configuration
+qa:
+  primary_agent: "codex"
+  fallback_agent: "gemini"
+  strict_mode: true
+
+# Notifications
+notifications:
+  email: "zaks373631@gmail.com"
+  on_pass: true
+  on_fail: true
+  on_stuck: true
+
+# Additional directories for Claude context
+claude_add_dirs:
+  - "/home/zaks/bookkeeping/docs"

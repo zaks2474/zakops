@@ -148,8 +148,14 @@ class Settings:
         self.LANGFUSE_HOST = os.getenv("LANGFUSE_HOST", "https://cloud.langfuse.com")
 
         # LangGraph Configuration
+        # Per Decision Lock: Local vLLM is primary inference lane
+        self.VLLM_BASE_URL = os.getenv("VLLM_BASE_URL", "")  # e.g., http://localhost:8000/v1
         self.OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "")
-        self.DEFAULT_LLM_MODEL = os.getenv("DEFAULT_LLM_MODEL", "gpt-5-mini")
+        # Default to local Qwen model when using vLLM, otherwise gpt-4o-mini
+        self.DEFAULT_LLM_MODEL = os.getenv(
+            "DEFAULT_LLM_MODEL",
+            "Qwen/Qwen2.5-32B-Instruct-AWQ" if os.getenv("VLLM_BASE_URL") else "gpt-4o-mini"
+        )
         self.DEFAULT_LLM_TEMPERATURE = float(os.getenv("DEFAULT_LLM_TEMPERATURE", "0.2"))
         self.MAX_TOKENS = int(os.getenv("MAX_TOKENS", "2000"))
         self.MAX_LLM_CALL_RETRIES = int(os.getenv("MAX_LLM_CALL_RETRIES", "3"))
@@ -205,6 +211,15 @@ class Settings:
         self.EVALUATION_BASE_URL = os.getenv("EVALUATION_BASE_URL", "https://api.openai.com/v1")
         self.EVALUATION_API_KEY = os.getenv("EVALUATION_API_KEY", self.OPENAI_API_KEY)
         self.EVALUATION_SLEEP_TIME = int(os.getenv("EVALUATION_SLEEP_TIME", "10"))
+
+        # HITL Configuration
+        self.HITL_APPROVAL_TIMEOUT_SECONDS = int(os.getenv("HITL_APPROVAL_TIMEOUT_SECONDS", "3600"))
+        self.HITL_MAX_PENDING_APPROVALS = int(os.getenv("HITL_MAX_PENDING_APPROVALS", "100"))
+
+        # External Service URLs (use host.docker.internal for Docker)
+        self.DEAL_API_URL = os.getenv("DEAL_API_URL", "http://host.docker.internal:8090")
+        self.RAG_REST_URL = os.getenv("RAG_REST_URL", "http://host.docker.internal:8052")
+        self.MCP_URL = os.getenv("MCP_URL", "http://host.docker.internal:9100")
 
         # Apply environment-specific settings
         self.apply_environment_settings()

@@ -3,31 +3,33 @@ version: '3.8'
 services:
   db:
     image: pgvector/pgvector:pg16
+    container_name: zakops-agent-db
     environment:
-      - POSTGRES_DB=${POSTGRES_DB}
-      - POSTGRES_USER=${POSTGRES_USER}
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
-    ports:
-      - "5432:5432"
+      - POSTGRES_DB=${POSTGRES_DB:-zakops_agent}
+      - POSTGRES_USER=${POSTGRES_USER:-agent}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-agent_secure_pass_123}
+    # No host port binding - DB only accessible via internal agent-network
+    # per Decision Lock (security: no external DB access)
     volumes:
-      - postgres-data:/var/lib/postgresql/data
+      - agent-postgres-data:/var/lib/postgresql/data
+      - ./migrations:/docker-entrypoint-initdb.d:ro
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-agent} -d ${POSTGRES_DB:-zakops_agent}"]
       interval: 10s
       timeout: 5s
       retries: 5
     restart: always
     networks:
-      - monitoring
+      - agent-network
 
-  # Single API service with dynamic environment
-  app:
+  agent-api:
     build:
       context: .
       args:
         APP_ENV: ${APP_ENV:-development}
+    container_name: zakops-agent-api
     ports:
-      - "8000:8000"
+      - "8095:8000"  # External 8095, internal 8000
     volumes:
       - ./app:/app/app
       - ./logs:/app/logs
@@ -35,67 +37,79 @@ services:
       - .env.${APP_ENV:-development}
     environment:
       - APP_ENV=${APP_ENV:-development}
-      - JWT_SECRET_KEY=${JWT_SECRET_KEY:-supersecretkeythatshouldbechangedforproduction}
+      - JWT_SECRET_KEY=${JWT_SECRET_KEY}
+      # Override POSTGRES_HOST for internal Docker networking
+      - POSTGRES_HOST=db
+      - POSTGRES_PORT=5432
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     depends_on:
       db:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health').read()"]
       interval: 30s
       timeout: 10s
       retries: 3
-      start_period: 10s
+      start_period: 15s
     restart: on-failure
     networks:
-      - monitoring
+      - agent-network
 
-  # Prometheus
+  # Prometheus (optional for metrics)
   prometheus:
     image: prom/prometheus:latest
+    container_name: zakops-agent-prometheus
     ports:
-      - "9090:9090"
+      - "9091:9090"  # External 9091 to avoid conflict
     volumes:
       - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
     command:
       - '--config.file=/etc/prometheus/prometheus.yml'
     networks:
-      - monitoring
+      - agent-network
     restart: always
+    profiles:
+      - monitoring
 
-  # Grafana
+  # Grafana (optional for dashboards)
   grafana:
     image: grafana/grafana:latest
+    container_name: zakops-agent-grafana
     ports:
-      - "3000:3000"
+      - "3002:3000"  # External 3002 (3001 reserved for Langfuse per Decision Lock)
     volumes:
-      - grafana-storage:/var/lib/grafana
+      - agent-grafana-storage:/var/lib/grafana
       - ./grafana/dashboards:/etc/grafana/provisioning/dashboards
-      - ./grafana/dashboards/dashboards.yml:/etc/grafana/provisioning/dashboards/dashboards.yml
     environment:
       - GF_SECURITY_ADMIN_PASSWORD=admin
       - GF_USERS_ALLOW_SIGN_UP=false
     networks:
-      - monitoring
+      - agent-network
     restart: always
+    profiles:
+      - monitoring
 
   cadvisor:
     image: gcr.io/cadvisor/cadvisor:latest
+    container_name: zakops-agent-cadvisor
     ports:
-      - "8080:8080"
+      - "8081:8080"  # External 8081 to avoid conflict
     volumes:
       - /:/rootfs:ro
       - /var/run:/var/run:rw
       - /sys:/sys:ro
       - /var/lib/docker/:/var/lib/docker:ro
     networks:
-      - monitoring
+      - agent-network
     restart: always
-
+    profiles:
+      - monitoring
 
 networks:
-  monitoring:
+  agent-network:
     driver: bridge
 
 volumes:
-  grafana-storage:
-  postgres-data:
+  agent-grafana-storage:
+  agent-postgres-data:

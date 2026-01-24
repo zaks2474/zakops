@@ -22,6 +22,7 @@ from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 
 from app.api.v1.api import api_router
+from app.api.v1.agent import router as agent_router
 from app.core.config import settings
 from app.core.limiter import limiter
 from app.core.logging import logger
@@ -121,6 +122,8 @@ app.add_middleware(
 
 # Include API router
 app.include_router(api_router, prefix=settings.API_V1_STR)
+# ZakOps canonical endpoints are rooted at `/agent/*` per Master Plan v2.
+app.include_router(agent_router, prefix="/agent", tags=["agent"])
 
 
 @app.get("/")

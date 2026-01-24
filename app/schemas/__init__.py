@@ -7,7 +7,15 @@ from app.schemas.chat import (
     Message,
     StreamResponse,
 )
-from app.schemas.graph import GraphState
+from app.schemas.graph import GraphState, PendingToolCall
+from app.schemas.agent import (
+    AgentInvokeRequest,
+    AgentInvokeResponse,
+    ApprovalActionRequest,
+    ApprovalActionResponse,
+    ApprovalListResponse,
+    PendingApproval,
+)
 
 __all__ = [
     "Token",
@@ -16,4 +24,11 @@ __all__ = [
     "Message",
     "StreamResponse",
     "GraphState",
+    "PendingToolCall",
+    "AgentInvokeRequest",
+    "AgentInvokeResponse",
+    "ApprovalActionRequest",
+    "ApprovalActionResponse",
+    "ApprovalListResponse",
+    "PendingApproval",
 ]

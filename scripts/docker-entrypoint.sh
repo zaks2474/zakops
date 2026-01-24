@@ -49,7 +49,18 @@ else
 fi
 
 # Check required sensitive environment variables
-required_vars=("JWT_SECRET_KEY" "OPENAI_API_KEY")
+# Per Decision Lock: Local vLLM is primary inference; OPENAI_API_KEY is optional
+required_vars=("JWT_SECRET_KEY")
+
+# In production, require vLLM config (fail closed if no LLM backend configured)
+if [[ "${APP_ENV:-development}" == "production" ]]; then
+    # Must have either VLLM_BASE_URL or OPENAI_API_KEY in production
+    if [[ -z "${VLLM_BASE_URL:-}" ]] && [[ -z "${OPENAI_API_KEY:-}" ]]; then
+        echo "ERROR: Production requires either VLLM_BASE_URL or OPENAI_API_KEY"
+        exit 1
+    fi
+fi
+
 missing_vars=()
 
 for var in "${required_vars[@]}"; do
@@ -65,6 +76,18 @@ if [[ ${#missing_vars[@]} -gt 0 ]]; then
     done
     echo "Please provide these variables through environment or .env files."
     exit 1
+fi
+
+# Fail closed on weak/default JWT secrets when JWT enforcement is enabled or in production.
+if [[ "${AGENT_JWT_ENFORCE:-false}" == "true" ]] || [[ "${APP_ENV:-development}" == "production" ]]; then
+    if [[ ${#JWT_SECRET_KEY} -lt 32 ]]; then
+        echo "ERROR: JWT_SECRET_KEY must be at least 32 characters when AGENT_JWT_ENFORCE=true or APP_ENV=production"
+        exit 1
+    fi
+    if [[ "${JWT_SECRET_KEY}" == "supersecretkeythatshouldbechangedforproduction" ]]; then
+        echo "ERROR: JWT_SECRET_KEY is set to an insecure default; set a real secret"
+        exit 1
+    fi
 fi
 
 # Print final environment info

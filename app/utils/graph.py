@@ -1,7 +1,12 @@
 """This file contains the graph utilities for the application."""
 
 from langchain_core.language_models.chat_models import BaseChatModel
-from langchain_core.messages import BaseMessage
+from langchain_core.messages import (
+    AIMessage,
+    BaseMessage,
+    HumanMessage,
+    SystemMessage,
+)
 from langchain_core.messages import trim_messages as _trim_messages
 
 from app.core.config import settings
@@ -67,6 +72,50 @@ def process_llm_response(response: BaseMessage) -> BaseMessage:
     return response
 
 
+def _approx_token_counter(messages: list[BaseMessage]) -> int:
+    """Approximate token counter for non-OpenAI model names.
+
+    LangChain's ChatOpenAI token counting can raise NotImplementedError for
+    unknown model names (e.g., Qwen served via vLLM). For trimming purposes,
+    an approximate counter is sufficient and avoids hard failures.
+    """
+    total_chars = 0
+    for message in messages:
+        content = getattr(message, "content", "")
+        total_chars += len(content) if isinstance(content, str) else len(str(content))
+
+    # Rough heuristic: ~4 chars per token + small per-message overhead.
+    return (total_chars // 4) + (len(messages) * 4)
+
+
+def _to_schema_messages(messages: list[BaseMessage] | list[dict] | list[Message]) -> list[Message]:
+    """Normalize mixed message representations into `app.schemas.Message`."""
+    normalized: list[Message] = []
+    for message in messages:
+        if isinstance(message, Message):
+            normalized.append(message)
+            continue
+
+        if isinstance(message, dict):
+            normalized.append(Message.model_validate(message))
+            continue
+
+        role: str
+        if isinstance(message, HumanMessage):
+            role = "user"
+        elif isinstance(message, AIMessage):
+            role = "assistant"
+        elif isinstance(message, SystemMessage):
+            role = "system"
+        else:
+            role = "assistant"
+
+        content = message.content
+        normalized.append(Message(role=role, content=content if isinstance(content, str) else str(content)))
+
+    return normalized
+
+
 def prepare_messages(messages: list[Message], llm: BaseChatModel, system_prompt: str) -> list[Message]:
     """Prepare the messages for the LLM.
 
@@ -88,6 +137,21 @@ def prepare_messages(messages: list[Message], llm: BaseChatModel, system_prompt:
             include_system=False,
             allow_partial=False,
         )
+    except NotImplementedError as e:
+        logger.warning(
+            "token_counting_not_implemented_fallback_to_approx",
+            error=str(e),
+            message_count=len(messages),
+        )
+        trimmed_messages = _trim_messages(
+            dump_messages(messages),
+            strategy="last",
+            token_counter=_approx_token_counter,
+            max_tokens=settings.MAX_TOKENS,
+            start_on="human",
+            include_system=False,
+            allow_partial=False,
+        )
     except ValueError as e:
         # Handle unrecognized content blocks (e.g., reasoning blocks from GPT-5)
         if "Unrecognized content block type" in str(e):
@@ -101,4 +165,4 @@ def prepare_messages(messages: list[Message], llm: BaseChatModel, system_prompt:
         else:
             raise
 
-    return [Message(role="system", content=system_prompt)] + trimmed_messages
+    return [Message(role="system", content=system_prompt)] + _to_schema_messages(trimmed_messages)

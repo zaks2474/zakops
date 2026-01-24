@@ -3,8 +3,12 @@
 This module provides structured logging configuration using structlog,
 with environment-specific formatters and handlers. It supports both
 console-friendly development logging and JSON-formatted production logging.
+
+Per Decision Lock §5: NEVER log raw prompts/responses (hash + length only).
+The sanitize_content_for_log function provides safe logging of sensitive content.
 """
 
+import hashlib
 import json
 import logging
 import sys
@@ -16,6 +20,7 @@ from typing import (
     Dict,
     List,
     Optional,
+    Union,
 )
 
 import structlog
@@ -24,6 +29,67 @@ from app.core.config import (
     Environment,
     settings,
 )
+
+
+# Fields that should be sanitized (never logged raw)
+SENSITIVE_FIELDS = {
+    "content", "query", "prompt", "response", "message", "text",
+    "tool_args", "args", "result", "tool_result", "output",
+}
+
+
+def sanitize_content_for_log(content: Union[str, Dict, List, Any], max_preview: int = 0) -> Dict[str, Any]:
+    """Sanitize content for safe logging per Decision Lock §5.
+
+    NEVER log raw prompts/responses. Returns hash + length only.
+
+    Args:
+        content: The content to sanitize (string, dict, list, or any)
+        max_preview: If > 0, include first N chars of preview (dev only)
+
+    Returns:
+        Dict with hash, length, and optionally preview
+    """
+    if content is None:
+        return {"hash": "null", "length": 0}
+
+    # Convert to string for hashing
+    if isinstance(content, (dict, list)):
+        content_str = json.dumps(content, sort_keys=True, ensure_ascii=False)
+    else:
+        content_str = str(content)
+
+    content_hash = hashlib.sha256(content_str.encode("utf-8")).hexdigest()[:16]
+
+    result = {
+        "hash": content_hash,
+        "length": len(content_str),
+    }
+
+    # Only include preview in development (never in production)
+    if max_preview > 0 and settings.ENVIRONMENT == Environment.DEVELOPMENT:
+        result["preview"] = content_str[:max_preview] + ("..." if len(content_str) > max_preview else "")
+
+    return result
+
+
+def sanitize_event_dict(logger: Any, method_name: str, event_dict: Dict[str, Any]) -> Dict[str, Any]:
+    """Structlog processor that sanitizes sensitive fields.
+
+    Per Decision Lock §5: NEVER log raw prompts/responses.
+
+    Args:
+        logger: The logger instance
+        method_name: The logging method name
+        event_dict: The event dictionary
+
+    Returns:
+        Sanitized event dictionary
+    """
+    for key in list(event_dict.keys()):
+        if key.lower() in SENSITIVE_FIELDS:
+            event_dict[key] = sanitize_content_for_log(event_dict[key])
+    return event_dict
 
 # Ensure log directory exists
 settings.LOG_DIR.mkdir(parents=True, exist_ok=True)
@@ -144,6 +210,8 @@ def get_structlog_processors(include_file_info: bool = True) -> List[Any]:
         structlog.processors.UnicodeDecoder(),
         # Add context variables (user_id, session_id, etc.) to all log events
         add_context_to_event_dict,
+        # Decision Lock §5: Sanitize sensitive content (hash + length only)
+        sanitize_event_dict,
     ]
 
     # Add callsite parameters if file info is requested

@@ -31,65 +31,123 @@ from app.core.config import (
 from app.core.logging import logger
 
 
+def _create_llm_instance(
+    model: str,
+    temperature: Optional[float] = None,
+    max_tokens: Optional[int] = None,
+    **kwargs
+) -> ChatOpenAI:
+    """Create an LLM instance with vLLM or OpenAI backend.
+
+    Per Decision Lock: Local vLLM is primary inference lane.
+    Falls back to OpenAI if VLLM_BASE_URL is not set.
+    """
+    llm_kwargs = {
+        "model": model,
+        "max_tokens": max_tokens or settings.MAX_TOKENS,
+    }
+
+    if temperature is not None:
+        llm_kwargs["temperature"] = temperature
+
+    # Use vLLM if configured (Decision Lock: local-first)
+    if settings.VLLM_BASE_URL:
+        llm_kwargs["base_url"] = settings.VLLM_BASE_URL
+        llm_kwargs["api_key"] = "not-needed"  # vLLM doesn't require API key
+        logger.debug("using_vllm_backend", base_url=settings.VLLM_BASE_URL, model=model)
+    elif settings.OPENAI_API_KEY:
+        llm_kwargs["api_key"] = settings.OPENAI_API_KEY
+        logger.debug("using_openai_backend", model=model)
+    else:
+        # No backend configured - will fail at runtime
+        logger.warning("no_llm_backend_configured", model=model)
+        llm_kwargs["api_key"] = "not-configured"
+
+    llm_kwargs.update(kwargs)
+    return ChatOpenAI(**llm_kwargs)
+
+
 class LLMRegistry:
     """Registry of available LLM models with pre-initialized instances.
 
     This class maintains a list of LLM configurations and provides
     methods to retrieve them by name with optional argument overrides.
+
+    Per Decision Lock: Primary inference is local vLLM (Qwen2.5-32B-Instruct-AWQ).
+    OpenAI models are fallback only.
     """
 
     # Class-level variable containing all available LLM models
-    LLMS: List[Dict[str, Any]] = [
-        {
-            "name": "gpt-5-mini",
-            "llm": ChatOpenAI(
-                model="gpt-5-mini",
-                api_key=settings.OPENAI_API_KEY,
-                max_tokens=settings.MAX_TOKENS,
-                reasoning={"effort": "low"},
-            ),
-        },
-        {
-            "name": "gpt-5",
-            "llm": ChatOpenAI(
-                model="gpt-5",
-                api_key=settings.OPENAI_API_KEY,
-                max_tokens=settings.MAX_TOKENS,
-                reasoning={"effort": "medium"},
-            ),
-        },
-        {
-            "name": "gpt-5-nano",
-            "llm": ChatOpenAI(
-                model="gpt-5-nano",
-                api_key=settings.OPENAI_API_KEY,
-                max_tokens=settings.MAX_TOKENS,
-                reasoning={"effort": "minimal"},
-            ),
-        },
-        {
-            "name": "gpt-4o",
-            "llm": ChatOpenAI(
-                model="gpt-4o",
-                temperature=settings.DEFAULT_LLM_TEMPERATURE,
-                api_key=settings.OPENAI_API_KEY,
-                max_tokens=settings.MAX_TOKENS,
-                top_p=0.95 if settings.ENVIRONMENT == Environment.PRODUCTION else 0.8,
-                presence_penalty=0.1 if settings.ENVIRONMENT == Environment.PRODUCTION else 0.0,
-                frequency_penalty=0.1 if settings.ENVIRONMENT == Environment.PRODUCTION else 0.0,
-            ),
-        },
-        {
-            "name": "gpt-4o-mini",
-            "llm": ChatOpenAI(
-                model="gpt-4o-mini",
-                temperature=settings.DEFAULT_LLM_TEMPERATURE,
-                api_key=settings.OPENAI_API_KEY,
-                max_tokens=settings.MAX_TOKENS,
-                top_p=0.9 if settings.ENVIRONMENT == Environment.PRODUCTION else 0.8,
-            ),
-        },
-    ]
+    # Lazy initialization to allow config to load first
+    _llms: Optional[List[Dict[str, Any]]] = None
+
+    @classmethod
+    def _init_llms(cls) -> List[Dict[str, Any]]:
+        """Initialize LLM instances lazily."""
+        if cls._llms is not None:
+            return cls._llms
+
+        llms = []
+
+        # Add vLLM models if configured (primary per Decision Lock)
+        if settings.VLLM_BASE_URL:
+            llms.extend([
+                {
+                    "name": "Qwen/Qwen2.5-32B-Instruct-AWQ",
+                    "llm": _create_llm_instance(
+                        model="Qwen/Qwen2.5-32B-Instruct-AWQ",
+                        temperature=settings.DEFAULT_LLM_TEMPERATURE,
+                    ),
+                },
+                {
+                    "name": "Qwen/Qwen2.5-7B-Instruct-AWQ",
+                    "llm": _create_llm_instance(
+                        model="Qwen/Qwen2.5-7B-Instruct-AWQ",
+                        temperature=settings.DEFAULT_LLM_TEMPERATURE,
+                    ),
+                },
+            ])
+
+        # Add OpenAI models if API key available (fallback)
+        if settings.OPENAI_API_KEY:
+            llms.extend([
+                {
+                    "name": "gpt-4o",
+                    "llm": _create_llm_instance(
+                        model="gpt-4o",
+                        temperature=settings.DEFAULT_LLM_TEMPERATURE,
+                        top_p=0.95 if settings.ENVIRONMENT == Environment.PRODUCTION else 0.8,
+                        presence_penalty=0.1 if settings.ENVIRONMENT == Environment.PRODUCTION else 0.0,
+                        frequency_penalty=0.1 if settings.ENVIRONMENT == Environment.PRODUCTION else 0.0,
+                    ),
+                },
+                {
+                    "name": "gpt-4o-mini",
+                    "llm": _create_llm_instance(
+                        model="gpt-4o-mini",
+                        temperature=settings.DEFAULT_LLM_TEMPERATURE,
+                        top_p=0.9 if settings.ENVIRONMENT == Environment.PRODUCTION else 0.8,
+                    ),
+                },
+            ])
+
+        # Fallback: create a placeholder that will fail at runtime with clear error
+        if not llms:
+            logger.error("no_llm_backend_configured",
+                        hint="Set VLLM_BASE_URL for local inference or OPENAI_API_KEY for cloud")
+            llms.append({
+                "name": "unconfigured",
+                "llm": _create_llm_instance(model="unconfigured"),
+            })
+
+        cls._llms = llms
+        return llms
+
+    @classmethod
+    @property
+    def LLMS(cls) -> List[Dict[str, Any]]:
+        """Get the list of available LLMs (lazy initialization)."""
+        return cls._init_llms()
 
     @classmethod
     def get(cls, model_name: str, **kwargs) -> BaseChatModel:
@@ -105,15 +163,17 @@ class LLMRegistry:
         Raises:
             ValueError: If model_name is not found in LLMS
         """
+        llms = cls._init_llms()
+
         # Find the model in the registry
         model_entry = None
-        for entry in cls.LLMS:
+        for entry in llms:
             if entry["name"] == model_name:
                 model_entry = entry
                 break
 
         if not model_entry:
-            available_models = [entry["name"] for entry in cls.LLMS]
+            available_models = [entry["name"] for entry in llms]
             raise ValueError(
                 f"model '{model_name}' not found in registry. available models: {', '.join(available_models)}"
             )
@@ -121,7 +181,7 @@ class LLMRegistry:
         # If user provides kwargs, create a new instance with those args
         if kwargs:
             logger.debug("creating_llm_with_custom_args", model_name=model_name, custom_args=list(kwargs.keys()))
-            return ChatOpenAI(model=model_name, api_key=settings.OPENAI_API_KEY, **kwargs)
+            return _create_llm_instance(model=model_name, **kwargs)
 
         # Return the default instance
         logger.debug("using_default_llm_instance", model_name=model_name)
@@ -134,7 +194,7 @@ class LLMRegistry:
         Returns:
             List of LLM names
         """
-        return [entry["name"] for entry in cls.LLMS]
+        return [entry["name"] for entry in cls._init_llms()]
 
     @classmethod
     def get_model_at_index(cls, index: int) -> Dict[str, Any]:
@@ -146,9 +206,10 @@ class LLMRegistry:
         Returns:
             Model entry dict
         """
-        if 0 <= index < len(cls.LLMS):
-            return cls.LLMS[index]
-        return cls.LLMS[0]  # Wrap around to first model
+        llms = cls._init_llms()
+        if 0 <= index < len(llms):
+            return llms[index]
+        return llms[0]  # Wrap around to first model
 
 
 class LLMService:
@@ -178,7 +239,7 @@ class LLMService:
         except (ValueError, Exception) as e:
             # Default model not found, use first model
             self._current_model_index = 0
-            self._llm = LLMRegistry.LLMS[0]["llm"]
+            self._llm = LLMRegistry._init_llms()[0]["llm"]
             logger.warning(
                 "default_model_not_found_using_first",
                 requested=settings.DEFAULT_LLM_MODEL,
@@ -192,7 +253,7 @@ class LLMService:
         Returns:
             Next model index (wraps around to 0 if at end)
         """
-        total_models = len(LLMRegistry.LLMS)
+        total_models = len(LLMRegistry._init_llms())
         next_index = (self._current_model_index + 1) % total_models
         return next_index
 
@@ -299,7 +360,7 @@ class LLMService:
                 raise
 
         # Track which models we've tried to prevent infinite loops
-        total_models = len(LLMRegistry.LLMS)
+        total_models = len(LLMRegistry._init_llms())
         models_tried = 0
         starting_index = self._current_model_index
         last_error = None
@@ -312,7 +373,7 @@ class LLMService:
                 last_error = e
                 models_tried += 1
 
-                current_model_name = LLMRegistry.LLMS[self._current_model_index]["name"]
+                current_model_name = LLMRegistry._init_llms()[self._current_model_index]["name"]
                 logger.error(
                     "llm_call_failed_after_retries",
                     model=current_model_name,
@@ -326,7 +387,7 @@ class LLMService:
                     logger.error(
                         "all_models_failed",
                         models_tried=models_tried,
-                        starting_model=LLMRegistry.LLMS[starting_index]["name"],
+                        starting_model=LLMRegistry._init_llms()[starting_index]["name"],
                     )
                     break
 
