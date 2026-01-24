@@ -1,5 +1,5 @@
 Loading environment: Environment.DEVELOPMENT
-[2m2026-01-24T20:47:00.767948Z[0m [[32m[1minfo     [0m] [1mlogging_initialized           [0m [[0m[1m[34mapp.core.logging[0m][0m [36mdebug[0m=[35mTrue[0m [36menvironment[0m=[35mdevelopment[0m [36mfilename[0m=[35mlogging.py[0m [36mfunc_name[0m=[35m<module>[0m [36mlineno[0m=[35m300[0m [36mlog_format[0m=[35mconsole[0m [36mlog_level[0m=[35mDEBUG[0m [36mmodule[0m=[35mlogging[0m [36mpathname[0m=[35m/app/app/core/logging.py[0m
+[2m2026-01-24T23:02:14.799455Z[0m [[32m[1minfo     [0m] [1mlogging_initialized           [0m [[0m[1m[34mapp.core.logging[0m][0m [36mdebug[0m=[35mTrue[0m [36menvironment[0m=[35mdevelopment[0m [36mfilename[0m=[35mlogging.py[0m [36mfunc_name[0m=[35m<module>[0m [36mlineno[0m=[35m300[0m [36mlog_format[0m=[35mconsole[0m [36mlog_level[0m=[35mDEBUG[0m [36mmodule[0m=[35mlogging[0m [36mpathname[0m=[35m/app/app/core/logging.py[0m
 {
   "version": "1.0.0",
   "services": {

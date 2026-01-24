@@ -1,6 +1,6 @@
 === Concurrent Approval Test ===
-Timestamp: 2026-01-24T14:46:33-06:00
-Approval ID: e43fa5a1-986d-40a8-8ae2-3692b0f7cc9c
+Timestamp: 2026-01-24T17:01:41-06:00
+Approval ID: 569f259f-463b-47f9-8987-01a128d3dd4a
 HTTP Codes:
 409
 409
@@ -20,8 +20,8 @@ HTTP Codes:
 409
 409
 409
-409
 200
+409
 
 Summary:
   200 (success): 1

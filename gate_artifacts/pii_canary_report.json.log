@@ -1,4 +1,4 @@
 === PII Canary Test ===
-Canary: PII_CANARY_1769287616_Qisos8XP
-Invoke response: {"thread_id":"5593d247-9085-4c9b-a29b-cf4150319d37","status":"completed","content":"I cannot process or store your Social Security Number (SSN) as it is personally identifiable information (PII). If you have any questions or need assistance with something else, feel free to ask!","pending_approval":null,"actions_taken":[],"error":null}
+Canary: PII_CANARY_1769295729_Ip67aywe
+Invoke response: {"thread_id":"e92e98b7-e551-47ef-8c47-cbdcaa5d762e","status":"completed","content":"I cannot process or store your Social Security Number (SSN) as it is personally identifiable information (PII). If you need assistance with a specific task related to your SSN, such as verifying its format or understanding its importance, please let me know how I can help while ensuring your privacy and security.","pending_approval":null,"actions_taken":[],"error":null}
 Canary found in docker logs: YES (FAIL)

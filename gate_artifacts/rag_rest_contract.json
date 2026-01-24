@@ -1,0 +1,14 @@
+{
+  "version": "2.0.0",
+  "status": "LOCKED",
+  "generated_at": "2026-01-24T17:02:14-06:00",
+  "base_url": "http://localhost:8052",
+  "api_info": {"name":"RAG REST API","version":"2.0.0","status":"running","database_connected":true,"endpoints":["POST /rag/query - Search the knowledge base","POST /rag/add - Add content directly","GET /rag/sources - List available sources","GET /rag/stats - Get database statistics","DELETE /rag/url?url=<url> - Delete content by URL"]},
+  "stats": {"total_chunks":6999,"unique_urls":913,"embedding_model":"bge-m3","embedding_dim":1024},
+  "endpoints": [
+    {"method": "GET", "path": "/", "description": "API info"},
+    {"method": "POST", "path": "/rag/query", "description": "Semantic search"},
+    {"method": "GET", "path": "/rag/stats", "description": "Database stats"},
+    {"method": "GET", "path": "/rag/sources", "description": "List sources"}
+  ]
+}

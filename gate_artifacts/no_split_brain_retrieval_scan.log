@@ -1,0 +1,35 @@
+=== No Split-Brain Retrieval Scan ===
+Timestamp: 2026-01-24T17:02:16-06:00
+Scan directory: ./app
+
+Scanning for forbidden patterns...
+  Checking: pgvector
+  Checking: embedding_table
+  Checking: deal_embeddings
+  Checking: vector_search
+  Checking: similarity_search
+  Checking: .search.*embedding
+  Checking: CREATE.*USING.*ivfflat
+  Checking: CREATE.*USING.*hnsw
+  Checking: <->.*::vector
+  Checking: ::vector
+  Checking: similarity.*pgvector
+
+=== Verification of RAG REST Usage ===
+RAG REST references found:
+./app/core/langgraph/tools/deal_tools.py:19:RAG_REST_URL = os.getenv("RAG_REST_URL", "http://host.docker.internal:8052")
+./app/core/langgraph/tools/deal_tools.py:188:                f"{RAG_REST_URL}/search",
+./app/core/resilience.py:105:        base_url="${RAG_REST_URL:-http://host.docker.internal:8052}",
+./app/core/config.py:221:        self.RAG_REST_URL = os.getenv("RAG_REST_URL", "http://host.docker.internal:8052")
+./app/services/rag_rest.py:20:RAG_REST_URL = getattr(settings, 'RAG_REST_URL', os.getenv("RAG_REST_URL", "http://host.docker.internal:8052"))
+./app/services/rag_rest.py:21:RAG_REST_TIMEOUT = float(os.getenv("RAG_REST_TIMEOUT", "30.0"))
+./app/services/rag_rest.py:57:        self.base_url = base_url or RAG_REST_URL
+./app/services/rag_rest.py:58:        self.timeout = timeout or RAG_REST_TIMEOUT
+
+RAG REST client module: PRESENT (app/services/rag_rest.py)
+
+=== Summary ===
+Violations found: 0
+
+NO_SPLIT_BRAIN: PASSED
+All retrieval goes through RAG REST :8052 (Decision Lock compliant)

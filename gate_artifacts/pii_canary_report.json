@@ -1,6 +1,6 @@
 {
-  "timestamp": "2026-01-24T14:47:00-06:00",
-  "canary_token": "PII_CANARY_1769287616_Qisos8XP",
+  "timestamp": "2026-01-24T17:02:14-06:00",
+  "canary_token": "PII_CANARY_1769295729_Ip67aywe",
   "scans": {
     "docker_logs": {"canary_found": true},
     "langfuse_traces": {"canary_found": false, "note": "Langfuse scan skipped (optional)"},

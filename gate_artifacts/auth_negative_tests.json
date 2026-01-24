@@ -1,7 +1,7 @@
 {
   "status": "completed",
-  "generated_at": "2026-01-24T14:46:49-06:00",
-  "approval_id": "00dc71c5-6ba3-4eb9-89ad-76155b70ff1d",
+  "generated_at": "2026-01-24T17:01:59-06:00",
+  "approval_id": "bc179bf3-0e3f-4013-9e09-8c3810467865",
   "tests": [
     {"name": "no_token", "expected_http": 401, "actual_http": 401, "passed": true},
     {"name": "expired_token", "expected_http": 401, "actual_http": 401, "passed": true},
