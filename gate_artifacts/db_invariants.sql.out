@@ -1,10 +1,10 @@
 === DB Invariants ===
-Timestamp: 2026-01-24T14:41:26-06:00
+Timestamp: 2026-01-24T14:43:48-06:00
 
--- Approval row (id=053810ff-241a-4463-baf0-96fc81f7f17f)
+-- Approval row (id=e771cc10-8735-4e54-a680-f26d641b9d88)
                   id                  |    tool_name    | status  |                                                    idempotency_key                                                    |          created_at           |          expires_at           
 --------------------------------------+-----------------+---------+-----------------------------------------------------------------------------------------------------------------------+-------------------------------+-------------------------------
- 053810ff-241a-4463-baf0-96fc81f7f17f | transition_deal | pending | cd2c708b-7143-41b3-9f04-4f778a820032:transition_deal:f33e0e594f304a5f1fa8d31ae655a1d3f36dc1de5a88350560844b8e3871646e | 2026-01-24 20:41:26.624843+00 | 2026-01-24 21:41:26.620481+00
+ e771cc10-8735-4e54-a680-f26d641b9d88 | transition_deal | pending | f7f130f8-4026-4205-a8a9-755c8f7c43ab:transition_deal:f33e0e594f304a5f1fa8d31ae655a1d3f36dc1de5a88350560844b8e3871646e | 2026-01-24 20:43:48.291753+00 | 2026-01-24 21:43:48.288284+00
 (1 row)
 
 
@@ -20,7 +20,7 @@ Timestamp: 2026-01-24T14:41:26-06:00
  a6ec13eb-d304-413d-8d2f-f6ef739b0520 | transition_deal | pending | 2026-01-23 16:40:31.567747+00
  7fbb8aee-0c68-4b3c-a4d6-994574024503 | transition_deal | pending | 2026-01-23 17:16:52.95346+00
  ca7c84d0-b92d-4c9b-ab31-15f0c3ff28d3 | transition_deal | pending | 2026-01-23 17:20:53.786089+00
- 053810ff-241a-4463-baf0-96fc81f7f17f | transition_deal | pending | 2026-01-24 20:41:26.624843+00
+ e771cc10-8735-4e54-a680-f26d641b9d88 | transition_deal | pending | 2026-01-24 20:43:48.291753+00
 (10 rows)
 
 
@@ -34,14 +34,14 @@ Timestamp: 2026-01-24T14:41:26-06:00
 -- Checkpoint count
  checkpoint_count 
 ------------------
-              180
+              198
 (1 row)
 
 
 -- Checkpoint blobs count (if table exists)
  blob_count 
 ------------
-        288
+        316
 (1 row)
 
 
@@ -51,13 +51,13 @@ Timestamp: 2026-01-24T14:41:26-06:00
 (0 rows)
 
 
--- Audit log for approval 053810ff-241a-4463-baf0-96fc81f7f17f
+-- Audit log for approval e771cc10-8735-4e54-a680-f26d641b9d88
         event_type        |  actor_id  |          created_at           
 --------------------------+------------+-------------------------------
- approval_claimed         | approver-1 | 2026-01-24 20:41:27.286834+00
- tool_execution_started   | approver-1 | 2026-01-24 20:41:27.297309+00
- tool_execution_completed | approver-1 | 2026-01-24 20:41:27.311881+00
- approval_approved        | approver-1 | 2026-01-24 20:41:27.311962+00
+ approval_claimed         | approver-1 | 2026-01-24 20:43:48.818976+00
+ tool_execution_started   | approver-1 | 2026-01-24 20:43:48.833117+00
+ tool_execution_completed | approver-1 | 2026-01-24 20:43:48.84536+00
+ approval_approved        | approver-1 | 2026-01-24 20:43:48.84542+00
 (4 rows)
 
 
@@ -69,56 +69,56 @@ Timestamp: 2026-01-24T14:41:26-06:00
 
 
 === Audit Log Verification ===
-Timestamp: 2026-01-24T14:41:37-06:00
+Timestamp: 2026-01-24T14:43:58-06:00
 
 -- Audit log event counts by type
         event_type        | cnt 
 --------------------------+-----
- tool_execution_completed |  36
- approval_claimed         |  36
- tool_execution_started   |  36
- approval_approved        |  36
+ tool_execution_completed |  40
+ approval_claimed         |  40
+ tool_execution_started   |  40
+ approval_approved        |  40
 (4 rows)
 
 
 -- Recent audit events (last 20)
                   id                  |        event_type        |     actor_id      |             approval_id              |          created_at           
 --------------------------------------+--------------------------+-------------------+--------------------------------------+-------------------------------
+ 37fb0eb3-e549-405b-ab2f-bcba7933f206 | approval_approved        | approver-2        | b0fe8d60-fae9-43f3-ac1e-733b17f2c748 | 2026-01-24 20:43:57.914187+00
+ 4ef2aa78-00d1-4043-bcdc-690180a765f3 | tool_execution_completed | approver-2        | b0fe8d60-fae9-43f3-ac1e-733b17f2c748 | 2026-01-24 20:43:57.914126+00
+ 818ee524-e4a0-4388-b9da-125c509c2395 | tool_execution_started   | approver-2        | b0fe8d60-fae9-43f3-ac1e-733b17f2c748 | 2026-01-24 20:43:57.85909+00
+ 57feb30a-28f8-4e86-b45a-80a623822e47 | approval_claimed         | approver-2        | b0fe8d60-fae9-43f3-ac1e-733b17f2c748 | 2026-01-24 20:43:57.851857+00
+ 77c0913c-34da-4fd6-ad3b-9ae28671f732 | approval_approved        | recovery-approver | 3375e5bd-dfa6-47e4-be83-923cdebf4ea7 | 2026-01-24 20:43:55.882671+00
+ a8b632a5-5d61-444a-8a1b-d4b2b13e3c40 | tool_execution_completed | recovery-approver | 3375e5bd-dfa6-47e4-be83-923cdebf4ea7 | 2026-01-24 20:43:55.882607+00
+ a09ecfdd-b48e-4095-864f-9d2aca5091fc | tool_execution_started   | recovery-approver | 3375e5bd-dfa6-47e4-be83-923cdebf4ea7 | 2026-01-24 20:43:55.849402+00
+ fb822b7a-ac86-431e-b412-92b0927db03d | approval_claimed         | recovery-approver | 3375e5bd-dfa6-47e4-be83-923cdebf4ea7 | 2026-01-24 20:43:55.838137+00
+ 1bcf6c18-60d5-4b46-bf34-73437a9c2c72 | approval_approved        | approver-1        | e771cc10-8735-4e54-a680-f26d641b9d88 | 2026-01-24 20:43:48.84542+00
+ bd9c8916-c6a0-4b42-ae50-5dbab6eef118 | tool_execution_completed | approver-1        | e771cc10-8735-4e54-a680-f26d641b9d88 | 2026-01-24 20:43:48.84536+00
+ 4c87de06-a698-4dd4-871a-4f8e4aed1ecb | tool_execution_started   | approver-1        | e771cc10-8735-4e54-a680-f26d641b9d88 | 2026-01-24 20:43:48.833117+00
+ 629ef623-ba95-4742-899c-9a774d01a541 | approval_claimed         | approver-1        | e771cc10-8735-4e54-a680-f26d641b9d88 | 2026-01-24 20:43:48.818976+00
+ 60b8470a-f273-4bfd-bbaa-98f0c318f1a1 | approval_approved        | test-user         | 6fc0f1e8-b8ad-4a4e-a3e4-02ee482b77a0 | 2026-01-24 20:41:51.888723+00
+ bd1ef459-a4c8-4d2f-b07a-de6a185ee5d5 | tool_execution_completed | test-user         | 6fc0f1e8-b8ad-4a4e-a3e4-02ee482b77a0 | 2026-01-24 20:41:51.888657+00
+ 6aadcad4-d367-4a87-b984-ea0ceb3f355e | tool_execution_started   | test-user         | 6fc0f1e8-b8ad-4a4e-a3e4-02ee482b77a0 | 2026-01-24 20:41:51.853714+00
+ c256d9d8-7d1d-4f7a-adf2-2b830bb8f3bb | approval_claimed         | test-user         | 6fc0f1e8-b8ad-4a4e-a3e4-02ee482b77a0 | 2026-01-24 20:41:51.839539+00
  4bb2456b-8f04-493d-9e45-bf31388ae8e9 | approval_approved        | approver-3        | 6d158eb4-d4da-404e-a05c-9da4f7fdd66d | 2026-01-24 20:41:36.799251+00
  ae0bcbf6-48e1-479a-999d-34565aa5f38c | tool_execution_completed | approver-3        | 6d158eb4-d4da-404e-a05c-9da4f7fdd66d | 2026-01-24 20:41:36.799182+00
  78e88bbb-5167-4359-94fa-3759d66fa580 | tool_execution_started   | approver-3        | 6d158eb4-d4da-404e-a05c-9da4f7fdd66d | 2026-01-24 20:41:36.735348+00
  1fffca30-1b8c-46df-8b21-74026c81ebc8 | approval_claimed         | approver-3        | 6d158eb4-d4da-404e-a05c-9da4f7fdd66d | 2026-01-24 20:41:36.728161+00
- 9daf95f6-0ee9-4491-a8d1-204c851e3cd8 | approval_approved        | recovery-approver | cdedfbac-40d5-4daa-a579-006bf63186e5 | 2026-01-24 20:41:34.592215+00
- 8db79754-7969-4333-83f3-d1d4a4a03ad9 | tool_execution_completed | recovery-approver | cdedfbac-40d5-4daa-a579-006bf63186e5 | 2026-01-24 20:41:34.592153+00
- 3b3c2dcf-a926-42ac-878f-c08f2696ad6d | tool_execution_started   | recovery-approver | cdedfbac-40d5-4daa-a579-006bf63186e5 | 2026-01-24 20:41:34.560469+00
- 849fb2e9-a6fe-46aa-a2cc-2cd1622d5955 | approval_claimed         | recovery-approver | cdedfbac-40d5-4daa-a579-006bf63186e5 | 2026-01-24 20:41:34.548841+00
- 30efb787-de2a-44cd-8713-bb4401c7a463 | approval_approved        | approver-1        | 053810ff-241a-4463-baf0-96fc81f7f17f | 2026-01-24 20:41:27.311962+00
- dcb0db30-5b9d-44c0-b43e-1ca70600d097 | tool_execution_completed | approver-1        | 053810ff-241a-4463-baf0-96fc81f7f17f | 2026-01-24 20:41:27.311881+00
- f383ac4b-e60a-4c71-9703-0ae20af63dc1 | tool_execution_started   | approver-1        | 053810ff-241a-4463-baf0-96fc81f7f17f | 2026-01-24 20:41:27.297309+00
- 7040eb73-2cee-45df-8a19-b9b0dc366e00 | approval_claimed         | approver-1        | 053810ff-241a-4463-baf0-96fc81f7f17f | 2026-01-24 20:41:27.286834+00
- 1bf0589b-b9a5-459a-be0a-dab0dd4c7d1b | approval_approved        | test-user         | 768270ce-6d6d-4476-afd9-fb1280c553d5 | 2026-01-24 20:37:57.332123+00
- 14fa2c22-c7da-46fe-9b39-0001077a56d7 | tool_execution_completed | test-user         | 768270ce-6d6d-4476-afd9-fb1280c553d5 | 2026-01-24 20:37:57.332059+00
- eae6bae4-a2cf-4187-bf9b-b0672160c7a3 | tool_execution_started   | test-user         | 768270ce-6d6d-4476-afd9-fb1280c553d5 | 2026-01-24 20:37:57.299902+00
- e67cdee1-7335-4fbc-977e-27c02c12f3ab | approval_claimed         | test-user         | 768270ce-6d6d-4476-afd9-fb1280c553d5 | 2026-01-24 20:37:57.287782+00
- 0076b042-a39d-4a5b-aa38-9cada1f1b9d4 | approval_approved        | approver-1        | e60faca6-d7d3-4b9f-8788-d7cd7408f083 | 2026-01-24 20:37:43.332189+00
- c8d71f32-3c28-4e95-8efb-025d63bc2427 | tool_execution_completed | approver-1        | e60faca6-d7d3-4b9f-8788-d7cd7408f083 | 2026-01-24 20:37:43.332126+00
- 993ec8e4-6e67-4e20-acf8-fefd2eb19f28 | tool_execution_started   | approver-1        | e60faca6-d7d3-4b9f-8788-d7cd7408f083 | 2026-01-24 20:37:43.269161+00
- c71d9f51-ee50-42e2-91c3-15a3dd22c5d4 | approval_claimed         | approver-1        | e60faca6-d7d3-4b9f-8788-d7cd7408f083 | 2026-01-24 20:37:43.258583+00
 (20 rows)
 
 
 -- Audit trail completeness check (approvals should have matching audit events)
              approval_id              | approval_status | audit_event_count |                                        events                                         
 --------------------------------------+-----------------+-------------------+---------------------------------------------------------------------------------------
+ b0fe8d60-fae9-43f3-ac1e-733b17f2c748 | approved        |                 4 | approval_claimed, tool_execution_started, tool_execution_completed, approval_approved
+ 3375e5bd-dfa6-47e4-be83-923cdebf4ea7 | approved        |                 4 | approval_claimed, tool_execution_started, tool_execution_completed, approval_approved
+ e771cc10-8735-4e54-a680-f26d641b9d88 | approved        |                 4 | approval_claimed, tool_execution_started, tool_execution_completed, approval_approved
+ 6fc0f1e8-b8ad-4a4e-a3e4-02ee482b77a0 | approved        |                 4 | approval_claimed, tool_execution_started, tool_execution_completed, approval_approved
  6d158eb4-d4da-404e-a05c-9da4f7fdd66d | approved        |                 4 | approval_claimed, tool_execution_started, tool_execution_completed, approval_approved
  cdedfbac-40d5-4daa-a579-006bf63186e5 | approved        |                 4 | approval_claimed, tool_execution_started, tool_execution_completed, approval_approved
  053810ff-241a-4463-baf0-96fc81f7f17f | approved        |                 4 | approval_claimed, tool_execution_started, tool_execution_completed, approval_approved
  768270ce-6d6d-4476-afd9-fb1280c553d5 | approved        |                 4 | approval_claimed, tool_execution_started, tool_execution_completed, approval_approved
  e60faca6-d7d3-4b9f-8788-d7cd7408f083 | approved        |                 4 | approval_claimed, tool_execution_started, tool_execution_completed, approval_approved
  e5ba82af-e09f-4115-8043-c168f079d69d | approved        |                 4 | approval_claimed, tool_execution_started, tool_execution_completed, approval_approved
- 8747acc2-40ff-4b19-bb02-5833a9546382 | approved        |                 4 | approval_claimed, tool_execution_started, tool_execution_completed, approval_approved
- 2ce729f9-ffa4-4942-a878-74148e07bee2 | approved        |                 4 | approval_claimed, tool_execution_started, tool_execution_completed, approval_approved
- 573da9e9-375f-4c20-ae42-d53f67da7921 | approved        |                 4 | approval_claimed, tool_execution_started, tool_execution_completed, approval_approved
- 7e9d9d2b-84c6-4c5a-8a62-856445652131 | approved        |                 4 | approval_claimed, tool_execution_started, tool_execution_completed, approval_approved
 (10 rows)
 

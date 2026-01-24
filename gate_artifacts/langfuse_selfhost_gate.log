@@ -1,5 +1,5 @@
 === Langfuse Self-Host Gate ===
-Timestamp: 2026-01-24T14:42:06-06:00
+Timestamp: 2026-01-24T14:44:24-06:00
 Langfuse connection: OK
 Health response: {"status":"OK","version":"2.95.11"}
 Trace verification: SKIPPED (requires API credentials)

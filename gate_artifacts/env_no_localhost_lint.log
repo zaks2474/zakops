@@ -1,11 +1,11 @@
 === No Localhost in Container ===
-Timestamp: 2026-01-24T14:42:00-06:00
+Timestamp: 2026-01-24T14:44:18-06:00
 extra_hosts with host.docker.internal: FOUND
 Config uses host.docker.internal: YES
 
 Container environment:
-DEAL_API_URL=http://host.docker.internal:8090
 RAG_REST_URL=http://host.docker.internal:8052
 MCP_URL=http://host.docker.internal:9100
+DEAL_API_URL=http://host.docker.internal:8090
 
 ENV_NO_LOCALHOST: PASSED
