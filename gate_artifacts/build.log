@@ -1,4 +1,4 @@
-time="2026-01-24T17:00:37-06:00" level=warning msg="/home/zaks/zakops-agent-api/docker-compose.yml: the attribute `version` is obsolete, it will be ignored, please remove it to avoid potential confusion"
+time="2026-01-24T17:43:04-06:00" level=warning msg="/home/zaks/zakops-agent-api/docker-compose.yml: the attribute `version` is obsolete, it will be ignored, please remove it to avoid potential confusion"
 #1 [internal] load local bake definitions
 #1 reading from stdin 595B done
 #1 DONE 0.0s
@@ -8,7 +8,7 @@ time="2026-01-24T17:00:37-06:00" level=warning msg="/home/zaks/zakops-agent-api/
 #2 DONE 0.0s
 
 #3 [internal] load metadata for docker.io/library/python:3.13.2-slim
-#3 DONE 0.4s
+#3 DONE 0.3s
 
 #4 [internal] load .dockerignore
 #4 transferring context: 628B done
@@ -19,7 +19,7 @@ time="2026-01-24T17:00:37-06:00" level=warning msg="/home/zaks/zakops-agent-api/
 #5 DONE 0.0s
 
 #6 [internal] load build context
-#6 transferring context: 11.08kB done
+#6 transferring context: 11.41kB done
 #6 DONE 0.0s
 
 #7 [ 2/10] WORKDIR /app
@@ -38,38 +38,38 @@ time="2026-01-24T17:00:37-06:00" level=warning msg="/home/zaks/zakops-agent-api/
 #11 DONE 0.1s
 
 #12 [ 7/10] RUN chmod +x /app/scripts/docker-entrypoint.sh
-#12 DONE 0.3s
+#12 DONE 0.2s
 
 #13 [ 8/10] RUN useradd -m appuser && chown -R appuser:appuser /app
-#13 DONE 30.4s
+#13 DONE 29.1s
 
 #14 [ 9/10] RUN mkdir -p /app/logs
-#14 DONE 0.4s
+#14 DONE 0.5s
 
 #15 [10/10] RUN echo "Using development environment"
-#15 0.311 Using development environment
-#15 DONE 0.3s
+#15 0.466 Using development environment
+#15 DONE 0.5s
 
 #16 exporting to image
 #16 exporting layers
-#16 exporting layers 7.1s done
-#16 exporting manifest sha256:01b3ec8d04bb28d875d1720fabd10bf058bbb496b412cd430ecb106ca293e2b4 0.0s done
-#16 exporting config sha256:2003658d10dd7ac0b89b7b6e0e1d9af64d74285fe57ef9b698d3284343ca1d58 0.0s done
-#16 exporting attestation manifest sha256:171dffb65843762c3948b151f1b69726e327984088c045c1c3aafab6d0fc5f13 0.0s done
-#16 exporting manifest list sha256:4c1070366443bb72b93cb393dd6f86f0e085bba9df68ceacf91a9fc3c3d77e4a 0.0s done
-#16 naming to docker.io/library/zakops-agent-api-agent-api:latest
+#16 exporting layers 8.4s done
+#16 exporting manifest sha256:9df11f71ffeeb89860cd3c2db3bb4e341413f0d2a7ce3dcbc99622a88c75f99c 0.0s done
+#16 exporting config sha256:144d6cabefa12415c054a34c0958e6dbe0ca4aa6bfe0977190692a25a75059e3 0.0s done
+#16 exporting attestation manifest sha256:c8010fc39c6b7566bbe70883e9665d9172dd71969b198919696268cfce562559
+#16 exporting attestation manifest sha256:c8010fc39c6b7566bbe70883e9665d9172dd71969b198919696268cfce562559 0.0s done
+#16 exporting manifest list sha256:4eff60db854a45d0e3811fe894e3078bff8a30456181b40202b76ad84f5f3a46 0.0s done
 #16 naming to docker.io/library/zakops-agent-api-agent-api:latest done
 #16 unpacking to docker.io/library/zakops-agent-api-agent-api:latest
-#16 unpacking to docker.io/library/zakops-agent-api-agent-api:latest 1.9s done
-#16 DONE 9.1s
+#16 unpacking to docker.io/library/zakops-agent-api-agent-api:latest 2.2s done
+#16 DONE 10.9s
 
 #17 resolving provenance for metadata file
 #17 DONE 0.0s
  zakops-agent-api-agent-api  Built
-time="2026-01-24T17:01:18-06:00" level=warning msg="/home/zaks/zakops-agent-api/docker-compose.yml: the attribute `version` is obsolete, it will be ignored, please remove it to avoid potential confusion"
-time="2026-01-24T17:01:18-06:00" level=warning msg="The \"LANGFUSE_PUBLIC_KEY\" variable is not set. Defaulting to a blank string."
-time="2026-01-24T17:01:18-06:00" level=warning msg="The \"LANGFUSE_SECRET_KEY\" variable is not set. Defaulting to a blank string."
-time="2026-01-24T17:01:18-06:00" level=warning msg="The \"OPENAI_API_KEY\" variable is not set. Defaulting to a blank string."
+time="2026-01-24T17:43:46-06:00" level=warning msg="/home/zaks/zakops-agent-api/docker-compose.yml: the attribute `version` is obsolete, it will be ignored, please remove it to avoid potential confusion"
+time="2026-01-24T17:43:46-06:00" level=warning msg="The \"LANGFUSE_PUBLIC_KEY\" variable is not set. Defaulting to a blank string."
+time="2026-01-24T17:43:46-06:00" level=warning msg="The \"LANGFUSE_SECRET_KEY\" variable is not set. Defaulting to a blank string."
+time="2026-01-24T17:43:46-06:00" level=warning msg="The \"OPENAI_API_KEY\" variable is not set. Defaulting to a blank string."
  Container zakops-agent-db  Running
  Container zakops-agent-api  Recreate
  Container zakops-agent-api  Recreated

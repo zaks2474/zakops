@@ -1,0 +1,21 @@
+=== Chaos Kill-9 Test ===
+Timestamp: 2026-01-24T17:44:46-06:00
+
+Creating pending workflow for chaos test...
+Approval ID: ac247105-c5e9-4ec8-a38c-02aa4bc7686a
+Killing container with SIGKILL...
+zakops-agent-api
+Restarting container...
+time="2026-01-24T17:44:48-06:00" level=warning msg="/home/zaks/zakops-agent-api/docker-compose.yml: the attribute `version` is obsolete, it will be ignored, please remove it to avoid potential confusion"
+time="2026-01-24T17:44:48-06:00" level=warning msg="The \"LANGFUSE_PUBLIC_KEY\" variable is not set. Defaulting to a blank string."
+time="2026-01-24T17:44:48-06:00" level=warning msg="The \"LANGFUSE_SECRET_KEY\" variable is not set. Defaulting to a blank string."
+time="2026-01-24T17:44:48-06:00" level=warning msg="The \"OPENAI_API_KEY\" variable is not set. Defaulting to a blank string."
+ Container zakops-agent-db  Running
+ Container zakops-agent-db  Waiting
+ Container zakops-agent-db  Healthy
+ Container zakops-agent-api  Starting
+ Container zakops-agent-api  Started
+Verifying workflow survived...
+Workflow recovered: YES
+
+CHAOS_KILL9: PASSED

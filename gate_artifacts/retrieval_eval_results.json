@@ -1,5 +1,5 @@
 {
-  "timestamp": "2026-01-24T23:02:16.590950Z",
+  "timestamp": "2026-01-24T23:44:40.622044Z",
   "dataset_version": "1.0.0",
   "total_queries": 10,
   "recall_at_5": 1.0,
@@ -7,16 +7,16 @@
   "recall_at_5_min": 1.0,
   "recall_at_5_max": 1.0,
   "keyword_hit_rate": 0.85,
-  "latency_p50_ms": 143.98,
-  "latency_p95_ms": 217.02,
-  "latency_mean_ms": 151.9,
+  "latency_p50_ms": 127.33,
+  "latency_p95_ms": 160.44,
+  "latency_mean_ms": 132.26,
   "per_query_breakdown": [
     {
       "query_id": "RET-001",
       "query": "textile art education business deal",
       "recall_at_5": 1.0,
       "keyword_hit_rate": 1.0,
-      "latency_ms": 217.02,
+      "latency_ms": 160.44,
       "retrieved_count": 5,
       "errors": []
     },
@@ -25,7 +25,7 @@
       "query": "profitable IT services company",
       "recall_at_5": 1.0,
       "keyword_hit_rate": 1.0,
-      "latency_ms": 171.65,
+      "latency_ms": 119.39,
       "retrieved_count": 5,
       "errors": []
     },
@@ -34,7 +34,7 @@
       "query": "deal registry JSON",
       "recall_at_5": 1.0,
       "keyword_hit_rate": 0.5,
-      "latency_ms": 143.98,
+      "latency_ms": 138.07,
       "retrieved_count": 5,
       "errors": []
     },
@@ -43,7 +43,7 @@
       "query": "Qwen model LLM configuration",
       "recall_at_5": 1.0,
       "keyword_hit_rate": 1.0,
-      "latency_ms": 136.46,
+      "latency_ms": 120.58,
       "retrieved_count": 5,
       "errors": []
     },
@@ -52,7 +52,7 @@
       "query": "langgraph migration strategy",
       "recall_at_5": 1.0,
       "keyword_hit_rate": 1.0,
-      "latency_ms": 123.6,
+      "latency_ms": 120.88,
       "retrieved_count": 5,
       "errors": []
     },
@@ -61,7 +61,7 @@
       "query": "broker email deal",
       "recall_at_5": 1.0,
       "keyword_hit_rate": 0.5,
-      "latency_ms": 144.11,
+      "latency_ms": 139.17,
       "retrieved_count": 5,
       "errors": []
     },
@@ -70,7 +70,7 @@
       "query": "email triage classification NEWSLETTER",
       "recall_at_5": 1.0,
       "keyword_hit_rate": 1.0,
-      "latency_ms": 125.47,
+      "latency_ms": 155.76,
       "retrieved_count": 5,
       "errors": []
     },
@@ -79,7 +79,7 @@
       "query": "deal stage inbound qualification",
       "recall_at_5": 1.0,
       "keyword_hit_rate": 0.5,
-      "latency_ms": 206.6,
+      "latency_ms": 127.33,
       "retrieved_count": 5,
       "errors": []
     },
@@ -88,7 +88,7 @@
       "query": "deals active pipeline status",
       "recall_at_5": 1.0,
       "keyword_hit_rate": 1.0,
-      "latency_ms": 122.81,
+      "latency_ms": 123.38,
       "retrieved_count": 5,
       "errors": []
     },
@@ -97,7 +97,7 @@
       "query": "email marketing message classification",
       "recall_at_5": 1.0,
       "keyword_hit_rate": 1.0,
-      "latency_ms": 127.25,
+      "latency_ms": 117.58,
       "retrieved_count": 5,
       "errors": []
     }

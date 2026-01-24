@@ -1,15 +1,15 @@
 === Streaming Test ===
-Timestamp: 2026-01-24T17:01:44-06:00
+Timestamp: 2026-01-24T17:44:11-06:00
 Testing MDv2 agent streaming endpoint: http://localhost:8095/agent/invoke/stream
 Stream output:
 event: start
-data: {"thread_id": "16309a87-e3a1-4d61-a285-edfc91fa1015"}
+data: {"thread_id": "03add3dc-4f60-42e5-adf2-7ae7100187d9"}
 
 event: content
 data: {"content": "2+2 equals 4."}
 
 event: end
-data: {"status": "completed", "thread_id": "16309a87-e3a1-4d61-a285-edfc91fa1015"}
+data: {"status": "completed", "thread_id": "03add3dc-4f60-42e5-adf2-7ae7100187d9"}
 STATUS=PASSED
 REASON=Got start+content events (done may have been cut off by timeout)
 Stream test result: PASSED

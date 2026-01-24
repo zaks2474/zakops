@@ -1,0 +1,41 @@
+=== Rate Limit Test ===
+Timestamp: 2026-01-24T17:44:56-06:00
+
+Test 1: Rate limiter configured...
+Loading environment: Environment.DEVELOPMENT
+{
+  "limiter_exists": true,
+  "default_limits": [
+    "1000 per day",
+    "200 per hour"
+  ],
+  "endpoints": {
+    "chat": [
+      "100 per minute"
+    ],
+    "chat_stream": [
+      "20 per minute"
+    ],
+    "messages": [
+      "50 per minute"
+    ],
+    "register": [
+      "10 per hour"
+    ],
+    "login": [
+      "20 per minute"
+    ],
+    "root": [
+      "10 per minute"
+    ],
+    "health": [
+      "20 per minute"
+    ]
+  }
+}
+
+Test 2: Rate limit enforcement...
+Rate limited at request 20 (HTTP 429)
+Rate limiting: ACTIVE
+
+RATE_LIMIT: PASSED

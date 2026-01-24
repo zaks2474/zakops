@@ -1,0 +1,8 @@
+{
+  "timestamp": "2026-01-24T17:44:45-06:00",
+  "tasks_inserted": 100,
+  "p95_claim_latency_ms": 50,
+  "threshold_ms": 100,
+  "passed": true,
+  "note": "P95 claim latency under simulated load"
+}

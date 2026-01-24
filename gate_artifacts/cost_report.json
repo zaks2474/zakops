@@ -1,0 +1,13 @@
+{
+  "timestamp": "2026-01-24T23:44:45.345220",
+  "date": "2026-01-24",
+  "daily_budget": 50.0,
+  "currency": "USD",
+  "daily_spend": 0.0,
+  "threads": {},
+  "local_requests": 0,
+  "cloud_requests": 0,
+  "total_requests": 0,
+  "budget_remaining": 50.0,
+  "budget_percent_used": 0.0
+}

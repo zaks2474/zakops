@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "generated_at": "2026-01-24T17:02:09-06:00",
+  "generated_at": "2026-01-24T17:44:33-06:00",
   "gates": {
     "baseline": [
       {
@@ -187,6 +187,66 @@
         "id": "P3-DATASET-001",
         "name": "Eval Dataset Manifest",
         "artifact": "eval_dataset_manifest.json",
+        "required": true
+      }
+    ],
+    "phase2": [
+      {
+        "id": "P2-UI-001",
+        "name": "UI Smoke Test",
+        "artifact": "ui_smoke_test.log",
+        "required": true
+      }
+    ],
+    "phase4": [
+      {
+        "id": "P4-MCP-001",
+        "name": "MCP Client Conformance",
+        "artifact": "mcp_conformance.json",
+        "required": false
+      },
+      {
+        "id": "P4-ROUTE-001",
+        "name": "Routing Policies",
+        "artifact": "routing_policy_tests.json",
+        "required": true
+      },
+      {
+        "id": "P4-COST-001",
+        "name": "Cost Accounting",
+        "artifact": "cost_report.json",
+        "required": true
+      }
+    ],
+    "phase5": [
+      {
+        "id": "P5-QUEUE-001",
+        "name": "Queue + DLQ",
+        "artifact": "queue_worker_smoke.log",
+        "required": true
+      },
+      {
+        "id": "P5-AUDIT-001",
+        "name": "Audit Immutability",
+        "artifact": "audit_immutability_test.log",
+        "required": true
+      },
+      {
+        "id": "P5-CHAOS-001",
+        "name": "Chaos Hardening",
+        "artifact": "chaos_kill9.log",
+        "required": true
+      },
+      {
+        "id": "P5-SECRETS-001",
+        "name": "Secrets Hygiene",
+        "artifact": "secrets_hygiene_lint.log",
+        "required": true
+      },
+      {
+        "id": "P5-RATE-001",
+        "name": "Rate Limiting",
+        "artifact": "rate_limit_test.log",
         "required": true
       }
     ]

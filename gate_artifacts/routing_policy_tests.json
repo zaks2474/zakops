@@ -1,0 +1,28 @@
+{
+  "timestamp": "2026-01-24T23:44:45.256271",
+  "status": "PASSED",
+  "tests": [
+    {
+      "name": "blocked_fields_detection",
+      "passed": true,
+      "message": "Detected blocked fields: ['ssn', 'tax_id', 'bank_account']"
+    },
+    {
+      "name": "blocked_fields_prevent_cloud",
+      "passed": true,
+      "message": "Cloud correctly blocked when PII present"
+    },
+    {
+      "name": "clean_content_cloud_allowed",
+      "passed": true,
+      "message": "Cloud allowed for clean content with valid condition"
+    },
+    {
+      "name": "fallback_chain_correct",
+      "passed": true,
+      "message": "Chain: ['local-primary', 'cloud-claude']"
+    }
+  ],
+  "summary": "4/4 tests passed",
+  "ROUTING_POLICY": "PASSED"
+}

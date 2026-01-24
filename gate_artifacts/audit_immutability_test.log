@@ -1,0 +1,17 @@
+=== Audit Log Immutability Test ===
+Timestamp: 2026-01-24T17:44:45-06:00
+
+Creating immutability trigger...
+CREATE FUNCTION
+DROP TRIGGER
+DROP TRIGGER
+CREATE TRIGGER
+CREATE TRIGGER
+
+Testing UPDATE denial...
+UPDATE test: DENIED (correct)
+
+Testing DELETE denial...
+DELETE test: DENIED (correct)
+
+AUDIT_IMMUTABILITY: PASSED
