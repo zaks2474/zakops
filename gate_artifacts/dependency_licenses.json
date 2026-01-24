@@ -1,0 +1,737 @@
+{
+  "generated_at": "2026-01-24T20:41:37.541916",
+  "python_version": "3.13.2",
+  "package_count": 146,
+  "packages": [
+    {
+      "name": "aiohappyeyeballs",
+      "version": "2.6.1",
+      "license": "PSF-2.0"
+    },
+    {
+      "name": "aiohttp",
+      "version": "3.13.3",
+      "license": "Apache-2.0 AND MIT"
+    },
+    {
+      "name": "aiosignal",
+      "version": "1.4.0",
+      "license": "Apache 2.0"
+    },
+    {
+      "name": "annotated-doc",
+      "version": "0.0.4",
+      "license": "Unknown"
+    },
+    {
+      "name": "annotated-types",
+      "version": "0.7.0",
+      "license": "MIT License"
+    },
+    {
+      "name": "anyio",
+      "version": "4.12.1",
+      "license": "Unknown"
+    },
+    {
+      "name": "asgiref",
+      "version": "3.11.0",
+      "license": "BSD-3-Clause"
+    },
+    {
+      "name": "attrs",
+      "version": "25.4.0",
+      "license": "Unknown"
+    },
+    {
+      "name": "backoff",
+      "version": "2.2.1",
+      "license": "MIT"
+    },
+    {
+      "name": "bcrypt",
+      "version": "5.0.0",
+      "license": "Apache-2.0"
+    },
+    {
+      "name": "brotli",
+      "version": "1.2.0",
+      "license": "MIT"
+    },
+    {
+      "name": "cachetools",
+      "version": "6.2.4",
+      "license": "Unknown"
+    },
+    {
+      "name": "certifi",
+      "version": "2026.1.4",
+      "license": "MPL-2.0"
+    },
+    {
+      "name": "cffi",
+      "version": "2.0.0",
+      "license": "Unknown"
+    },
+    {
+      "name": "charset-normalizer",
+      "version": "3.4.4",
+      "license": "MIT"
+    },
+    {
+      "name": "click",
+      "version": "8.3.1",
+      "license": "Unknown"
+    },
+    {
+      "name": "colorama",
+      "version": "0.4.6",
+      "license": "BSD License"
+    },
+    {
+      "name": "cryptography",
+      "version": "46.0.3",
+      "license": "Unknown"
+    },
+    {
+      "name": "dataclasses-json",
+      "version": "0.6.7",
+      "license": "MIT"
+    },
+    {
+      "name": "ddgs",
+      "version": "9.10.0",
+      "license": "Unknown"
+    },
+    {
+      "name": "Deprecated",
+      "version": "1.3.1",
+      "license": "MIT"
+    },
+    {
+      "name": "deprecation",
+      "version": "2.1.0",
+      "license": "Apache 2"
+    },
+    {
+      "name": "distro",
+      "version": "1.9.0",
+      "license": "Apache License, Version 2.0"
+    },
+    {
+      "name": "dnspython",
+      "version": "2.8.0",
+      "license": "ISC"
+    },
+    {
+      "name": "duckduckgo_search",
+      "version": "8.1.1",
+      "license": "MIT License"
+    },
+    {
+      "name": "ecdsa",
+      "version": "0.19.1",
+      "license": "MIT"
+    },
+    {
+      "name": "email-validator",
+      "version": "2.3.0",
+      "license": "Unlicense"
+    },
+    {
+      "name": "fake-useragent",
+      "version": "2.2.0",
+      "license": "Unknown"
+    },
+    {
+      "name": "fastapi",
+      "version": "0.128.0",
+      "license": "Unknown"
+    },
+    {
+      "name": "frozenlist",
+      "version": "1.8.0",
+      "license": "Apache-2.0"
+    },
+    {
+      "name": "fsspec",
+      "version": "2026.1.0",
+      "license": "Unknown"
+    },
+    {
+      "name": "googleapis-common-protos",
+      "version": "1.72.0",
+      "license": "Apache 2.0"
+    },
+    {
+      "name": "greenlet",
+      "version": "3.3.1",
+      "license": "Unknown"
+    },
+    {
+      "name": "grpcio",
+      "version": "1.76.0",
+      "license": "Apache License 2.0"
+    },
+    {
+      "name": "h11",
+      "version": "0.16.0",
+      "license": "MIT"
+    },
+    {
+      "name": "h2",
+      "version": "4.3.0",
+      "license": "The MIT License (MIT)\n\nCopyright (c) 2015-2020 Cory Benfield and contributors\n\nPermission is hereby granted, free of charge, to any person obtaining a copy\nof this software and associated documentation files (the \"Software\"), to deal\nin the Software without restriction, including without limitation the rights\nto use, copy, modify, merge, publish, distribute, sublicense, and/or sell\ncopies of the Software, and to permit persons to whom the Software is\nfurnished to do so, subject to the following conditions:\n\nThe above copyright notice and this permission notice shall be included in\nall copies or substantial portions of the Software.\n\nTHE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\nIMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,\nFITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE\nAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER\nLIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,\nOUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN\nTHE SOFTWARE.\n"
+    },
+    {
+      "name": "hpack",
+      "version": "4.1.0",
+      "license": "The MIT License (MIT)\n\nCopyright (c) 2014 Cory Benfield\n\nPermission is hereby granted, free of charge, to any person obtaining a copy\nof this software and associated documentation files (the \"Software\"), to deal\nin the Software without restriction, including without limitation the rights\nto use, copy, modify, merge, publish, distribute, sublicense, and/or sell\ncopies of the Software, and to permit persons to whom the Software is\nfurnished to do so, subject to the following conditions:\n\nThe above copyright notice and this permission notice shall be included in\nall copies or substantial portions of the Software.\n\nTHE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\nIMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,\nFITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE\nAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER\nLIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,\nOUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN\nTHE SOFTWARE.\n"
+    },
+    {
+      "name": "httpcore",
+      "version": "1.0.9",
+      "license": "BSD License"
+    },
+    {
+      "name": "httpx",
+      "version": "0.28.1",
+      "license": "BSD-3-Clause"
+    },
+    {
+      "name": "httpx-sse",
+      "version": "0.4.3",
+      "license": "MIT"
+    },
+    {
+      "name": "hyperframe",
+      "version": "6.1.0",
+      "license": "The MIT License (MIT)\n\nCopyright (c) 2014 Cory Benfield\n\nPermission is hereby granted, free of charge, to any person obtaining a copy\nof this software and associated documentation files (the \"Software\"), to deal\nin the Software without restriction, including without limitation the rights\nto use, copy, modify, merge, publish, distribute, sublicense, and/or sell\ncopies of the Software, and to permit persons to whom the Software is\nfurnished to do so, subject to the following conditions:\n\nThe above copyright notice and this permission notice shall be included in\nall copies or substantial portions of the Software.\n\nTHE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\nIMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,\nFITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE\nAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER\nLIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,\nOUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN\nTHE SOFTWARE.\n"
+    },
+    {
+      "name": "idna",
+      "version": "3.11",
+      "license": "Unknown"
+    },
+    {
+      "name": "importlib_metadata",
+      "version": "8.7.1",
+      "license": "Unknown"
+    },
+    {
+      "name": "jiter",
+      "version": "0.12.0",
+      "license": "MIT License"
+    },
+    {
+      "name": "jsonpatch",
+      "version": "1.33",
+      "license": "Modified BSD License"
+    },
+    {
+      "name": "jsonpointer",
+      "version": "3.0.0",
+      "license": "Modified BSD License"
+    },
+    {
+      "name": "langchain",
+      "version": "1.2.7",
+      "license": "MIT"
+    },
+    {
+      "name": "langchain-classic",
+      "version": "1.0.1",
+      "license": "MIT"
+    },
+    {
+      "name": "langchain-community",
+      "version": "0.4.1",
+      "license": "MIT"
+    },
+    {
+      "name": "langchain-core",
+      "version": "1.2.7",
+      "license": "MIT"
+    },
+    {
+      "name": "langchain-openai",
+      "version": "1.1.7",
+      "license": "MIT"
+    },
+    {
+      "name": "langchain-text-splitters",
+      "version": "1.1.0",
+      "license": "MIT"
+    },
+    {
+      "name": "langfuse",
+      "version": "3.9.1",
+      "license": "MIT"
+    },
+    {
+      "name": "langgraph",
+      "version": "1.0.7",
+      "license": "Unknown"
+    },
+    {
+      "name": "langgraph-checkpoint",
+      "version": "4.0.0",
+      "license": "Unknown"
+    },
+    {
+      "name": "langgraph-checkpoint-postgres",
+      "version": "3.0.3",
+      "license": "Unknown"
+    },
+    {
+      "name": "langgraph-fastapi-template",
+      "version": "0.1.0",
+      "license": "Unknown"
+    },
+    {
+      "name": "langgraph-fastapi-template",
+      "version": "0.1.0",
+      "license": "Unknown"
+    },
+    {
+      "name": "langgraph-prebuilt",
+      "version": "1.0.7",
+      "license": "Unknown"
+    },
+    {
+      "name": "langgraph-sdk",
+      "version": "0.3.3",
+      "license": "Unknown"
+    },
+    {
+      "name": "langsmith",
+      "version": "0.6.4",
+      "license": "MIT"
+    },
+    {
+      "name": "limits",
+      "version": "5.6.0",
+      "license": "MIT License"
+    },
+    {
+      "name": "lxml",
+      "version": "6.0.2",
+      "license": "BSD-3-Clause"
+    },
+    {
+      "name": "markdown-it-py",
+      "version": "4.0.0",
+      "license": "MIT License"
+    },
+    {
+      "name": "marshmallow",
+      "version": "3.26.2",
+      "license": "MIT License"
+    },
+    {
+      "name": "mdurl",
+      "version": "0.1.2",
+      "license": "MIT License"
+    },
+    {
+      "name": "mem0ai",
+      "version": "1.0.2",
+      "license": "Unknown"
+    },
+    {
+      "name": "mmh3",
+      "version": "5.2.0",
+      "license": "MIT License\n\nCopyright (c) 2011-2025 Hajime Senuma\n\nPermission is hereby granted, free of charge, to any person obtaining a copy\nof this software and associated documentation files (the \"Software\"), to deal\nin the Software without restriction, including without limitation the rights\nto use, copy, modify, merge, publish, distribute, sublicense, and/or sell\ncopies of the Software, and to permit persons to whom the Software is\nfurnished to do so, subject to the following conditions:\n\nThe above copyright notice and this permission notice shall be included in all\ncopies or substantial portions of the Software.\n\nTHE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\nIMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,\nFITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE\nAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER\nLIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,\nOUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE\nSOFTWARE."
+    },
+    {
+      "name": "multidict",
+      "version": "6.7.0",
+      "license": "Apache License 2.0"
+    },
+    {
+      "name": "mypy_extensions",
+      "version": "1.1.0",
+      "license": "Unknown"
+    },
+    {
+      "name": "numpy",
+      "version": "2.4.1",
+      "license": "Unknown"
+    },
+    {
+      "name": "openai",
+      "version": "2.15.0",
+      "license": "Apache-2.0"
+    },
+    {
+      "name": "opentelemetry-api",
+      "version": "1.39.1",
+      "license": "Unknown"
+    },
+    {
+      "name": "opentelemetry-exporter-otlp-proto-common",
+      "version": "1.39.1",
+      "license": "Unknown"
+    },
+    {
+      "name": "opentelemetry-exporter-otlp-proto-http",
+      "version": "1.39.1",
+      "license": "Unknown"
+    },
+    {
+      "name": "opentelemetry-proto",
+      "version": "1.39.1",
+      "license": "Unknown"
+    },
+    {
+      "name": "opentelemetry-sdk",
+      "version": "1.39.1",
+      "license": "Unknown"
+    },
+    {
+      "name": "opentelemetry-semantic-conventions",
+      "version": "0.60b1",
+      "license": "Unknown"
+    },
+    {
+      "name": "orjson",
+      "version": "3.11.5",
+      "license": "Apache Software License"
+    },
+    {
+      "name": "ormsgpack",
+      "version": "1.12.2",
+      "license": "Apache Software License"
+    },
+    {
+      "name": "packaging",
+      "version": "25.0",
+      "license": "Apache Software License"
+    },
+    {
+      "name": "passlib",
+      "version": "1.7.4",
+      "license": "BSD"
+    },
+    {
+      "name": "portalocker",
+      "version": "3.2.0",
+      "license": "Unknown"
+    },
+    {
+      "name": "postgrest",
+      "version": "2.27.2",
+      "license": "MIT License"
+    },
+    {
+      "name": "posthog",
+      "version": "7.6.0",
+      "license": "MIT"
+    },
+    {
+      "name": "primp",
+      "version": "0.15.0",
+      "license": "MIT License"
+    },
+    {
+      "name": "prometheus_client",
+      "version": "0.24.1",
+      "license": "Unknown"
+    },
+    {
+      "name": "propcache",
+      "version": "0.4.1",
+      "license": "Apache-2.0"
+    },
+    {
+      "name": "protobuf",
+      "version": "5.29.5",
+      "license": "3-Clause BSD License"
+    },
+    {
+      "name": "psycopg",
+      "version": "3.3.2",
+      "license": "Unknown"
+    },
+    {
+      "name": "psycopg-binary",
+      "version": "3.3.2",
+      "license": "Unknown"
+    },
+    {
+      "name": "psycopg-pool",
+      "version": "3.3.0",
+      "license": "Unknown"
+    },
+    {
+      "name": "pyasn1",
+      "version": "0.6.2",
+      "license": "BSD-2-Clause"
+    },
+    {
+      "name": "pycparser",
+      "version": "3.0",
+      "license": "Unknown"
+    },
+    {
+      "name": "pydantic",
+      "version": "2.12.5",
+      "license": "Unknown"
+    },
+    {
+      "name": "pydantic-settings",
+      "version": "2.12.0",
+      "license": "MIT License"
+    },
+    {
+      "name": "pydantic_core",
+      "version": "2.41.5",
+      "license": "Unknown"
+    },
+    {
+      "name": "Pygments",
+      "version": "2.19.2",
+      "license": "BSD-2-Clause"
+    },
+    {
+      "name": "pyiceberg",
+      "version": "0.10.0",
+      "license": "Apache-2.0"
+    },
+    {
+      "name": "PyJWT",
+      "version": "2.10.1",
+      "license": "MIT"
+    },
+    {
+      "name": "pyparsing",
+      "version": "3.3.2",
+      "license": "Unknown"
+    },
+    {
+      "name": "pyroaring",
+      "version": "1.0.3",
+      "license": "MIT"
+    },
+    {
+      "name": "python-dateutil",
+      "version": "2.9.0.post0",
+      "license": "Dual License"
+    },
+    {
+      "name": "python-dotenv",
+      "version": "1.2.1",
+      "license": "Unknown"
+    },
+    {
+      "name": "python-jose",
+      "version": "3.5.0",
+      "license": "MIT"
+    },
+    {
+      "name": "python-multipart",
+      "version": "0.0.21",
+      "license": "Apache Software License"
+    },
+    {
+      "name": "pytz",
+      "version": "2025.2",
+      "license": "MIT"
+    },
+    {
+      "name": "PyYAML",
+      "version": "6.0.3",
+      "license": "MIT"
+    },
+    {
+      "name": "qdrant-client",
+      "version": "1.16.2",
+      "license": "Apache-2.0"
+    },
+    {
+      "name": "realtime",
+      "version": "2.27.2",
+      "license": "Unknown"
+    },
+    {
+      "name": "regex",
+      "version": "2026.1.15",
+      "license": "Unknown"
+    },
+    {
+      "name": "requests",
+      "version": "2.32.5",
+      "license": "Apache-2.0"
+    },
+    {
+      "name": "requests-toolbelt",
+      "version": "1.0.0",
+      "license": "Apache 2.0"
+    },
+    {
+      "name": "rich",
+      "version": "14.2.0",
+      "license": "MIT"
+    },
+    {
+      "name": "rsa",
+      "version": "4.9.1",
+      "license": "Apache-2.0"
+    },
+    {
+      "name": "six",
+      "version": "1.17.0",
+      "license": "MIT"
+    },
+    {
+      "name": "slowapi",
+      "version": "0.1.9",
+      "license": "MIT"
+    },
+    {
+      "name": "sniffio",
+      "version": "1.3.1",
+      "license": "MIT OR Apache-2.0"
+    },
+    {
+      "name": "socksio",
+      "version": "1.0.0",
+      "license": "MIT License"
+    },
+    {
+      "name": "sortedcontainers",
+      "version": "2.4.0",
+      "license": "Apache 2.0"
+    },
+    {
+      "name": "SQLAlchemy",
+      "version": "2.0.46",
+      "license": "MIT"
+    },
+    {
+      "name": "sqlmodel",
+      "version": "0.0.31",
+      "license": "Unknown"
+    },
+    {
+      "name": "starlette",
+      "version": "0.50.0",
+      "license": "Unknown"
+    },
+    {
+      "name": "storage3",
+      "version": "2.27.2",
+      "license": "MIT License"
+    },
+    {
+      "name": "StrEnum",
+      "version": "0.4.15",
+      "license": "MIT License"
+    },
+    {
+      "name": "strictyaml",
+      "version": "1.7.3",
+      "license": "MIT"
+    },
+    {
+      "name": "structlog",
+      "version": "25.5.0",
+      "license": "Apache Software License"
+    },
+    {
+      "name": "supabase",
+      "version": "2.27.2",
+      "license": "Unknown"
+    },
+    {
+      "name": "supabase-auth",
+      "version": "2.27.2",
+      "license": "MIT License"
+    },
+    {
+      "name": "supabase-functions",
+      "version": "2.27.2",
+      "license": "Unknown"
+    },
+    {
+      "name": "tenacity",
+      "version": "9.1.2",
+      "license": "Apache 2.0"
+    },
+    {
+      "name": "tiktoken",
+      "version": "0.12.0",
+      "license": "MIT License\n\nCopyright (c) 2022 OpenAI, Shantanu Jain\n\nPermission is hereby granted, free of charge, to any person obtaining a copy\nof this software and associated documentation files (the \"Software\"), to deal\nin the Software without restriction, including without limitation the rights\nto use, copy, modify, merge, publish, distribute, sublicense, and/or sell\ncopies of the Software, and to permit persons to whom the Software is\nfurnished to do so, subject to the following conditions:\n\nThe above copyright notice and this permission notice shall be included in all\ncopies or substantial portions of the Software.\n\nTHE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\nIMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,\nFITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE\nAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER\nLIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,\nOUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE\nSOFTWARE.\n"
+    },
+    {
+      "name": "tqdm",
+      "version": "4.67.1",
+      "license": "MPL-2.0 AND MIT"
+    },
+    {
+      "name": "typing-inspect",
+      "version": "0.9.0",
+      "license": "MIT"
+    },
+    {
+      "name": "typing-inspection",
+      "version": "0.4.2",
+      "license": "Unknown"
+    },
+    {
+      "name": "typing_extensions",
+      "version": "4.15.0",
+      "license": "Unknown"
+    },
+    {
+      "name": "urllib3",
+      "version": "2.6.3",
+      "license": "Unknown"
+    },
+    {
+      "name": "uuid_utils",
+      "version": "0.14.0",
+      "license": "BSD License"
+    },
+    {
+      "name": "uvicorn",
+      "version": "0.40.0",
+      "license": "Unknown"
+    },
+    {
+      "name": "uvloop",
+      "version": "0.22.1",
+      "license": "MIT License"
+    },
+    {
+      "name": "websockets",
+      "version": "15.0.1",
+      "license": "BSD-3-Clause"
+    },
+    {
+      "name": "wrapt",
+      "version": "1.17.3",
+      "license": "BSD"
+    },
+    {
+      "name": "xxhash",
+      "version": "3.6.0",
+      "license": "BSD"
+    },
+    {
+      "name": "yarl",
+      "version": "1.22.0",
+      "license": "Apache-2.0"
+    },
+    {
+      "name": "zipp",
+      "version": "3.23.0",
+      "license": "Unknown"
+    },
+    {
+      "name": "zstandard",
+      "version": "0.25.0",
+      "license": "Unknown"
+    }
+  ]
+}

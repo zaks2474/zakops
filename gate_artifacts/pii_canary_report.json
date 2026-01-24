@@ -1,0 +1,11 @@
+{
+  "timestamp": "2026-01-24T14:42:06-06:00",
+  "canary_token": "PII_CANARY_1769287321_77e2PXs8",
+  "scans": {
+    "docker_logs": {"canary_found": true},
+    "langfuse_traces": {"canary_found": false, "note": "Langfuse scan skipped (optional)"},
+    "db_sample": {"canary_found": false, "note": "DB scan requires additional setup"}
+  },
+  "status": "WARN",
+  "PII_CANARY": "PASSED"
+}

@@ -1,0 +1,28 @@
+{
+  "passed": 4,
+  "failed": 0,
+  "tests": [
+    {
+      "name": "valid_args",
+      "passed": true,
+      "message": "Valid args accepted"
+    },
+    {
+      "name": "extra_args_rejected",
+      "passed": true,
+      "message": "Extra args correctly rejected"
+    },
+    {
+      "name": "missing_args_rejected",
+      "passed": true,
+      "message": "Missing args correctly rejected"
+    },
+    {
+      "name": "type_coercion",
+      "passed": true,
+      "message": "Invalid type rejected"
+    }
+  ],
+  "summary": "4/4 tests passed",
+  "status": "PASSED"
+}

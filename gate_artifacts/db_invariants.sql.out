@@ -1,0 +1,124 @@
+=== DB Invariants ===
+Timestamp: 2026-01-24T14:41:26-06:00
+
+-- Approval row (id=053810ff-241a-4463-baf0-96fc81f7f17f)
+                  id                  |    tool_name    | status  |                                                    idempotency_key                                                    |          created_at           |          expires_at           
+--------------------------------------+-----------------+---------+-----------------------------------------------------------------------------------------------------------------------+-------------------------------+-------------------------------
+ 053810ff-241a-4463-baf0-96fc81f7f17f | transition_deal | pending | cd2c708b-7143-41b3-9f04-4f778a820032:transition_deal:f33e0e594f304a5f1fa8d31ae655a1d3f36dc1de5a88350560844b8e3871646e | 2026-01-24 20:41:26.624843+00 | 2026-01-24 21:41:26.620481+00
+(1 row)
+
+
+-- All pending approvals
+                  id                  |    tool_name    | status  |          created_at           
+--------------------------------------+-----------------+---------+-------------------------------
+ e0b0bea7-baae-42aa-ba3f-aa73b4dd5880 | transition_deal | pending | 2026-01-23 16:18:32.733554+00
+ 73cc8d20-27b1-4df3-bca9-0ac06622bb8a | transition_deal | pending | 2026-01-23 16:18:34.67289+00
+ b647672c-dcb4-4b09-8ed2-a35267d91d93 | transition_deal | pending | 2026-01-23 16:18:36.146147+00
+ cab1ffac-8930-4a57-a128-c5d8f924f445 | transition_deal | pending | 2026-01-23 16:21:21.296713+00
+ 8b128682-c5f3-4534-9157-6167ec932f29 | transition_deal | pending | 2026-01-23 16:21:23.611397+00
+ 460e1977-2b56-4c91-92fc-d48debcccb1a | transition_deal | pending | 2026-01-23 16:21:28.37762+00
+ a6ec13eb-d304-413d-8d2f-f6ef739b0520 | transition_deal | pending | 2026-01-23 16:40:31.567747+00
+ 7fbb8aee-0c68-4b3c-a4d6-994574024503 | transition_deal | pending | 2026-01-23 17:16:52.95346+00
+ ca7c84d0-b92d-4c9b-ab31-15f0c3ff28d3 | transition_deal | pending | 2026-01-23 17:20:53.786089+00
+ 053810ff-241a-4463-baf0-96fc81f7f17f | transition_deal | pending | 2026-01-24 20:41:26.624843+00
+(10 rows)
+
+
+-- Checkpoint tables exist (checkpoints, checkpoint_writes, checkpoint_blobs)
+ checkpoints | checkpoint_writes | checkpoint_blobs 
+-------------+-------------------+------------------
+ checkpoints | checkpoint_writes | checkpoint_blobs
+(1 row)
+
+
+-- Checkpoint count
+ checkpoint_count 
+------------------
+              180
+(1 row)
+
+
+-- Checkpoint blobs count (if table exists)
+ blob_count 
+------------
+        288
+(1 row)
+
+
+-- Idempotency key uniqueness check (should be 0 duplicates)
+ idempotency_key | cnt 
+-----------------+-----
+(0 rows)
+
+
+-- Audit log for approval 053810ff-241a-4463-baf0-96fc81f7f17f
+        event_type        |  actor_id  |          created_at           
+--------------------------+------------+-------------------------------
+ approval_claimed         | approver-1 | 2026-01-24 20:41:27.286834+00
+ tool_execution_started   | approver-1 | 2026-01-24 20:41:27.297309+00
+ tool_execution_completed | approver-1 | 2026-01-24 20:41:27.311881+00
+ approval_approved        | approver-1 | 2026-01-24 20:41:27.311962+00
+(4 rows)
+
+
+-- Tool executions for concurrent test
+ execution_count 
+-----------------
+               1
+(1 row)
+
+
+=== Audit Log Verification ===
+Timestamp: 2026-01-24T14:41:37-06:00
+
+-- Audit log event counts by type
+        event_type        | cnt 
+--------------------------+-----
+ tool_execution_completed |  36
+ approval_claimed         |  36
+ tool_execution_started   |  36
+ approval_approved        |  36
+(4 rows)
+
+
+-- Recent audit events (last 20)
+                  id                  |        event_type        |     actor_id      |             approval_id              |          created_at           
+--------------------------------------+--------------------------+-------------------+--------------------------------------+-------------------------------
+ 4bb2456b-8f04-493d-9e45-bf31388ae8e9 | approval_approved        | approver-3        | 6d158eb4-d4da-404e-a05c-9da4f7fdd66d | 2026-01-24 20:41:36.799251+00
+ ae0bcbf6-48e1-479a-999d-34565aa5f38c | tool_execution_completed | approver-3        | 6d158eb4-d4da-404e-a05c-9da4f7fdd66d | 2026-01-24 20:41:36.799182+00
+ 78e88bbb-5167-4359-94fa-3759d66fa580 | tool_execution_started   | approver-3        | 6d158eb4-d4da-404e-a05c-9da4f7fdd66d | 2026-01-24 20:41:36.735348+00
+ 1fffca30-1b8c-46df-8b21-74026c81ebc8 | approval_claimed         | approver-3        | 6d158eb4-d4da-404e-a05c-9da4f7fdd66d | 2026-01-24 20:41:36.728161+00
+ 9daf95f6-0ee9-4491-a8d1-204c851e3cd8 | approval_approved        | recovery-approver | cdedfbac-40d5-4daa-a579-006bf63186e5 | 2026-01-24 20:41:34.592215+00
+ 8db79754-7969-4333-83f3-d1d4a4a03ad9 | tool_execution_completed | recovery-approver | cdedfbac-40d5-4daa-a579-006bf63186e5 | 2026-01-24 20:41:34.592153+00
+ 3b3c2dcf-a926-42ac-878f-c08f2696ad6d | tool_execution_started   | recovery-approver | cdedfbac-40d5-4daa-a579-006bf63186e5 | 2026-01-24 20:41:34.560469+00
+ 849fb2e9-a6fe-46aa-a2cc-2cd1622d5955 | approval_claimed         | recovery-approver | cdedfbac-40d5-4daa-a579-006bf63186e5 | 2026-01-24 20:41:34.548841+00
+ 30efb787-de2a-44cd-8713-bb4401c7a463 | approval_approved        | approver-1        | 053810ff-241a-4463-baf0-96fc81f7f17f | 2026-01-24 20:41:27.311962+00
+ dcb0db30-5b9d-44c0-b43e-1ca70600d097 | tool_execution_completed | approver-1        | 053810ff-241a-4463-baf0-96fc81f7f17f | 2026-01-24 20:41:27.311881+00
+ f383ac4b-e60a-4c71-9703-0ae20af63dc1 | tool_execution_started   | approver-1        | 053810ff-241a-4463-baf0-96fc81f7f17f | 2026-01-24 20:41:27.297309+00
+ 7040eb73-2cee-45df-8a19-b9b0dc366e00 | approval_claimed         | approver-1        | 053810ff-241a-4463-baf0-96fc81f7f17f | 2026-01-24 20:41:27.286834+00
+ 1bf0589b-b9a5-459a-be0a-dab0dd4c7d1b | approval_approved        | test-user         | 768270ce-6d6d-4476-afd9-fb1280c553d5 | 2026-01-24 20:37:57.332123+00
+ 14fa2c22-c7da-46fe-9b39-0001077a56d7 | tool_execution_completed | test-user         | 768270ce-6d6d-4476-afd9-fb1280c553d5 | 2026-01-24 20:37:57.332059+00
+ eae6bae4-a2cf-4187-bf9b-b0672160c7a3 | tool_execution_started   | test-user         | 768270ce-6d6d-4476-afd9-fb1280c553d5 | 2026-01-24 20:37:57.299902+00
+ e67cdee1-7335-4fbc-977e-27c02c12f3ab | approval_claimed         | test-user         | 768270ce-6d6d-4476-afd9-fb1280c553d5 | 2026-01-24 20:37:57.287782+00
+ 0076b042-a39d-4a5b-aa38-9cada1f1b9d4 | approval_approved        | approver-1        | e60faca6-d7d3-4b9f-8788-d7cd7408f083 | 2026-01-24 20:37:43.332189+00
+ c8d71f32-3c28-4e95-8efb-025d63bc2427 | tool_execution_completed | approver-1        | e60faca6-d7d3-4b9f-8788-d7cd7408f083 | 2026-01-24 20:37:43.332126+00
+ 993ec8e4-6e67-4e20-acf8-fefd2eb19f28 | tool_execution_started   | approver-1        | e60faca6-d7d3-4b9f-8788-d7cd7408f083 | 2026-01-24 20:37:43.269161+00
+ c71d9f51-ee50-42e2-91c3-15a3dd22c5d4 | approval_claimed         | approver-1        | e60faca6-d7d3-4b9f-8788-d7cd7408f083 | 2026-01-24 20:37:43.258583+00
+(20 rows)
+
+
+-- Audit trail completeness check (approvals should have matching audit events)
+             approval_id              | approval_status | audit_event_count |                                        events                                         
+--------------------------------------+-----------------+-------------------+---------------------------------------------------------------------------------------
+ 6d158eb4-d4da-404e-a05c-9da4f7fdd66d | approved        |                 4 | approval_claimed, tool_execution_started, tool_execution_completed, approval_approved
+ cdedfbac-40d5-4daa-a579-006bf63186e5 | approved        |                 4 | approval_claimed, tool_execution_started, tool_execution_completed, approval_approved
+ 053810ff-241a-4463-baf0-96fc81f7f17f | approved        |                 4 | approval_claimed, tool_execution_started, tool_execution_completed, approval_approved
+ 768270ce-6d6d-4476-afd9-fb1280c553d5 | approved        |                 4 | approval_claimed, tool_execution_started, tool_execution_completed, approval_approved
+ e60faca6-d7d3-4b9f-8788-d7cd7408f083 | approved        |                 4 | approval_claimed, tool_execution_started, tool_execution_completed, approval_approved
+ e5ba82af-e09f-4115-8043-c168f079d69d | approved        |                 4 | approval_claimed, tool_execution_started, tool_execution_completed, approval_approved
+ 8747acc2-40ff-4b19-bb02-5833a9546382 | approved        |                 4 | approval_claimed, tool_execution_started, tool_execution_completed, approval_approved
+ 2ce729f9-ffa4-4942-a878-74148e07bee2 | approved        |                 4 | approval_claimed, tool_execution_started, tool_execution_completed, approval_approved
+ 573da9e9-375f-4c20-ae42-d53f67da7921 | approved        |                 4 | approval_claimed, tool_execution_started, tool_execution_completed, approval_approved
+ 7e9d9d2b-84c6-4c5a-8a62-856445652131 | approved        |                 4 | approval_claimed, tool_execution_started, tool_execution_completed, approval_approved
+(10 rows)
+

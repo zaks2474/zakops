@@ -1,0 +1,147 @@
+Loading environment: Environment.DEVELOPMENT
+[2m2026-01-24T20:42:06.379090Z[0m [[32m[1minfo     [0m] [1mlogging_initialized           [0m [[0m[1m[34mapp.core.logging[0m][0m [36mdebug[0m=[35mTrue[0m [36menvironment[0m=[35mdevelopment[0m [36mfilename[0m=[35mlogging.py[0m [36mfunc_name[0m=[35m<module>[0m [36mlineno[0m=[35m300[0m [36mlog_format[0m=[35mconsole[0m [36mlog_level[0m=[35mDEBUG[0m [36mmodule[0m=[35mlogging[0m [36mpathname[0m=[35m/app/app/core/logging.py[0m
+{
+  "version": "1.0.0",
+  "services": {
+    "deal_api": {
+      "name": "Deal API",
+      "base_url": "${DEAL_API_URL:-http://host.docker.internal:8090}",
+      "timeout": {
+        "connect_timeout_seconds": 5.0,
+        "read_timeout_seconds": 30.0,
+        "total_timeout_seconds": 60.0
+      },
+      "retry": {
+        "max_attempts": 3,
+        "base_delay_seconds": 0.5,
+        "max_delay_seconds": 10.0,
+        "exponential_base": 2.0,
+        "jitter": true
+      },
+      "circuit_breaker": {
+        "failure_threshold": 5,
+        "success_threshold": 2,
+        "timeout_seconds": 30.0,
+        "half_open_max_calls": 1
+      },
+      "health_endpoint": "/health",
+      "critical": true
+    },
+    "rag_rest": {
+      "name": "RAG REST",
+      "base_url": "${RAG_REST_URL:-http://host.docker.internal:8052}",
+      "timeout": {
+        "connect_timeout_seconds": 5.0,
+        "read_timeout_seconds": 60.0,
+        "total_timeout_seconds": 90.0
+      },
+      "retry": {
+        "max_attempts": 2,
+        "base_delay_seconds": 1.0,
+        "max_delay_seconds": 5.0,
+        "exponential_base": 2.0,
+        "jitter": true
+      },
+      "circuit_breaker": {
+        "failure_threshold": 3,
+        "success_threshold": 1,
+        "timeout_seconds": 60.0,
+        "half_open_max_calls": 1
+      },
+      "health_endpoint": "/health",
+      "critical": false
+    },
+    "mcp": {
+      "name": "MCP Server",
+      "base_url": "${MCP_URL:-http://host.docker.internal:9100}",
+      "timeout": {
+        "connect_timeout_seconds": 5.0,
+        "read_timeout_seconds": 30.0,
+        "total_timeout_seconds": 45.0
+      },
+      "retry": {
+        "max_attempts": 3,
+        "base_delay_seconds": 0.5,
+        "max_delay_seconds": 8.0,
+        "exponential_base": 2.0,
+        "jitter": true
+      },
+      "circuit_breaker": {
+        "failure_threshold": 5,
+        "success_threshold": 2,
+        "timeout_seconds": 30.0,
+        "half_open_max_calls": 1
+      },
+      "health_endpoint": "/health",
+      "critical": false
+    },
+    "vllm": {
+      "name": "vLLM Inference",
+      "base_url": "${VLLM_BASE_URL:-http://host.docker.internal:8000/v1}",
+      "timeout": {
+        "connect_timeout_seconds": 5.0,
+        "read_timeout_seconds": 120.0,
+        "total_timeout_seconds": 180.0
+      },
+      "retry": {
+        "max_attempts": 2,
+        "base_delay_seconds": 2.0,
+        "max_delay_seconds": 10.0,
+        "exponential_base": 2.0,
+        "jitter": true
+      },
+      "circuit_breaker": {
+        "failure_threshold": 3,
+        "success_threshold": 1,
+        "timeout_seconds": 60.0,
+        "half_open_max_calls": 1
+      },
+      "health_endpoint": "/health",
+      "critical": true
+    },
+    "langfuse": {
+      "name": "Langfuse Tracing",
+      "base_url": "${LANGFUSE_HOST:-http://localhost:3001}",
+      "timeout": {
+        "connect_timeout_seconds": 3.0,
+        "read_timeout_seconds": 10.0,
+        "total_timeout_seconds": 15.0
+      },
+      "retry": {
+        "max_attempts": 2,
+        "base_delay_seconds": 0.5,
+        "max_delay_seconds": 3.0,
+        "exponential_base": 2.0,
+        "jitter": true
+      },
+      "circuit_breaker": {
+        "failure_threshold": 10,
+        "success_threshold": 1,
+        "timeout_seconds": 60.0,
+        "half_open_max_calls": 1
+      },
+      "health_endpoint": "/api/public/health",
+      "critical": false
+    }
+  },
+  "defaults": {
+    "timeout": {
+      "connect_timeout_seconds": 5.0,
+      "read_timeout_seconds": 30.0,
+      "total_timeout_seconds": 60.0
+    },
+    "retry": {
+      "max_attempts": 3,
+      "base_delay_seconds": 0.5,
+      "max_delay_seconds": 10.0,
+      "exponential_base": 2.0,
+      "jitter": true
+    },
+    "circuit_breaker": {
+      "failure_threshold": 5,
+      "success_threshold": 2,
+      "timeout_seconds": 30.0,
+      "half_open_max_calls": 1
+    }
+  }
+}

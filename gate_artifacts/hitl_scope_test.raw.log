@@ -1,0 +1,36 @@
+{
+  "tests": [
+    {
+      "name": "transition_deal_requires_approval",
+      "passed": true
+    },
+    {
+      "name": "get_deal_no_approval",
+      "passed": true
+    },
+    {
+      "name": "search_deals_no_approval",
+      "passed": true
+    },
+    {
+      "name": "check_system_health_no_approval",
+      "passed": true
+    },
+    {
+      "name": "list_deals_no_approval",
+      "passed": true
+    },
+    {
+      "name": "create_deal_no_approval",
+      "passed": true
+    },
+    {
+      "name": "hitl_scope_exact",
+      "passed": true
+    }
+  ],
+  "passed": 7,
+  "failed": 0,
+  "summary": "7/7 tests passed",
+  "status": "PASSED"
+}

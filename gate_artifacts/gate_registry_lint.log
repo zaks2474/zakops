@@ -1,0 +1,25 @@
+=== Gate Registry Lint ===
+Timestamp: 2026-01-24T14:42:00-06:00
+
+Baseline Artifacts:
+  [OK] health.json
+  [OK] invoke_hitl.json
+  [OK] approve.json
+  [OK] db_invariants.sql.out
+  [OK] checkpoint_kill9_test.log
+  [OK] concurrent_approves.log
+  [OK] tool_call_validation_test.log
+  [OK] dependency_licenses.json
+  [OK] mock_safety_test.log
+  [OK] streaming_test.log
+  [OK] hitl_scope_test.log
+  [OK] auth_negative_tests.json
+
+Phase 0 Artifacts:
+  [OK] contract_snapshot.json
+  [OK] agent_api_contract.json
+  [OK] ports_md_lint.log
+  [OK] env_no_localhost_lint.log
+  [OK] vllm_lane_verify.json
+
+GATE_REGISTRY_LINT: PASSED

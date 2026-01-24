@@ -1,0 +1,37 @@
+{
+  "version": "1.0.0",
+  "generated_at": "2026-01-24T14:42:00-06:00",
+  "gates": {
+    "baseline": [
+      {"id": "BL-01", "name": "Health Endpoint", "artifact": "health.json", "required": true},
+      {"id": "BL-02", "name": "HITL Invoke", "artifact": "invoke_hitl.json", "required": true},
+      {"id": "BL-03", "name": "Approval Persisted", "artifact": "db_invariants.sql.out", "required": true},
+      {"id": "BL-04", "name": "Approve Completes", "artifact": "approve.json", "required": true},
+      {"id": "BL-05", "name": "Idempotency", "artifact": "approve_again.json", "required": true},
+      {"id": "BL-06", "name": "Concurrency N=20", "artifact": "concurrent_approves.log", "required": true},
+      {"id": "BL-07", "name": "Kill-9 Recovery", "artifact": "checkpoint_kill9_test.log", "required": true},
+      {"id": "BL-08", "name": "Tool Validation", "artifact": "tool_call_validation_test.log", "required": true},
+      {"id": "BL-09", "name": "License Report", "artifact": "dependency_licenses.json", "required": true},
+      {"id": "BL-10", "name": "Audit Log", "artifact": "db_invariants.sql.out", "required": true},
+      {"id": "BL-11", "name": "Mock Safety", "artifact": "mock_safety_test.log", "required": true},
+      {"id": "BL-12", "name": "Streaming", "artifact": "streaming_test.log", "required": true},
+      {"id": "BL-13", "name": "HITL Scope", "artifact": "hitl_scope_test.log", "required": true},
+      {"id": "BL-14", "name": "Auth Negative", "artifact": "auth_negative_tests.json", "required": true}
+    ],
+    "phase0": [
+      {"id": "P0-CONTRACT-001", "name": "Contract Snapshot", "artifact": "contract_snapshot.json", "required": true},
+      {"id": "P0-PORTS-001", "name": "PORTS.md Lint", "artifact": "ports_md_lint.log", "required": true},
+      {"id": "P0-ENV-001", "name": "No Localhost Container", "artifact": "env_no_localhost_lint.log", "required": true},
+      {"id": "P0-VLLM-001", "name": "vLLM Lane Verify", "artifact": "vllm_lane_verify.json", "required": false},
+      {"id": "P0-BUNDLE-001", "name": "Artifact Bundle", "artifact": "artifact_bundle.zip", "required": true},
+      {"id": "P0-REGISTRY-001", "name": "Gate Registry", "artifact": "gate_registry.json", "required": true}
+    ],
+    "phase1": [
+      {"id": "P1-ENC-001", "name": "At-Rest Encryption", "artifact": "encryption_verify.log", "required": true},
+      {"id": "P1-KEY-001", "name": "Prod Fail-Closed", "artifact": "prod_exposure_fail_closed.log", "required": true},
+      {"id": "P1-RAW-001", "name": "No Raw Leakage", "artifact": "pii_canary_report.json", "required": true},
+      {"id": "P1-LANGFUSE-001", "name": "Langfuse Self-Host", "artifact": "langfuse_selfhost_gate.log", "required": false},
+      {"id": "P1-RESILIENCE-001", "name": "Resilience Config", "artifact": "resilience_config_snapshot.json", "required": true}
+    ]
+  }
+}

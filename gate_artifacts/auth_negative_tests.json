@@ -1,0 +1,14 @@
+{
+  "status": "completed",
+  "generated_at": "2026-01-24T14:41:51-06:00",
+  "approval_id": "6fc0f1e8-b8ad-4a4e-a3e4-02ee482b77a0",
+  "tests": [
+    {"name": "no_token", "expected_http": 401, "actual_http": 401, "passed": true},
+    {"name": "expired_token", "expected_http": 401, "actual_http": 401, "passed": true},
+    {"name": "wrong_issuer", "expected_http": 401, "actual_http": 401, "passed": true},
+    {"name": "wrong_audience", "expected_http": 401, "actual_http": 401, "passed": true},
+    {"name": "missing_role_claim", "expected_http": 401, "actual_http": 401, "passed": true},
+    {"name": "insufficient_role", "expected_http": 403, "actual_http": 403, "passed": true},
+    {"name": "valid_token", "expected_http": [200, 409], "actual_http": 200, "passed": true}
+  ]
+}
