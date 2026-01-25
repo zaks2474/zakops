@@ -1128,6 +1128,38 @@ else
     log_warn "Phase 0 + Phase 1 gate script not found or not executable"
 fi
 
+# ============================================================
+# Run Phase 2/4/5 gates
+# ============================================================
+PHASE_245_SCRIPT="$(dirname "$0")/phase2_4_5_gates.sh"
+if [ -x "$PHASE_245_SCRIPT" ]; then
+    log_info "Running Phase 2/4/5 gates..."
+    echo ""
+    if bash "$PHASE_245_SCRIPT"; then
+        log_info "Phase 2/4/5 gates completed"
+    else
+        log_warn "Phase 2/4/5 gates had warnings (non-fatal)"
+    fi
+else
+    log_warn "Phase 2/4/5 gate script not found or not executable"
+fi
+
+# ============================================================
+# Run Phase 6/7/8 gates (Production Readiness)
+# ============================================================
+PHASE_678_SCRIPT="$(dirname "$0")/phase6_7_8_gates.sh"
+if [ -x "$PHASE_678_SCRIPT" ]; then
+    log_info "Running Phase 6/7/8 gates (Production Readiness)..."
+    echo ""
+    if bash "$PHASE_678_SCRIPT"; then
+        log_info "Phase 6/7/8 gates completed"
+    else
+        log_warn "Phase 6/7/8 gates had warnings (non-fatal)"
+    fi
+else
+    log_warn "Phase 6/7/8 gate script not found or not executable"
+fi
+
 echo ""
 log_info "=========================================="
 log_info "ALL GATES COMPLETED"

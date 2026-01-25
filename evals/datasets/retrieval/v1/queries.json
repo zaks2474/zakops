@@ -1,0 +1,100 @@
+{
+  "version": "1.0.0",
+  "dataset_name": "retrieval_eval_v1",
+  "description": "Labeled query set for retrieval eval with expected document matches",
+  "created_at": "2026-01-24T00:00:00Z",
+  "provenance": "Curated from ZakOps DataRoom knowledge base for Phase 3",
+  "secrets_certification": "No secrets or PII present",
+  "queries": [
+    {
+      "id": "RET-001",
+      "query": "textile art education business deal",
+      "expected_urls": [
+        "dataroom.local"
+      ],
+      "expected_content_keywords": ["textile", "education", "DEAL-2026"],
+      "relevance_threshold": 0.5
+    },
+    {
+      "id": "RET-002",
+      "query": "profitable IT services company",
+      "expected_urls": [
+        "dataroom.local"
+      ],
+      "expected_content_keywords": ["profitable", "IT", "DEAL-2026"],
+      "relevance_threshold": 0.5
+    },
+    {
+      "id": "RET-003",
+      "query": "deal registry JSON",
+      "expected_urls": [
+        "dataroom.local"
+      ],
+      "expected_content_keywords": ["deal_id", "registry"],
+      "relevance_threshold": 0.5
+    },
+    {
+      "id": "RET-004",
+      "query": "Qwen model LLM configuration",
+      "expected_urls": [
+        "dataroom.local"
+      ],
+      "expected_content_keywords": ["Qwen", "model"],
+      "relevance_threshold": 0.4
+    },
+    {
+      "id": "RET-005",
+      "query": "langgraph migration strategy",
+      "expected_urls": [
+        "dataroom.local"
+      ],
+      "expected_content_keywords": ["langgraph", "migration"],
+      "relevance_threshold": 0.5
+    },
+    {
+      "id": "RET-006",
+      "query": "broker email deal",
+      "expected_urls": [
+        "dataroom.local"
+      ],
+      "expected_content_keywords": ["broker", "email"],
+      "relevance_threshold": 0.5
+    },
+    {
+      "id": "RET-007",
+      "query": "email triage classification NEWSLETTER",
+      "expected_urls": [
+        "dataroom.local"
+      ],
+      "expected_content_keywords": ["triage", "NEWSLETTER"],
+      "relevance_threshold": 0.4
+    },
+    {
+      "id": "RET-008",
+      "query": "deal stage inbound qualification",
+      "expected_urls": [
+        "dataroom.local"
+      ],
+      "expected_content_keywords": ["stage", "inbound"],
+      "relevance_threshold": 0.4
+    },
+    {
+      "id": "RET-009",
+      "query": "deals active pipeline status",
+      "expected_urls": [
+        "dataroom.local"
+      ],
+      "expected_content_keywords": ["active", "status"],
+      "relevance_threshold": 0.5
+    },
+    {
+      "id": "RET-010",
+      "query": "email marketing message classification",
+      "expected_urls": [
+        "dataroom.local"
+      ],
+      "expected_content_keywords": ["NEWSLETTER", "classification"],
+      "relevance_threshold": 0.4
+    }
+  ]
+}

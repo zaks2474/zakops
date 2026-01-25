@@ -1,0 +1,495 @@
+{
+  "version": "1.0.0",
+  "dataset_name": "tool_accuracy_v1",
+  "description": "50 prompts for testing tool selection and argument accuracy",
+  "created_at": "2026-01-24T00:00:00Z",
+  "provenance": "Manually curated for ZakOps Agent API Phase 3",
+  "secrets_certification": "No secrets or PII present",
+  "prompts": [
+    {
+      "id": "TA-001",
+      "prompt": "Move deal DEAL-2026-001 from qualification to proposal because the budget has been approved",
+      "expected_tool": "transition_deal",
+      "expected_args": {
+        "deal_id": "DEAL-2026-001",
+        "from_stage": "qualification",
+        "to_stage": "proposal",
+        "reason": "budget approved"
+      },
+      "category": "transition_deal"
+    },
+    {
+      "id": "TA-002",
+      "prompt": "Get details about deal DEAL-2026-002",
+      "expected_tool": "get_deal",
+      "expected_args": {
+        "deal_id": "DEAL-2026-002"
+      },
+      "category": "get_deal"
+    },
+    {
+      "id": "TA-003",
+      "prompt": "Search for deals related to textile business",
+      "expected_tool": "search_deals",
+      "expected_args": {
+        "query": "textile business"
+      },
+      "category": "search_deals"
+    },
+    {
+      "id": "TA-004",
+      "prompt": "Transition deal DEAL-001 from lead stage to qualification stage",
+      "expected_tool": "transition_deal",
+      "expected_args": {
+        "deal_id": "DEAL-001",
+        "from_stage": "lead",
+        "to_stage": "qualification"
+      },
+      "category": "transition_deal"
+    },
+    {
+      "id": "TA-005",
+      "prompt": "Find all deals about IT services",
+      "expected_tool": "search_deals",
+      "expected_args": {
+        "query": "IT services"
+      },
+      "category": "search_deals"
+    },
+    {
+      "id": "TA-006",
+      "prompt": "What is the status of deal DEAL-2026-003?",
+      "expected_tool": "get_deal",
+      "expected_args": {
+        "deal_id": "DEAL-2026-003"
+      },
+      "category": "get_deal"
+    },
+    {
+      "id": "TA-007",
+      "prompt": "Move DEAL-100 from inbound to qualification because initial review is complete",
+      "expected_tool": "transition_deal",
+      "expected_args": {
+        "deal_id": "DEAL-100",
+        "from_stage": "inbound",
+        "to_stage": "qualification"
+      },
+      "category": "transition_deal"
+    },
+    {
+      "id": "TA-008",
+      "prompt": "Look up information about deal ID ABC-123",
+      "expected_tool": "get_deal",
+      "expected_args": {
+        "deal_id": "ABC-123"
+      },
+      "category": "get_deal"
+    },
+    {
+      "id": "TA-009",
+      "prompt": "Search for manufacturing company acquisitions",
+      "expected_tool": "search_deals",
+      "expected_args": {
+        "query": "manufacturing company"
+      },
+      "category": "search_deals"
+    },
+    {
+      "id": "TA-010",
+      "prompt": "Advance deal DEAL-50 from proposal to due diligence, reason: LOI signed",
+      "expected_tool": "transition_deal",
+      "expected_args": {
+        "deal_id": "DEAL-50",
+        "from_stage": "proposal",
+        "to_stage": "due diligence"
+      },
+      "category": "transition_deal"
+    },
+    {
+      "id": "TA-011",
+      "prompt": "Show me the details for deal DEAL-XYZ",
+      "expected_tool": "get_deal",
+      "expected_args": {
+        "deal_id": "DEAL-XYZ"
+      },
+      "category": "get_deal"
+    },
+    {
+      "id": "TA-012",
+      "prompt": "Find deals with SaaS companies",
+      "expected_tool": "search_deals",
+      "expected_args": {
+        "query": "SaaS"
+      },
+      "category": "search_deals"
+    },
+    {
+      "id": "TA-013",
+      "prompt": "Change deal DEAL-2026-001 stage from proposal to closed-won",
+      "expected_tool": "transition_deal",
+      "expected_args": {
+        "deal_id": "DEAL-2026-001",
+        "from_stage": "proposal",
+        "to_stage": "closed-won"
+      },
+      "category": "transition_deal"
+    },
+    {
+      "id": "TA-014",
+      "prompt": "Get info on deal number 12345",
+      "expected_tool": "get_deal",
+      "expected_args": {
+        "deal_id": "12345"
+      },
+      "category": "get_deal"
+    },
+    {
+      "id": "TA-015",
+      "prompt": "Search for restaurant acquisition opportunities",
+      "expected_tool": "search_deals",
+      "expected_args": {
+        "query": "restaurant acquisition"
+      },
+      "category": "search_deals"
+    },
+    {
+      "id": "TA-016",
+      "prompt": "Reject deal DEAL-999 by moving it from qualification to closed-lost",
+      "expected_tool": "transition_deal",
+      "expected_args": {
+        "deal_id": "DEAL-999",
+        "from_stage": "qualification",
+        "to_stage": "closed-lost"
+      },
+      "category": "transition_deal"
+    },
+    {
+      "id": "TA-017",
+      "prompt": "What are the details of deal D-2026-042?",
+      "expected_tool": "get_deal",
+      "expected_args": {
+        "deal_id": "D-2026-042"
+      },
+      "category": "get_deal"
+    },
+    {
+      "id": "TA-018",
+      "prompt": "Look for healthcare related deals",
+      "expected_tool": "search_deals",
+      "expected_args": {
+        "query": "healthcare"
+      },
+      "category": "search_deals"
+    },
+    {
+      "id": "TA-019",
+      "prompt": "Move deal DEAL-A1 from due diligence to closing because all documents are signed",
+      "expected_tool": "transition_deal",
+      "expected_args": {
+        "deal_id": "DEAL-A1",
+        "from_stage": "due diligence",
+        "to_stage": "closing"
+      },
+      "category": "transition_deal"
+    },
+    {
+      "id": "TA-020",
+      "prompt": "Fetch deal DEAL-007",
+      "expected_tool": "get_deal",
+      "expected_args": {
+        "deal_id": "DEAL-007"
+      },
+      "category": "get_deal"
+    },
+    {
+      "id": "TA-021",
+      "prompt": "Search deals with revenue over 1 million",
+      "expected_tool": "search_deals",
+      "expected_args": {
+        "query": "revenue over 1 million"
+      },
+      "category": "search_deals"
+    },
+    {
+      "id": "TA-022",
+      "prompt": "Transition DEAL-B2 from lead to inbound review",
+      "expected_tool": "transition_deal",
+      "expected_args": {
+        "deal_id": "DEAL-B2",
+        "from_stage": "lead",
+        "to_stage": "inbound review"
+      },
+      "category": "transition_deal"
+    },
+    {
+      "id": "TA-023",
+      "prompt": "Get deal information for DEAL-2025-100",
+      "expected_tool": "get_deal",
+      "expected_args": {
+        "deal_id": "DEAL-2025-100"
+      },
+      "category": "get_deal"
+    },
+    {
+      "id": "TA-024",
+      "prompt": "Find all e-commerce acquisition targets",
+      "expected_tool": "search_deals",
+      "expected_args": {
+        "query": "e-commerce"
+      },
+      "category": "search_deals"
+    },
+    {
+      "id": "TA-025",
+      "prompt": "Archive deal DEAL-OLD-1 by moving from active to archived",
+      "expected_tool": "transition_deal",
+      "expected_args": {
+        "deal_id": "DEAL-OLD-1",
+        "from_stage": "active",
+        "to_stage": "archived"
+      },
+      "category": "transition_deal"
+    },
+    {
+      "id": "TA-026",
+      "prompt": "Show details of deal with ID PROFITABLE-001",
+      "expected_tool": "get_deal",
+      "expected_args": {
+        "deal_id": "PROFITABLE-001"
+      },
+      "category": "get_deal"
+    },
+    {
+      "id": "TA-027",
+      "prompt": "Search for deals from Quiet Light broker",
+      "expected_tool": "search_deals",
+      "expected_args": {
+        "query": "Quiet Light"
+      },
+      "category": "search_deals"
+    },
+    {
+      "id": "TA-028",
+      "prompt": "Progress deal DEAL-C3 from inbound to qualification with reason: passed initial screening",
+      "expected_tool": "transition_deal",
+      "expected_args": {
+        "deal_id": "DEAL-C3",
+        "from_stage": "inbound",
+        "to_stage": "qualification"
+      },
+      "category": "transition_deal"
+    },
+    {
+      "id": "TA-029",
+      "prompt": "What is deal DEAL-NEW-2026?",
+      "expected_tool": "get_deal",
+      "expected_args": {
+        "deal_id": "DEAL-NEW-2026"
+      },
+      "category": "get_deal"
+    },
+    {
+      "id": "TA-030",
+      "prompt": "Search for logistics companies for sale",
+      "expected_tool": "search_deals",
+      "expected_args": {
+        "query": "logistics"
+      },
+      "category": "search_deals"
+    },
+    {
+      "id": "TA-031",
+      "prompt": "Move deal ALPHA-1 from closing to closed-won because deal is complete",
+      "expected_tool": "transition_deal",
+      "expected_args": {
+        "deal_id": "ALPHA-1",
+        "from_stage": "closing",
+        "to_stage": "closed-won"
+      },
+      "category": "transition_deal"
+    },
+    {
+      "id": "TA-032",
+      "prompt": "Look up deal DEAL-D4",
+      "expected_tool": "get_deal",
+      "expected_args": {
+        "deal_id": "DEAL-D4"
+      },
+      "category": "get_deal"
+    },
+    {
+      "id": "TA-033",
+      "prompt": "Find technology startup acquisitions",
+      "expected_tool": "search_deals",
+      "expected_args": {
+        "query": "technology startup"
+      },
+      "category": "search_deals"
+    },
+    {
+      "id": "TA-034",
+      "prompt": "Transition deal BETA-2 from proposal stage to negotiation stage",
+      "expected_tool": "transition_deal",
+      "expected_args": {
+        "deal_id": "BETA-2",
+        "from_stage": "proposal",
+        "to_stage": "negotiation"
+      },
+      "category": "transition_deal"
+    },
+    {
+      "id": "TA-035",
+      "prompt": "Retrieve details for deal ID E5-2026",
+      "expected_tool": "get_deal",
+      "expected_args": {
+        "deal_id": "E5-2026"
+      },
+      "category": "get_deal"
+    },
+    {
+      "id": "TA-036",
+      "prompt": "Search for franchise opportunities",
+      "expected_tool": "search_deals",
+      "expected_args": {
+        "query": "franchise"
+      },
+      "category": "search_deals"
+    },
+    {
+      "id": "TA-037",
+      "prompt": "Change DEAL-F6 status from qualification to rejected due to insufficient financials",
+      "expected_tool": "transition_deal",
+      "expected_args": {
+        "deal_id": "DEAL-F6",
+        "from_stage": "qualification",
+        "to_stage": "rejected"
+      },
+      "category": "transition_deal"
+    },
+    {
+      "id": "TA-038",
+      "prompt": "Get deal DEAL-G7",
+      "expected_tool": "get_deal",
+      "expected_args": {
+        "deal_id": "DEAL-G7"
+      },
+      "category": "get_deal"
+    },
+    {
+      "id": "TA-039",
+      "prompt": "Find deals in education sector",
+      "expected_tool": "search_deals",
+      "expected_args": {
+        "query": "education"
+      },
+      "category": "search_deals"
+    },
+    {
+      "id": "TA-040",
+      "prompt": "Advance deal GAMMA-1 from lead to qualification stage because initial call completed",
+      "expected_tool": "transition_deal",
+      "expected_args": {
+        "deal_id": "GAMMA-1",
+        "from_stage": "lead",
+        "to_stage": "qualification"
+      },
+      "category": "transition_deal"
+    },
+    {
+      "id": "TA-041",
+      "prompt": "Show me deal H8-ABC",
+      "expected_tool": "get_deal",
+      "expected_args": {
+        "deal_id": "H8-ABC"
+      },
+      "category": "get_deal"
+    },
+    {
+      "id": "TA-042",
+      "prompt": "Search for construction company deals",
+      "expected_tool": "search_deals",
+      "expected_args": {
+        "query": "construction company"
+      },
+      "category": "search_deals"
+    },
+    {
+      "id": "TA-043",
+      "prompt": "Move DEAL-I9 from due diligence to negotiation",
+      "expected_tool": "transition_deal",
+      "expected_args": {
+        "deal_id": "DEAL-I9",
+        "from_stage": "due diligence",
+        "to_stage": "negotiation"
+      },
+      "category": "transition_deal"
+    },
+    {
+      "id": "TA-044",
+      "prompt": "What is the current status of deal DEAL-J10?",
+      "expected_tool": "get_deal",
+      "expected_args": {
+        "deal_id": "DEAL-J10"
+      },
+      "category": "get_deal"
+    },
+    {
+      "id": "TA-045",
+      "prompt": "Find automotive industry acquisitions",
+      "expected_tool": "search_deals",
+      "expected_args": {
+        "query": "automotive"
+      },
+      "category": "search_deals"
+    },
+    {
+      "id": "TA-046",
+      "prompt": "Transition DEAL-K11 from inbound to qualification with reason: strong financials",
+      "expected_tool": "transition_deal",
+      "expected_args": {
+        "deal_id": "DEAL-K11",
+        "from_stage": "inbound",
+        "to_stage": "qualification"
+      },
+      "category": "transition_deal"
+    },
+    {
+      "id": "TA-047",
+      "prompt": "Get information about deal L12-2026",
+      "expected_tool": "get_deal",
+      "expected_args": {
+        "deal_id": "L12-2026"
+      },
+      "category": "get_deal"
+    },
+    {
+      "id": "TA-048",
+      "prompt": "Search for profitable small businesses",
+      "expected_tool": "search_deals",
+      "expected_args": {
+        "query": "profitable small business"
+      },
+      "category": "search_deals"
+    },
+    {
+      "id": "TA-049",
+      "prompt": "Mark deal DEAL-M13 as closed-lost from negotiation stage",
+      "expected_tool": "transition_deal",
+      "expected_args": {
+        "deal_id": "DEAL-M13",
+        "from_stage": "negotiation",
+        "to_stage": "closed-lost"
+      },
+      "category": "transition_deal"
+    },
+    {
+      "id": "TA-050",
+      "prompt": "Look up deal FINAL-DEAL-2026",
+      "expected_tool": "get_deal",
+      "expected_args": {
+        "deal_id": "FINAL-DEAL-2026"
+      },
+      "category": "get_deal"
+    }
+  ]
+}
