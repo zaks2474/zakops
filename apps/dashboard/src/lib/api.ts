@@ -1782,6 +1782,92 @@ export async function getCompletedActionsCount(
   return apiFetch(`/api/actions/completed-count?age=${age}`);
 }
 
+// ============================================================================
+// Agent Activity API
+// ============================================================================
+
+// Zod schemas for Agent Activity
+const AgentActivityEventSchema = z.object({
+  id: z.string(),
+  type: z.string(),
+  label: z.string(),
+  timestamp: z.string(),
+  dealId: z.string().optional(),
+  dealName: z.string().optional(),
+  metadata: z.record(z.unknown()).optional(),
+});
+
+const AgentActivityStatsSchema = z.object({
+  toolsCalledToday: z.number(),
+  approvalsProcessed: z.number(),
+  dealsAnalyzed: z.number(),
+  runsCompleted24h: z.number(),
+});
+
+const AgentLastActivitySchema = z.object({
+  label: z.string(),
+  timestamp: z.string(),
+  dealId: z.string().optional(),
+  threadId: z.string().optional(),
+  runId: z.string().optional(),
+});
+
+const AgentCurrentRunSchema = z.object({
+  runId: z.string(),
+  threadId: z.string(),
+  status: z.enum(['running', 'waiting_approval']),
+  progressLabel: z.string(),
+  startedAt: z.string(),
+  dealId: z.string().optional(),
+  dealName: z.string().optional(),
+});
+
+const AgentRecentRunSchema = z.object({
+  runId: z.string(),
+  threadId: z.string(),
+  status: z.enum(['completed', 'failed', 'cancelled']),
+  summary: z.string(),
+  startedAt: z.string(),
+  completedAt: z.string(),
+  dealId: z.string().optional(),
+  dealName: z.string().optional(),
+  toolsCalled: z.number(),
+  approvalsRequested: z.number(),
+});
+
+const AgentActivityResponseSchema = z.object({
+  status: z.enum(['idle', 'working', 'waiting_approval']),
+  lastActivity: AgentLastActivitySchema.nullable(),
+  recent: z.array(AgentActivityEventSchema),
+  stats: AgentActivityStatsSchema,
+  currentRun: AgentCurrentRunSchema.optional(),
+  recentRuns: z.array(AgentRecentRunSchema),
+});
+
+export type AgentActivityResponse = z.infer<typeof AgentActivityResponseSchema>;
+
+/**
+ * Fetch agent activity data
+ * Returns null on failure (graceful degradation)
+ */
+export async function getAgentActivity(limit?: number): Promise<AgentActivityResponse | null> {
+  try {
+    const query = limit ? `?limit=${limit}` : '';
+    const data = await apiFetch<unknown>(`/api/agent/activity${query}`);
+    const parsed = AgentActivityResponseSchema.safeParse(data);
+
+    if (!parsed.success) {
+      console.error('Invalid agent activity response:', parsed.error);
+      return null;
+    }
+
+    return parsed.data;
+  } catch (error) {
+    console.error('Failed to fetch agent activity:', error);
+    return null;
+  }
+}
+
 /**
  * Mock capabilities for development when backend not available
  */

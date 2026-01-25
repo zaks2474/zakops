@@ -6,12 +6,13 @@ import {
   getDeals,
   getKineticActions,
   getQuarantineQueue,
+  getAgentActivity,
   type Deal,
   type KineticAction,
   type QuarantineItem,
+  type AgentActivityResponse,
 } from '@/lib/api';
 import type { PipelineStats, DealStage } from '@/types/api';
-import type { AgentActivityResponse } from '@/types/agent-activity';
 
 // Valid pipeline stages that match the PipelineStats interface
 const PIPELINE_STAGES: DealStage[] = [
@@ -40,8 +41,8 @@ export default function OperatorHQPage() {
         getKineticActions({ status: 'PENDING_APPROVAL' }),
         // Fetch quarantine queue (pending items)
         getQuarantineQueue(),
-        // Fetch agent activity for events count
-        fetch('/api/agent/activity?limit=100').then(r => r.ok ? r.json() : null).catch(() => null),
+        // Fetch agent activity for events count (using centralized API function)
+        getAgentActivity(100),
       ]);
       setDeals(dealsData);
       setPendingActions(pendingData);
