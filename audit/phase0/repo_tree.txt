@@ -1,0 +1,500 @@
+/home/zaks/zakops-dashboard:
+total 1152
+drwxr-xr-x  14 zaks zaks   4096 Jan 19 01:27 .
+drwxrwx---  39 zaks zaks   4096 Jan 19 01:10 ..
+-rw-r--r--   1 zaks zaks    274 Dec 27 01:36 .eslintrc.json
+drwxr-xr-x   8 zaks zaks   4096 Jan 19 01:27 .git
+drwxr-xr-x   2 zaks zaks   4096 Dec 27 01:36 .github
+-rw-r--r--   1 zaks zaks    520 Dec 27 01:36 .gitignore
+drwxr-xr-x   2 zaks zaks   4096 Dec 27 01:36 .husky
+drwxr-xr-x   6 zaks zaks   4096 Jan 17 23:54 .next
+drwxr-xr-x   7 zaks zaks   4096 Jan 14 21:10 .next.bak
+-rw-r--r--   1 zaks zaks    203 Dec 27 01:36 .npmrc
+-rw-r--r--   1 zaks zaks      3 Dec 27 01:36 .nvmrc
+-rw-r--r--   1 zaks zaks    557 Dec 27 01:36 .prettierignore
+-rw-r--r--   1 zaks zaks    252 Dec 27 01:36 .prettierrc
+drwxr-xr-x   2 zaks zaks   4096 Dec 27 01:36 .vscode
+-rw-------   1 zaks zaks   3042 Dec 27 10:46 CHANGELOG.md
+-rw-r--r--   1 zaks zaks   1065 Dec 27 01:36 LICENSE
+-rw-------   1 zaks zaks   6098 Dec 27 12:55 Makefile
+-rw-r--r--   1 zaks zaks   6088 Dec 27 10:46 README.md
+drwxr-xr-x   3 zaks zaks   4096 Jan 19 01:27 audit
+-rw-r--r--   1 zaks zaks 254845 Dec 27 01:36 bun.lock
+-rwx--x--x   1 zaks zaks   8585 Dec 31 17:06 click-sweep-test.sh
+-rw-r--r--   1 zaks zaks    324 Dec 27 01:36 components.json
+drwxr-xr-x   2 zaks zaks   4096 Dec 31 17:06 docs
+drwxr-xr-x   2 zaks zaks   4096 Dec 27 22:20 e2e
+-rw-r--r--   1 zaks zaks   3533 Dec 27 01:36 env.example.txt
+-rw-r--r--   1 zaks zaks    262 Dec 27 01:53 next-env.d.ts
+-rw-r--r--   1 zaks zaks    606 Dec 27 22:29 next.config.ts
+drwxr-xr-x 424 zaks zaks  20480 Jan 17 23:04 node_modules
+-rw-r--r--   1 zaks zaks 385508 Jan 17 23:04 package-lock.json
+-rw-r--r--   1 zaks zaks   2393 Jan 17 23:04 package.json
+-rw-r--r--   1 zaks zaks    693 Dec 27 22:17 playwright.config.ts
+-rw-r--r--   1 zaks zaks     70 Dec 27 01:36 postcss.config.js
+drwxr-xr-x   3 zaks zaks   4096 Dec 27 01:36 public
+-rwx--x--x   1 zaks zaks  21909 Dec 27 20:38 smoke-test.sh
+drwxr-xr-x  11 zaks zaks   4096 Jan 17 22:49 src
+-rw-r--r--   1 zaks zaks    918 Dec 27 22:26 tsconfig.json
+-rw-r--r--   1 zaks zaks 331922 Jan 18 20:28 tsconfig.tsbuildinfo
+-rw-r--r--   1 zaks zaks    456 Jan 17 23:04 vitest.config.ts
+
+/home/zaks/zakops-dashboard/.git:
+total 76
+drwxr-xr-x  8 zaks zaks  4096 Jan 19 01:27 .
+drwxr-xr-x 14 zaks zaks  4096 Jan 19 01:27 ..
+-rw-r--r--  1 zaks zaks  1102 Dec 27 02:39 COMMIT_EDITMSG
+-rw-r--r--  1 zaks zaks    21 Dec 27 01:36 HEAD
+drwxr-xr-x  2 zaks zaks  4096 Dec 27 01:36 branches
+-rw-r--r--  1 zaks zaks   331 Dec 27 02:34 config
+-rw-r--r--  1 zaks zaks    73 Dec 27 01:36 description
+drwxr-xr-x  2 zaks zaks  4096 Dec 27 01:36 hooks
+-rw-r--r--  1 zaks zaks 24230 Jan 19 01:27 index
+drwxr-xr-x  2 zaks zaks  4096 Dec 27 01:36 info
+drwxr-xr-x  3 zaks zaks  4096 Dec 27 01:36 logs
+drwxr-xr-x 47 zaks zaks  4096 Dec 27 02:40 objects
+-rw-r--r--  1 zaks zaks   112 Dec 27 01:36 packed-refs
+drwxr-xr-x  5 zaks zaks  4096 Dec 27 01:36 refs
+
+/home/zaks/zakops-dashboard/.git/branches:
+total 8
+drwxr-xr-x 2 zaks zaks 4096 Dec 27 01:36 .
+drwxr-xr-x 8 zaks zaks 4096 Jan 19 01:27 ..
+
+/home/zaks/zakops-dashboard/.git/hooks:
+total 72
+drwxr-xr-x 2 zaks zaks 4096 Dec 27 01:36 .
+drwxr-xr-x 8 zaks zaks 4096 Jan 19 01:27 ..
+-rwxr-xr-x 1 zaks zaks  478 Dec 27 01:36 applypatch-msg.sample
+-rwxr-xr-x 1 zaks zaks  896 Dec 27 01:36 commit-msg.sample
+-rwxr-xr-x 1 zaks zaks 4726 Dec 27 01:36 fsmonitor-watchman.sample
+-rwxr-xr-x 1 zaks zaks  189 Dec 27 01:36 post-update.sample
+-rwxr-xr-x 1 zaks zaks  424 Dec 27 01:36 pre-applypatch.sample
+-rwxr-xr-x 1 zaks zaks 1643 Dec 27 01:36 pre-commit.sample
+-rwxr-xr-x 1 zaks zaks  416 Dec 27 01:36 pre-merge-commit.sample
+-rwxr-xr-x 1 zaks zaks 1374 Dec 27 01:36 pre-push.sample
+-rwxr-xr-x 1 zaks zaks 4898 Dec 27 01:36 pre-rebase.sample
+-rwxr-xr-x 1 zaks zaks  544 Dec 27 01:36 pre-receive.sample
+-rwxr-xr-x 1 zaks zaks 1492 Dec 27 01:36 prepare-commit-msg.sample
+-rwxr-xr-x 1 zaks zaks 2783 Dec 27 01:36 push-to-checkout.sample
+-rwxr-xr-x 1 zaks zaks 2308 Dec 27 01:36 sendemail-validate.sample
+-rwxr-xr-x 1 zaks zaks 3650 Dec 27 01:36 update.sample
+
+/home/zaks/zakops-dashboard/.git/info:
+total 12
+drwxr-xr-x 2 zaks zaks 4096 Dec 27 01:36 .
+drwxr-xr-x 8 zaks zaks 4096 Jan 19 01:27 ..
+-rw-r--r-- 1 zaks zaks  240 Dec 27 01:36 exclude
+
+/home/zaks/zakops-dashboard/.git/logs:
+total 16
+drwxr-xr-x 3 zaks zaks 4096 Dec 27 01:36 .
+drwxr-xr-x 8 zaks zaks 4096 Jan 19 01:27 ..
+-rw-r--r-- 1 zaks zaks  388 Dec 27 02:39 HEAD
+drwxr-xr-x 4 zaks zaks 4096 Dec 27 01:36 refs
+
+/home/zaks/zakops-dashboard/.git/logs/refs:
+total 16
+drwxr-xr-x 4 zaks zaks 4096 Dec 27 01:36 .
+drwxr-xr-x 3 zaks zaks 4096 Dec 27 01:36 ..
+drwxr-xr-x 2 zaks zaks 4096 Dec 27 01:36 heads
+drwxr-xr-x 3 zaks zaks 4096 Dec 27 01:36 remotes
+
+/home/zaks/zakops-dashboard/.git/logs/refs/heads:
+total 12
+drwxr-xr-x 2 zaks zaks 4096 Dec 27 01:36 .
+drwxr-xr-x 4 zaks zaks 4096 Dec 27 01:36 ..
+-rw-r--r-- 1 zaks zaks  388 Dec 27 02:39 main
+
+/home/zaks/zakops-dashboard/.git/logs/refs/remotes:
+total 12
+drwxr-xr-x 3 zaks zaks 4096 Dec 27 01:36 .
+drwxr-xr-x 4 zaks zaks 4096 Dec 27 01:36 ..
+drwxr-xr-x 2 zaks zaks 4096 Dec 27 01:36 origin
+
+/home/zaks/zakops-dashboard/.git/logs/refs/remotes/origin:
+total 12
+drwxr-xr-x 2 zaks zaks 4096 Dec 27 01:36 .
+drwxr-xr-x 3 zaks zaks 4096 Dec 27 01:36 ..
+-rw-r--r-- 1 zaks zaks  206 Dec 27 01:36 HEAD
+
+/home/zaks/zakops-dashboard/.git/objects:
+total 188
+drwxr-xr-x 47 zaks zaks 4096 Dec 27 02:40 .
+drwxr-xr-x  8 zaks zaks 4096 Jan 19 01:27 ..
+drwxr-xr-x  2 zaks zaks 4096 Dec 27 02:39 0e
+drwxr-xr-x  2 zaks zaks 4096 Dec 27 02:38 12
+drwxr-xr-x  2 zaks zaks 4096 Dec 27 02:39 23
+drwxr-xr-x  2 zaks zaks 4096 Dec 27 02:38 28
+drwxr-xr-x  2 zaks zaks 4096 Dec 27 02:38 29
+drwxr-xr-x  2 zaks zaks 4096 Dec 27 02:38 2b
+drwxr-xr-x  2 zaks zaks 4096 Dec 27 02:39 30
+drwxr-xr-x  2 zaks zaks 4096 Dec 27 02:38 36
+drwxr-xr-x  2 zaks zaks 4096 Dec 27 02:39 38
+drwxr-xr-x  2 zaks zaks 4096 Dec 27 02:39 3c
+drwxr-xr-x  2 zaks zaks 4096 Dec 27 02:38 3e
+drwxr-xr-x  2 zaks zaks 4096 Dec 27 02:38 49
+drwxr-xr-x  2 zaks zaks 4096 Dec 27 02:38 4d
+drwxr-xr-x  2 zaks zaks 4096 Dec 27 02:38 50
+drwxr-xr-x  2 zaks zaks 4096 Dec 27 02:39 57
+drwxr-xr-x  2 zaks zaks 4096 Dec 27 02:39 5d
+drwxr-xr-x  2 zaks zaks 4096 Dec 27 02:38 61
+drwxr-xr-x  2 zaks zaks 4096 Dec 27 02:38 67
+drwxr-xr-x  2 zaks zaks 4096 Dec 27 02:38 75
+drwxr-xr-x  2 zaks zaks 4096 Dec 27 02:38 81
+drwxr-xr-x  2 zaks zaks 4096 Dec 27 02:38 85
+drwxr-xr-x  2 zaks zaks 4096 Dec 27 02:39 8f
+drwxr-xr-x  2 zaks zaks 4096 Dec 27 02:39 90
+drwxr-xr-x  2 zaks zaks 4096 Dec 27 02:38 94
+drwxr-xr-x  2 zaks zaks 4096 Dec 27 02:39 9c
+drwxr-xr-x  2 zaks zaks 4096 Dec 27 02:39 9e
+drwxr-xr-x  2 zaks zaks 4096 Dec 27 02:38 a5
+drwxr-xr-x  2 zaks zaks 4096 Dec 27 02:38 aa
+drwxr-xr-x  2 zaks zaks 4096 Dec 27 02:38 b0
+drwxr-xr-x  2 zaks zaks 4096 Dec 27 02:39 b2
+drwxr-xr-x  2 zaks zaks 4096 Dec 27 02:38 b3
+drwxr-xr-x  2 zaks zaks 4096 Dec 27 02:38 bd
+drwxr-xr-x  2 zaks zaks 4096 Dec 27 02:38 c8
+drwxr-xr-x  2 zaks zaks 4096 Dec 27 02:38 d6
+drwxr-xr-x  2 zaks zaks 4096 Dec 27 02:39 da
+drwxr-xr-x  2 zaks zaks 4096 Dec 27 02:38 dc
+drwxr-xr-x  2 zaks zaks 4096 Dec 27 02:38 df
+drwxr-xr-x  2 zaks zaks 4096 Dec 27 02:38 e1
+drwxr-xr-x  2 zaks zaks 4096 Dec 27 02:39 e8
+drwxr-xr-x  2 zaks zaks 4096 Dec 27 02:40 ea
+drwxr-xr-x  2 zaks zaks 4096 Dec 27 02:38 f1
+drwxr-xr-x  2 zaks zaks 4096 Dec 27 02:39 f5
+drwxr-xr-x  2 zaks zaks 4096 Dec 27 02:39 fd
+drwxr-xr-x  2 zaks zaks 4096 Dec 27 01:36 info
+drwxr-xr-x  2 zaks zaks 4096 Dec 27 01:36 pack
+
+/home/zaks/zakops-dashboard/.git/objects/0e:
+total 12
+drwxr-xr-x  2 zaks zaks 4096 Dec 27 02:39 .
+drwxr-xr-x 47 zaks zaks 4096 Dec 27 02:40 ..
+-r--r--r--  1 zaks zaks  827 Dec 27 02:39 84d5e9d7b645efba145beeaa2534c8905bfebe
+
+/home/zaks/zakops-dashboard/.git/objects/12:
+total 80
+drwxr-xr-x  2 zaks zaks  4096 Dec 27 02:38 .
+drwxr-xr-x 47 zaks zaks  4096 Dec 27 02:40 ..
+-r--r--r--  1 zaks zaks 70652 Dec 27 02:38 dc77879088b0b80361664f4bac992c896f8560
+
+/home/zaks/zakops-dashboard/.git/objects/23:
+total 12
+drwxr-xr-x  2 zaks zaks 4096 Dec 27 02:39 .
+drwxr-xr-x 47 zaks zaks 4096 Dec 27 02:40 ..
+-r--r--r--  1 zaks zaks  309 Dec 27 02:39 9fa9284d3b83d0ecd08a69afa199cbf10acfb9
+
+/home/zaks/zakops-dashboard/.git/objects/28:
+total 12
+drwxr-xr-x  2 zaks zaks 4096 Dec 27 02:38 .
+drwxr-xr-x 47 zaks zaks 4096 Dec 27 02:40 ..
+-r--r--r--  1 zaks zaks  443 Dec 27 02:38 30d1731abc6b9da3e096c189e7d44566500e5c
+
+/home/zaks/zakops-dashboard/.git/objects/29:
+total 12
+drwxr-xr-x  2 zaks zaks 4096 Dec 27 02:38 .
+drwxr-xr-x 47 zaks zaks 4096 Dec 27 02:40 ..
+-r--r--r--  1 zaks zaks 3938 Dec 27 02:38 c865e0bce3244432c588be5ddbded936bef302
+
+/home/zaks/zakops-dashboard/.git/objects/2b:
+total 12
+drwxr-xr-x  2 zaks zaks 4096 Dec 27 02:38 .
+drwxr-xr-x 47 zaks zaks 4096 Dec 27 02:40 ..
+-r--r--r--  1 zaks zaks 3864 Dec 27 02:38 1c5c1c557924a220ef4d7a27b301ed293422bc
+
+/home/zaks/zakops-dashboard/.git/objects/30:
+total 12
+drwxr-xr-x  2 zaks zaks 4096 Dec 27 02:39 .
+drwxr-xr-x 47 zaks zaks 4096 Dec 27 02:40 ..
+-r--r--r--  1 zaks zaks  239 Dec 27 02:39 82b93f0eba5717ac20ed344b8ed34f12d686a6
+
+/home/zaks/zakops-dashboard/.git/objects/36:
+total 12
+drwxr-xr-x  2 zaks zaks 4096 Dec 27 02:38 .
+drwxr-xr-x 47 zaks zaks 4096 Dec 27 02:40 ..
+-r--r--r--  1 zaks zaks  906 Dec 27 02:38 54e93406fd30b2added89182abee17f4f739f7
+
+/home/zaks/zakops-dashboard/.git/objects/38:
+total 12
+drwxr-xr-x  2 zaks zaks 4096 Dec 27 02:39 .
+drwxr-xr-x 47 zaks zaks 4096 Dec 27 02:40 ..
+-r--r--r--  1 zaks zaks  288 Dec 27 02:39 591398318636b4675e5eca2ae32d44c9446584
+
+/home/zaks/zakops-dashboard/.git/objects/3c:
+total 16
+drwxr-xr-x  2 zaks zaks 4096 Dec 27 02:39 .
+drwxr-xr-x 47 zaks zaks 4096 Dec 27 02:40 ..
+-r--r--r--  1 zaks zaks  374 Dec 27 02:39 2e474e511c8e7471bb273d0466f7f162124465
+-r--r--r--  1 zaks zaks  317 Dec 27 02:38 dd717bec072a6a880d546c7894496e990b38da
+
+/home/zaks/zakops-dashboard/.git/objects/3e:
+total 12
+drwxr-xr-x  2 zaks zaks 4096 Dec 27 02:38 .
+drwxr-xr-x 47 zaks zaks 4096 Dec 27 02:40 ..
+-r--r--r--  1 zaks zaks  393 Dec 27 02:38 ea4969d677704701d560b4b7c7ddf2c22be06d
+
+/home/zaks/zakops-dashboard/.git/objects/49:
+total 16
+drwxr-xr-x  2 zaks zaks 4096 Dec 27 02:38 .
+drwxr-xr-x 47 zaks zaks 4096 Dec 27 02:40 ..
+-r--r--r--  1 zaks zaks 4936 Dec 27 02:38 062fe4331342e3c1012063706c5f832230ae20
+
+/home/zaks/zakops-dashboard/.git/objects/4d:
+total 12
+drwxr-xr-x  2 zaks zaks 4096 Dec 27 02:38 .
+drwxr-xr-x 47 zaks zaks 4096 Dec 27 02:40 ..
+-r--r--r--  1 zaks zaks 1221 Dec 27 02:38 42ee37d3d1ce713f1158a5750b3316537bc72b
+
+/home/zaks/zakops-dashboard/.git/objects/50:
+total 12
+drwxr-xr-x  2 zaks zaks 4096 Dec 27 02:38 .
+drwxr-xr-x 47 zaks zaks 4096 Dec 27 02:40 ..
+-r--r--r--  1 zaks zaks  698 Dec 27 02:38 9a0d097c94dc019953dc6185048cfa80fdff65
+
+/home/zaks/zakops-dashboard/.git/objects/57:
+total 12
+drwxr-xr-x  2 zaks zaks 4096 Dec 27 02:39 .
+drwxr-xr-x 47 zaks zaks 4096 Dec 27 02:40 ..
+-r--r--r--  1 zaks zaks   84 Dec 27 02:39 3688ada18598e28f1b0e206781ba3f19b49127
+
+/home/zaks/zakops-dashboard/.git/objects/5d:
+total 12
+drwxr-xr-x  2 zaks zaks 4096 Dec 27 02:39 .
+drwxr-xr-x 47 zaks zaks 4096 Dec 27 02:40 ..
+-r--r--r--  1 zaks zaks   53 Dec 27 02:39 0bb54aa5444adbd4a6afbdaa641238123f896b
+
+/home/zaks/zakops-dashboard/.git/objects/61:
+total 12
+drwxr-xr-x  2 zaks zaks 4096 Dec 27 02:38 .
+drwxr-xr-x 47 zaks zaks 4096 Dec 27 02:40 ..
+-r--r--r--  1 zaks zaks  208 Dec 27 02:38 84b5a5dea4246dfbe687f2d6e17cb72af17140
+
+/home/zaks/zakops-dashboard/.git/objects/67:
+total 12
+drwxr-xr-x  2 zaks zaks 4096 Dec 27 02:38 .
+drwxr-xr-x 47 zaks zaks 4096 Dec 27 02:40 ..
+-r--r--r--  1 zaks zaks  313 Dec 27 02:38 294b9c187eafaa5ff7fe617e9a3e5ac16d1f8d
+
+/home/zaks/zakops-dashboard/.git/objects/75:
+total 12
+drwxr-xr-x  2 zaks zaks 4096 Dec 27 02:38 .
+drwxr-xr-x 47 zaks zaks 4096 Dec 27 02:40 ..
+-r--r--r--  1 zaks zaks  564 Dec 27 02:38 e1140bda37dcd8eafe685055440481620245f5
+
+/home/zaks/zakops-dashboard/.git/objects/81:
+total 12
+drwxr-xr-x  2 zaks zaks 4096 Dec 27 02:38 .
+drwxr-xr-x 47 zaks zaks 4096 Dec 27 02:40 ..
+-r--r--r--  1 zaks zaks 3448 Dec 27 02:38 d7e644f3ef2f79ee84ae16eea136fae0c9bcd0
+
+/home/zaks/zakops-dashboard/.git/objects/85:
+total 12
+drwxr-xr-x  2 zaks zaks 4096 Dec 27 02:38 .
+drwxr-xr-x 47 zaks zaks 4096 Dec 27 02:40 ..
+-r--r--r--  1 zaks zaks 1345 Dec 27 02:38 293b4e1062407906f86ac24d519fd493f49caf
+
+/home/zaks/zakops-dashboard/.git/objects/8f:
+total 12
+drwxr-xr-x  2 zaks zaks 4096 Dec 27 02:39 .
+drwxr-xr-x 47 zaks zaks 4096 Dec 27 02:40 ..
+-r--r--r--  1 zaks zaks   93 Dec 27 02:39 51090c6848006caba2803f7b892ea842d55308
+
+/home/zaks/zakops-dashboard/.git/objects/90:
+total 12
+drwxr-xr-x  2 zaks zaks 4096 Dec 27 02:39 .
+drwxr-xr-x 47 zaks zaks 4096 Dec 27 02:40 ..
+-r--r--r--  1 zaks zaks  115 Dec 27 02:39 27e6750677c189da6b1101f5c33dec2f5d6462
+
+/home/zaks/zakops-dashboard/.git/objects/94:
+total 12
+drwxr-xr-x  2 zaks zaks 4096 Dec 27 02:38 .
+drwxr-xr-x 47 zaks zaks 4096 Dec 27 02:40 ..
+-r--r--r--  1 zaks zaks  757 Dec 27 02:38 d8365b97c87df2fc4f27ab834de96de58d5d8d
+
+/home/zaks/zakops-dashboard/.git/objects/9c:
+total 12
+drwxr-xr-x  2 zaks zaks 4096 Dec 27 02:39 .
+drwxr-xr-x 47 zaks zaks 4096 Dec 27 02:40 ..
+-r--r--r--  1 zaks zaks  268 Dec 27 02:39 913caba62987f8fe550e1a6fb491bf06932089
+
+/home/zaks/zakops-dashboard/.git/objects/9e:
+total 12
+drwxr-xr-x  2 zaks zaks 4096 Dec 27 02:39 .
+drwxr-xr-x 47 zaks zaks 4096 Dec 27 02:40 ..
+-r--r--r--  1 zaks zaks   84 Dec 27 02:39 999681554d59cafc79d467a133b0ac20f8c999
+
+/home/zaks/zakops-dashboard/.git/objects/a5:
+total 12
+drwxr-xr-x  2 zaks zaks 4096 Dec 27 02:38 .
+drwxr-xr-x 47 zaks zaks 4096 Dec 27 02:40 ..
+-r--r--r--  1 zaks zaks  397 Dec 27 02:38 da4fbc64778393e2ce01afa85a13170b80cef7
+
+/home/zaks/zakops-dashboard/.git/objects/aa:
+total 12
+drwxr-xr-x  2 zaks zaks 4096 Dec 27 02:38 .
+drwxr-xr-x 47 zaks zaks 4096 Dec 27 02:40 ..
+-r--r--r--  1 zaks zaks  112 Dec 27 02:38 1bda2654462b25147b3ca67ca6dac614a768a1
+
+/home/zaks/zakops-dashboard/.git/objects/b0:
+total 12
+drwxr-xr-x  2 zaks zaks 4096 Dec 27 02:38 .
+drwxr-xr-x 47 zaks zaks 4096 Dec 27 02:40 ..
+-r--r--r--  1 zaks zaks  501 Dec 27 02:38 190d3a2898d698a72dc70b9217aaaf2671c2ab
+
+/home/zaks/zakops-dashboard/.git/objects/b2:
+total 12
+drwxr-xr-x  2 zaks zaks 4096 Dec 27 02:39 .
+drwxr-xr-x 47 zaks zaks 4096 Dec 27 02:40 ..
+-r--r--r--  1 zaks zaks  594 Dec 27 02:39 8a1bd843d8535b311d90a8f525efdd5528052a
+
+/home/zaks/zakops-dashboard/.git/objects/b3:
+total 12
+drwxr-xr-x  2 zaks zaks 4096 Dec 27 02:38 .
+drwxr-xr-x 47 zaks zaks 4096 Dec 27 02:40 ..
+-r--r--r--  1 zaks zaks 2615 Dec 27 02:38 0afa1b492598660b3ea4314f0eaf076bd58438
+
+/home/zaks/zakops-dashboard/.git/objects/bd:
+total 12
+drwxr-xr-x  2 zaks zaks 4096 Dec 27 02:38 .
+drwxr-xr-x 47 zaks zaks 4096 Dec 27 02:40 ..
+-r--r--r--  1 zaks zaks  378 Dec 27 02:38 f456e8823691f239fbb6a74b553362c8efa347
+
+/home/zaks/zakops-dashboard/.git/objects/c8:
+total 12
+drwxr-xr-x  2 zaks zaks 4096 Dec 27 02:38 .
+drwxr-xr-x 47 zaks zaks 4096 Dec 27 02:40 ..
+-r--r--r--  1 zaks zaks 1078 Dec 27 02:38 a2a8b2a026640d845f1f65d01a6ad3a75f1968
+
+/home/zaks/zakops-dashboard/.git/objects/d6:
+total 12
+drwxr-xr-x  2 zaks zaks 4096 Dec 27 02:38 .
+drwxr-xr-x 47 zaks zaks 4096 Dec 27 02:40 ..
+-r--r--r--  1 zaks zaks 2453 Dec 27 02:38 29d04bf4b956d533b8e58f9c6d90ccedf05119
+
+/home/zaks/zakops-dashboard/.git/objects/da:
+total 20
+drwxr-xr-x  2 zaks zaks 4096 Dec 27 02:39 .
+drwxr-xr-x 47 zaks zaks 4096 Dec 27 02:40 ..
+-r--r--r--  1 zaks zaks  819 Dec 27 02:39 593b15b7f8c2597d6c0ced3a3f8b00fcdc6d92
+-r--r--r--  1 zaks zaks 5547 Dec 27 02:38 c3536c24180b6e2418d2806fd9c778f6dbc37b
+
+/home/zaks/zakops-dashboard/.git/objects/dc:
+total 12
+drwxr-xr-x  2 zaks zaks 4096 Dec 27 02:38 .
+drwxr-xr-x 47 zaks zaks 4096 Dec 27 02:40 ..
+-r--r--r--  1 zaks zaks  739 Dec 27 02:38 1f5af6613a27e5af3d41187372058708061181
+
+/home/zaks/zakops-dashboard/.git/objects/df:
+total 12
+drwxr-xr-x  2 zaks zaks 4096 Dec 27 02:38 .
+drwxr-xr-x 47 zaks zaks 4096 Dec 27 02:40 ..
+-r--r--r--  1 zaks zaks  281 Dec 27 02:38 bd693fd8412b1a9dc139c32f88a0737a72440d
+
+/home/zaks/zakops-dashboard/.git/objects/e1:
+total 12
+drwxr-xr-x  2 zaks zaks 4096 Dec 27 02:38 .
+drwxr-xr-x 47 zaks zaks 4096 Dec 27 02:40 ..
+-r--r--r--  1 zaks zaks 1008 Dec 27 02:38 4749193fb866cec800645b7dd0e0ab26e74948
+
+/home/zaks/zakops-dashboard/.git/objects/e8:
+total 12
+drwxr-xr-x  2 zaks zaks 4096 Dec 27 02:39 .
+drwxr-xr-x 47 zaks zaks 4096 Dec 27 02:40 ..
+-r--r--r--  1 zaks zaks  147 Dec 27 02:39 87841ca6cc15a3f874801e8fe231e675e01108
+
+/home/zaks/zakops-dashboard/.git/objects/ea:
+total 12
+drwxr-xr-x  2 zaks zaks 4096 Dec 27 02:40 .
+drwxr-xr-x 47 zaks zaks 4096 Dec 27 02:40 ..
+-r--r--r--  1 zaks zaks  169 Dec 27 02:40 6d97b8d525a32c675f3a05da77825f2f9d1380
+
+/home/zaks/zakops-dashboard/.git/objects/f1:
+total 12
+drwxr-xr-x  2 zaks zaks 4096 Dec 27 02:38 .
+drwxr-xr-x 47 zaks zaks 4096 Dec 27 02:40 ..
+-r--r--r--  1 zaks zaks  315 Dec 27 02:38 9a912d1de7f4406c8bf32f6590e73b753e3dfd
+
+/home/zaks/zakops-dashboard/.git/objects/f5:
+total 12
+drwxr-xr-x  2 zaks zaks 4096 Dec 27 02:39 .
+drwxr-xr-x 47 zaks zaks 4096 Dec 27 02:40 ..
+-r--r--r--  1 zaks zaks  147 Dec 27 02:39 18cc0b4f8beeaa4a7bf7d195dacfd02bfeec0c
+
+/home/zaks/zakops-dashboard/.git/objects/fd:
+total 12
+drwxr-xr-x  2 zaks zaks 4096 Dec 27 02:39 .
+drwxr-xr-x 47 zaks zaks 4096 Dec 27 02:40 ..
+-r--r--r--  1 zaks zaks  208 Dec 27 02:39 53e1948bf73cd36c3d9a47798e49b69624a7e7
+
+/home/zaks/zakops-dashboard/.git/objects/info:
+total 8
+drwxr-xr-x  2 zaks zaks 4096 Dec 27 01:36 .
+drwxr-xr-x 47 zaks zaks 4096 Dec 27 02:40 ..
+
+/home/zaks/zakops-dashboard/.git/objects/pack:
+total 3348
+drwxr-xr-x  2 zaks zaks    4096 Dec 27 01:36 .
+drwxr-xr-x 47 zaks zaks    4096 Dec 27 02:40 ..
+-r--r--r--  1 zaks zaks   76252 Dec 27 01:36 pack-7a5f6026b2be06f2046ea4431707434e890fd2b9.idx
+-r--r--r--  1 zaks zaks 3326213 Dec 27 01:36 pack-7a5f6026b2be06f2046ea4431707434e890fd2b9.pack
+-r--r--r--  1 zaks zaks   10792 Dec 27 01:36 pack-7a5f6026b2be06f2046ea4431707434e890fd2b9.rev
+
+/home/zaks/zakops-dashboard/.git/refs:
+total 20
+drwxr-xr-x 5 zaks zaks 4096 Dec 27 01:36 .
+drwxr-xr-x 8 zaks zaks 4096 Jan 19 01:27 ..
+drwxr-xr-x 2 zaks zaks 4096 Dec 27 02:39 heads
+drwxr-xr-x 3 zaks zaks 4096 Dec 27 01:36 remotes
+drwxr-xr-x 2 zaks zaks 4096 Dec 27 02:40 tags
+
+/home/zaks/zakops-dashboard/.git/refs/heads:
+total 12
+drwxr-xr-x 2 zaks zaks 4096 Dec 27 02:39 .
+drwxr-xr-x 5 zaks zaks 4096 Dec 27 01:36 ..
+-rw-r--r-- 1 zaks zaks   41 Dec 27 02:39 main
+
+/home/zaks/zakops-dashboard/.git/refs/remotes:
+total 12
+drwxr-xr-x 3 zaks zaks 4096 Dec 27 01:36 .
+drwxr-xr-x 5 zaks zaks 4096 Dec 27 01:36 ..
+drwxr-xr-x 2 zaks zaks 4096 Dec 27 01:36 origin
+
+/home/zaks/zakops-dashboard/.git/refs/remotes/origin:
+total 12
+drwxr-xr-x 2 zaks zaks 4096 Dec 27 01:36 .
+drwxr-xr-x 3 zaks zaks 4096 Dec 27 01:36 ..
+-rw-r--r-- 1 zaks zaks   30 Dec 27 01:36 HEAD
+
+/home/zaks/zakops-dashboard/.git/refs/tags:
+total 12
+drwxr-xr-x 2 zaks zaks 4096 Dec 27 02:40 .
+drwxr-xr-x 5 zaks zaks 4096 Dec 27 01:36 ..
+-rw-r--r-- 1 zaks zaks   41 Dec 27 02:40 dashboard-stable-v1
+
+/home/zaks/zakops-dashboard/.github:
+total 12
+drwxr-xr-x  2 zaks zaks 4096 Dec 27 01:36 .
+drwxr-xr-x 14 zaks zaks 4096 Jan 19 01:27 ..
+-rw-r--r--  1 zaks zaks  790 Dec 27 01:36 FUNDING.yml
+
+/home/zaks/zakops-dashboard/.husky:
+total 16
+drwxr-xr-x  2 zaks zaks 4096 Dec 27 01:36 .
+drwxr-xr-x 14 zaks zaks 4096 Jan 19 01:27 ..
+-rw-r--r--  1 zaks zaks   16 Dec 27 01:36 pre-commit
+-rw-r--r--  1 zaks zaks   14 Dec 27 01:36 pre-push
+
+/home/zaks/zakops-dashboard/.next:
+total 13420
+drwxr-xr-x  6 zaks zaks     4096 Jan 17 23:54 .
+drwxr-xr-x 14 zaks zaks     4096 Jan 19 01:27 ..
+-rw-r--r--  1 zaks zaks     3371 Jan 18 20:27 app-build-manifest.json
+-rw-r--r--  1 zaks zaks      388 Jan 18 20:27 build-manifest.json
+drwxr-xr-x  5 zaks zaks     4096 Jan 17 23:54 cache
+-rw-r--r--  1 zaks zaks       20 Jan 17 23:54 package.json
+-rw-r--r--  1 zaks zaks      354 Jan 17 23:54 prerender-manifest.json
+-rw-r--r--  1 zaks zaks        2 Jan 18 20:27 react-loadable-manifest.json
+-rw-r--r--  1 zaks zaks      427 Jan 17 23:54 routes-manifest.json
+drwxr-xr-x  4 zaks zaks     4096 Jan 17 23:54 server
