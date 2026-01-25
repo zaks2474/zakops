@@ -1,0 +1,93 @@
+# ZakOps Data Retention Policy
+# Machine-readable retention rules for automated enforcement
+
+version: "1.0"
+updated: "2025-01-25"
+
+retention_rules:
+  - id: deals
+    name: "Deal Records"
+    data_type: deals
+    classification: confidential
+    retention_days: 2555  # 7 years
+    legal_basis: "Business records retention"
+    deletion_method: secure_delete
+    archive_after_days: 365
+    description: "Deal lifecycle data including metadata and history"
+
+  - id: agent_runs
+    name: "Agent Execution Records"
+    data_type: agent_runs
+    classification: internal
+    retention_days: 90
+    legal_basis: "Operational monitoring"
+    deletion_method: standard
+    archive_after_days: null
+    description: "Agent invocation logs and results"
+
+  - id: approval_logs
+    name: "Approval Audit Logs"
+    data_type: approval_logs
+    classification: confidential
+    retention_days: 2555  # 7 years
+    legal_basis: "Audit trail requirements"
+    deletion_method: secure_delete
+    archive_after_days: 365
+    description: "Human-in-loop approval decisions and timestamps"
+
+  - id: user_sessions
+    name: "User Session Data"
+    data_type: sessions
+    classification: internal
+    retention_days: 30
+    legal_basis: "Security monitoring"
+    deletion_method: standard
+    archive_after_days: null
+    description: "Active session tokens and metadata"
+
+  - id: rag_documents
+    name: "RAG Document Store"
+    data_type: rag_documents
+    classification: varies
+    retention_days: null  # Until manually deleted
+    legal_basis: "Business operations"
+    deletion_method: standard
+    archive_after_days: null
+    description: "Documents ingested for RAG retrieval"
+
+backup_schedule:
+  full_backup:
+    frequency: weekly
+    day: sunday
+    time: "02:00"
+    retention_copies: 4
+
+  incremental_backup:
+    frequency: daily
+    time: "02:00"
+    retention_copies: 7
+
+  verification:
+    frequency: monthly
+    test_restore: true
+
+compliance:
+  frameworks:
+    - name: "SOC 2"
+      relevant_controls:
+        - "CC6.1"  # Logical access controls
+        - "CC7.2"  # System operations monitoring
+    - name: "GDPR"
+      relevant_articles:
+        - "Article 5"   # Data minimization
+        - "Article 17"  # Right to erasure
+
+  audit_requirements:
+    retention_log: true
+    deletion_log: true
+    access_log: true
+
+  data_subject_rights:
+    access_request_sla_days: 30
+    deletion_request_sla_days: 30
+    portability_request_sla_days: 30

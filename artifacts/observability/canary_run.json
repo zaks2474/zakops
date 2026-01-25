@@ -1,0 +1,48 @@
+{
+  "timestamp": "2026-01-25T16:17:34.735153+00:00",
+  "services": {
+    "backend": {
+      "endpoints": [
+        {
+          "url": "http://localhost:8090/health",
+          "status": "up",
+          "status_code": 200,
+          "latency_ms": 15.09
+        }
+      ]
+    },
+    "orchestration": {
+      "endpoints": [
+        {
+          "url": "http://localhost:9200/health",
+          "status": "up",
+          "status_code": 200,
+          "latency_ms": 3.89
+        }
+      ]
+    },
+    "agent-api": {
+      "endpoints": [
+        {
+          "url": "http://localhost:8095/health",
+          "status": "up",
+          "status_code": 200,
+          "latency_ms": 4.78
+        },
+        {
+          "url": "http://localhost:8095/api/v1/agent/invoke",
+          "status": "down",
+          "error": "Method Not Allowed",
+          "latency_ms": 0.87
+        }
+      ]
+    }
+  },
+  "summary": {
+    "total": 4,
+    "up": 3,
+    "down": 1,
+    "skipped": 0
+  },
+  "overall_status": "degraded"
+}

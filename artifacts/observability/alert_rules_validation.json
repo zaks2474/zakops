@@ -1,0 +1,15 @@
+{
+  "passed": true,
+  "slo_coverage": {
+    "total_slos": 7,
+    "alerts_defined": 7,
+    "missing_alerts": [],
+    "extra_alerts": [],
+    "coverage_complete": true
+  },
+  "promtool": {
+    "available": false,
+    "message": "promtool not found, skipping syntax validation"
+  },
+  "errors": []
+}

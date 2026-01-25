@@ -1,0 +1,100 @@
+# Documentation Checklist
+# Machine-readable list of required documentation with validation rules
+
+version: "1.0"
+updated: "2025-01-25"
+
+documents:
+  # User Documentation
+  - path: "docs/user/GETTING_STARTED.md"
+    category: user
+    required: true
+    required_sections:
+      - "Prerequisites"
+      - "Installation"
+      - "First Steps"
+
+  - path: "docs/user/WORKFLOWS.md"
+    category: user
+    required: true
+    required_sections:
+      - "Deal Lifecycle"
+      - "Approvals"
+
+  - path: "docs/user/APPROVALS.md"
+    category: user
+    required: true
+    required_sections:
+      - "Overview"
+      - "Approval Flow"
+
+  - path: "docs/user/AUDIT_LOGS.md"
+    category: user
+    required: true
+    required_sections:
+      - "Overview"
+      - "Viewing Logs"
+
+  # API Documentation
+  - path: "docs/api/OVERVIEW.md"
+    category: api
+    required: true
+    required_sections:
+      - "Introduction"
+      - "Authentication"
+
+  - path: "docs/api/AUTH.md"
+    category: api
+    required: true
+    required_sections:
+      - "Getting Tokens"
+      - "Using Tokens"
+
+  - path: "docs/api/ENDPOINTS.md"
+    category: api
+    required: true
+    required_sections:
+      - "Deals"
+      - "Agent"
+
+  # Troubleshooting
+  - path: "docs/troubleshooting/TROUBLESHOOTING.md"
+    category: troubleshooting
+    required: true
+    required_sections:
+      - "Common Issues"
+      - "Getting Help"
+
+  - path: "docs/troubleshooting/RUNBOOKS.md"
+    category: troubleshooting
+    required: true
+    required_sections:
+      - "Service Restart"
+      - "Health Checks"
+
+  # Training
+  - path: "docs/training/ROLE_GUIDES.md"
+    category: training
+    required: true
+    required_sections:
+      - "Operator"
+      - "Admin"
+
+  - path: "docs/training/FAQ.md"
+    category: training
+    required: true
+    required_sections: []
+
+  # Demos
+  - path: "docs/demos/DEMO_SCRIPT.md"
+    category: demos
+    required: true
+    required_sections:
+      - "Setup"
+      - "Script"
+      - "Cleanup"
+
+validation:
+  check_sections: true
+  check_links: false
+  min_content_lines: 10

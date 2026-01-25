@@ -1,0 +1,13 @@
+{
+  "timestamp": "2026-01-25T16:17:34Z",
+  "status": "passed",
+  "message": "Demo completed successfully",
+  "mode": "run",
+  "mock_mode": true,
+  "details": [
+        {"step": "services", "status": "passed"},
+        {"step": "deal_creation", "status": "passed"},
+        {"step": "agent_invoke", "status": "passed"},
+        {"step": "audit_verify", "status": "passed"}
+    ]
+}

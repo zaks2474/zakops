@@ -1,6 +1,6 @@
 # ZakOps Monorepo Makefile
 .PHONY: help install test lint gates clean dev check-uv doctor
-.PHONY: phase0 phase1 phase2 phase3 phase4 phase5 security perf
+.PHONY: phase0 phase1 phase2 phase3 phase4 phase5 phase6 phase7 phase8 security perf observability docs demo
 .PHONY: slo-validate risk-validate golden-traces owasp-tests trust-ux-check
 .DEFAULT_GOAL := help
 
@@ -150,6 +150,27 @@ security: phase3 ## Alias for Phase 3 security gate
 
 perf: phase5 ## Alias for Phase 5 performance gate
 	@echo "$(GREEN)Performance checks complete$(RESET)"
+
+phase6: ## Phase 6: Observability
+	@echo "$(CYAN)=== Phase 6: Observability ===$(RESET)"
+	@bash tools/gates/phase6_observability_gate.sh
+
+phase7: ## Phase 7: Data Governance
+	@echo "$(CYAN)=== Phase 7: Data Governance ===$(RESET)"
+	@bash tools/gates/phase7_data_governance_gate.sh
+
+phase8: ## Phase 8: Documentation
+	@echo "$(CYAN)=== Phase 8: Documentation ===$(RESET)"
+	@bash tools/gates/phase8_documentation_gate.sh
+
+observability: phase6 ## Alias for Phase 6 observability gate
+	@echo "$(GREEN)Observability checks complete$(RESET)"
+
+docs: phase8 ## Alias for Phase 8 documentation gate
+	@echo "$(GREEN)Documentation checks complete$(RESET)"
+
+demo: ## Run demo script
+	@bash tools/demos/run_demo.sh
 
 # =============================================================================
 # Development
