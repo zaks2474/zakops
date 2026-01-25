@@ -63,16 +63,10 @@ services:
     build:
       context: ../../apps/dashboard
       dockerfile: Dockerfile
-    ports:
-      - "3003:3003"
+    network_mode: host  # Required for Next.js rewrites to reach localhost APIs
     environment:
       - NEXT_PUBLIC_API_URL=http://localhost:8090
       - NEXT_PUBLIC_AGENT_API_URL=http://localhost:8095
-    depends_on:
-      - backend-deal-lifecycle
-      - agent-api
-    networks:
-      - zakops-network
 
   # ==========================================================================
   # Infrastructure

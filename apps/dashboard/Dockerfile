@@ -15,10 +15,16 @@ RUN npm install --legacy-peer-deps
 FROM base AS builder
 WORKDIR /app
 
+# Build-time environment variables for Next.js
+ARG NEXT_PUBLIC_API_URL=http://localhost:8090
+ARG NEXT_PUBLIC_AGENT_API_URL=http://localhost:8095
+ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
+ENV NEXT_PUBLIC_AGENT_API_URL=$NEXT_PUBLIC_AGENT_API_URL
+
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
-# Build Next.js
+# Build Next.js with environment variables
 RUN npm run build
 
 # Production image
