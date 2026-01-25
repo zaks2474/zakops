@@ -119,4 +119,4 @@ make gates
 
 ## License
 
-MIT License - See [LICENSE](LICENSE) file
+Proprietary - See [LICENSE](LICENSE) file

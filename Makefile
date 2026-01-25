@@ -3,7 +3,7 @@
 .PHONY: phase0 phase1 phase2 phase3 phase4 phase5 phase6 phase7 phase8 phase9 phase10 security perf observability docs demo
 .PHONY: slo-validate risk-validate golden-traces owasp-tests trust-ux-check
 .PHONY: bluegreen-verify game-day restore-drill runbooks-lint
-.PHONY: demo-up demo-reset beta-ready weekly-summary demo-isolation-validate success-metrics-validate
+.PHONY: demo-up demo-reset beta-ready weekly-summary demo-isolation-validate success-metrics-validate release-ready
 .DEFAULT_GOAL := help
 
 # Colors
@@ -259,6 +259,13 @@ docker-down: ## Stop all Docker services
 
 docker-logs: ## Tail Docker logs
 	docker compose -f deployments/docker/docker-compose.yml logs -f
+
+# =============================================================================
+# Release Validation
+# =============================================================================
+
+release-ready: ## Validate repository hygiene for releases
+	@bash tools/gates/release_ready_gate.sh
 
 # =============================================================================
 # Utilities

@@ -1,0 +1,23 @@
+# ZakOps Code Owners
+# These owners will be requested for review on PRs
+
+# Global owners
+* @zakops/core-team
+
+# Agent API
+apps/agent-api/ @zakops/agent-team
+
+# Backend services
+apps/backend/ @zakops/backend-team
+
+# Dashboard
+apps/dashboard/ @zakops/frontend-team
+
+# Infrastructure
+deployments/ @zakops/infra-team
+ops/ @zakops/infra-team
+
+# Security-sensitive files
+.github/workflows/ @zakops/security-team
+tools/gates/ @zakops/security-team
+SECURITY.md @zakops/security-team
