@@ -1,0 +1,174 @@
+# ZakOps Monorepo - Docker Compose
+# Unified services for development and production
+
+version: "3.9"
+
+services:
+  # ==========================================================================
+  # Core Services
+  # ==========================================================================
+
+  agent-api:
+    build:
+      context: ../../apps/agent-api
+      dockerfile: Dockerfile
+    ports:
+      - "8095:8095"
+    environment:
+      - DATABASE_URL=postgresql://zakops:zakops@postgres:5432/zakops
+      - REDIS_URL=redis://redis:6379/0
+      - RAG_REST_URL=http://rag-rest:8052
+      - AUTH_REQUIRED=true
+    depends_on:
+      - postgres
+      - redis
+    networks:
+      - zakops-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8095/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  backend-deal-lifecycle:
+    build:
+      context: ../../apps/backend
+      dockerfile: infra/docker/Dockerfile.deal_lifecycle
+    ports:
+      - "8090:8090"
+    environment:
+      - DATABASE_URL=postgresql://zakops:zakops@postgres:5432/zakops
+      - REDIS_URL=redis://redis:6379/1
+    depends_on:
+      - postgres
+      - redis
+    networks:
+      - zakops-network
+
+  backend-orchestration:
+    build:
+      context: ../../apps/backend
+      dockerfile: infra/docker/Dockerfile.orchestration
+    ports:
+      - "8091:8091"
+    environment:
+      - DATABASE_URL=postgresql://zakops:zakops@postgres:5432/zakops
+      - AGENT_API_URL=http://agent-api:8095
+    depends_on:
+      - postgres
+      - agent-api
+    networks:
+      - zakops-network
+
+  dashboard:
+    build:
+      context: ../../apps/dashboard
+      dockerfile: Dockerfile
+    ports:
+      - "3003:3003"
+    environment:
+      - NEXT_PUBLIC_API_URL=http://localhost:8090
+      - NEXT_PUBLIC_AGENT_API_URL=http://localhost:8095
+    depends_on:
+      - backend-deal-lifecycle
+      - agent-api
+    networks:
+      - zakops-network
+
+  # ==========================================================================
+  # Infrastructure
+  # ==========================================================================
+
+  postgres:
+    image: postgres:16-alpine
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_USER=zakops
+      - POSTGRES_PASSWORD=zakops
+      - POSTGRES_DB=zakops
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    networks:
+      - zakops-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U zakops"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    networks:
+      - zakops-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ==========================================================================
+  # AI/ML Services
+  # ==========================================================================
+
+  rag-rest:
+    image: zakops/rag-rest:latest
+    ports:
+      - "8052:8052"
+    environment:
+      - POSTGRES_URL=postgresql://zakops:zakops@postgres:5432/zakops
+    depends_on:
+      - postgres
+    networks:
+      - zakops-network
+
+  # MCP Server (optional, comment out if not needed)
+  # mcp-server:
+  #   image: zakops/mcp-server:latest
+  #   ports:
+  #     - "9100:9100"
+  #   networks:
+  #     - zakops-network
+
+  # ==========================================================================
+  # Observability
+  # ==========================================================================
+
+  prometheus:
+    image: prom/prometheus:v2.50.1
+    ports:
+      - "9090:9090"
+    volumes:
+      - ../../ops/observability/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus-data:/prometheus
+    networks:
+      - zakops-network
+
+  grafana:
+    image: grafana/grafana:10.4.1
+    ports:
+      - "3001:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_USERS_ALLOW_SIGN_UP=false
+    volumes:
+      - ../../ops/observability/grafana:/etc/grafana/provisioning/dashboards:ro
+      - grafana-data:/var/lib/grafana
+    depends_on:
+      - prometheus
+    networks:
+      - zakops-network
+
+networks:
+  zakops-network:
+    driver: bridge
+
+volumes:
+  postgres-data:
+  redis-data:
+  prometheus-data:
+  grafana-data:
