@@ -1,0 +1,40 @@
+version: '3.8'
+
+# Traefik Reverse Proxy for Blue/Green Deployments
+
+services:
+  traefik:
+    image: traefik:v2.10
+    container_name: zakops-traefik
+    command:
+      - "--api.insecure=true"
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--providers.file.directory=/etc/traefik/dynamic"
+      - "--providers.file.watch=true"
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.websecure.address=:443"
+      - "--log.level=INFO"
+    ports:
+      - "80:80"
+      - "443:443"
+      - "8080:8080"  # Traefik dashboard
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./traefik-dynamic:/etc/traefik/dynamic:ro
+    networks:
+      - zakops-bluegreen
+    healthcheck:
+      test: ["CMD", "traefik", "healthcheck", "--ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.traefik.rule=Host(`traefik.zakops.local`)"
+      - "traefik.http.services.traefik.loadbalancer.server.port=8080"
+
+networks:
+  zakops-bluegreen:
+    external: true
+    name: zakops-bluegreen

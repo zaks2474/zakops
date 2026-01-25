@@ -1,0 +1,82 @@
+{
+  "validation": "demo_isolation",
+  "timestamp": "2026-01-25T18:19:02.509961Z",
+  "passed": true,
+  "summary": {
+    "total_checks": 14,
+    "passed": 14,
+    "failed": 0
+  },
+  "checks": [
+    {
+      "check": "file_compose.demo.yml",
+      "passed": true,
+      "message": "File exists: compose.demo.yml"
+    },
+    {
+      "check": "file_.env.demo.example",
+      "passed": true,
+      "message": "File exists: .env.demo.example"
+    },
+    {
+      "check": "file_reset_demo.sh",
+      "passed": true,
+      "message": "File exists: reset_demo.sh"
+    },
+    {
+      "check": "file_README.md",
+      "passed": true,
+      "message": "File exists: README.md"
+    },
+    {
+      "check": "demo_mode_env",
+      "passed": true,
+      "message": "DEMO_MODE=true set"
+    },
+    {
+      "check": "demo_volumes",
+      "passed": true,
+      "message": "Found demo volumes: ['zakops_demo_postgres', 'zakops_demo_redis', 'zakops_demo_postgres', 'zakops_demo_postgres', 'zakops_demo_redis', 'zakops_demo_redis']"
+    },
+    {
+      "check": "isolated_network",
+      "passed": true,
+      "message": "Network is isolated"
+    },
+    {
+      "check": "demo_ports",
+      "passed": true,
+      "message": "Ports: 18090:8090 (ok), 19100:9100 (ok), 13003:3000 (ok)"
+    },
+    {
+      "check": "no_prod_patterns",
+      "passed": true,
+      "message": "No obvious production patterns"
+    },
+    {
+      "check": "mock_llm",
+      "passed": true,
+      "message": "LLM mock mode enabled"
+    },
+    {
+      "check": "env_demo_mode",
+      "passed": true,
+      "message": "DEMO_MODE=true in env example"
+    },
+    {
+      "check": "mock_api_keys",
+      "passed": true,
+      "message": "Uses mock API keys"
+    },
+    {
+      "check": "reset_executable",
+      "passed": true,
+      "message": "Reset script is executable"
+    },
+    {
+      "check": "reset_syntax",
+      "passed": true,
+      "message": "Valid shell syntax"
+    }
+  ]
+}

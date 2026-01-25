@@ -1,7 +1,9 @@
 # ZakOps Monorepo Makefile
 .PHONY: help install test lint gates clean dev check-uv doctor
-.PHONY: phase0 phase1 phase2 phase3 phase4 phase5 phase6 phase7 phase8 security perf observability docs demo
+.PHONY: phase0 phase1 phase2 phase3 phase4 phase5 phase6 phase7 phase8 phase9 phase10 security perf observability docs demo
 .PHONY: slo-validate risk-validate golden-traces owasp-tests trust-ux-check
+.PHONY: bluegreen-verify game-day restore-drill runbooks-lint
+.PHONY: demo-up demo-reset beta-ready weekly-summary demo-isolation-validate success-metrics-validate
 .DEFAULT_GOAL := help
 
 # Colors
@@ -168,6 +170,57 @@ observability: phase6 ## Alias for Phase 6 observability gate
 
 docs: phase8 ## Alias for Phase 8 documentation gate
 	@echo "$(GREEN)Documentation checks complete$(RESET)"
+
+phase9: bluegreen-verify runbooks-lint ## Phase 9: Operations + Game Days
+	@echo "$(GREEN)Phase 9 complete$(RESET)"
+
+phase10: demo-isolation-validate beta-ready success-metrics-validate ## Phase 10: Business Readiness
+	@echo "$(GREEN)Phase 10 complete$(RESET)"
+
+# =============================================================================
+# Phase 9: Operations + Game Days
+# =============================================================================
+
+bluegreen-verify: ## Verify blue/green deployment configuration
+	@echo "$(CYAN)=== Blue/Green Verification ===$(RESET)"
+	@python3 tools/ops/bluegreen_verify.py
+
+game-day: ## Run game day scenarios (SCENARIO=gd2,gd3 or FULL=1 for all)
+	@echo "$(CYAN)=== Game Day ===$(RESET)"
+	@python3 tools/chaos/game_day_runner.py --scenario $(or $(SCENARIO),gd2,gd3)
+
+restore-drill: ## Run restore drill
+	@echo "$(CYAN)=== Restore Drill ===$(RESET)"
+	@python3 tools/ops/backup_restore/restore_drill_runner.py
+
+runbooks-lint: ## Lint runbook documentation
+	@echo "$(CYAN)=== Runbook Linting ===$(RESET)"
+	@python3 tools/quality/runbook_lint.py
+
+# =============================================================================
+# Phase 10: Business Readiness
+# =============================================================================
+
+demo-up: ## Start demo environment
+	docker compose -f deployments/demo/compose.demo.yml up -d --wait
+
+demo-reset: ## Reset demo environment (nuke and reseed)
+	./deployments/demo/reset_demo.sh
+
+demo-isolation-validate: ## Validate demo environment isolation
+	@echo "$(CYAN)=== Demo Isolation Validation ===$(RESET)"
+	@python3 tools/quality/demo_isolation_validate.py
+
+beta-ready: ## Validate beta onboarding readiness
+	@echo "$(CYAN)=== Beta Readiness ===$(RESET)"
+	@python3 tools/quality/beta_onboarding_validate.py
+
+success-metrics-validate: ## Validate success metrics documentation
+	@echo "$(CYAN)=== Success Metrics Validation ===$(RESET)"
+	@bash tools/gates/phase10_success_metrics_gate.sh
+
+weekly-summary: ## Generate weekly business summary
+	@python3 tools/business/weekly_summary.py
 
 demo: ## Run demo script
 	@bash tools/demos/run_demo.sh

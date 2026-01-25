@@ -1,0 +1,119 @@
+version: '3.8'
+
+# Blue Stack - Primary deployment
+# Ports: 8090 (API), 9100 (MCP), 3003 (Dashboard)
+
+services:
+  api-blue:
+    image: zakops/deal-lifecycle-api:${BLUE_VERSION:-latest}
+    container_name: zakops-api-blue
+    ports:
+      - "8090:8090"
+    environment:
+      - DATABASE_URL=postgresql://zakops:${DB_PASSWORD:-zakops}@postgres:5432/zakops
+      - REDIS_URL=redis://redis:6379/0
+      - DEPLOYMENT_COLOR=blue
+      - LOG_LEVEL=${LOG_LEVEL:-info}
+    networks:
+      - zakops-bluegreen
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8090/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.api-blue.rule=Host(`api.zakops.local`)"
+      - "traefik.http.services.api-blue.loadbalancer.server.port=8090"
+
+  mcp-blue:
+    image: zakops/mcp-server:${BLUE_VERSION:-latest}
+    container_name: zakops-mcp-blue
+    ports:
+      - "9100:9100"
+    environment:
+      - API_URL=http://api-blue:8090
+      - DEPLOYMENT_COLOR=blue
+    networks:
+      - zakops-bluegreen
+    depends_on:
+      api-blue:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9100/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.mcp-blue.rule=Host(`mcp.zakops.local`)"
+      - "traefik.http.services.mcp-blue.loadbalancer.server.port=9100"
+
+  dashboard-blue:
+    image: zakops/dashboard:${BLUE_VERSION:-latest}
+    container_name: zakops-dashboard-blue
+    ports:
+      - "3003:3000"
+    environment:
+      - NEXT_PUBLIC_API_URL=http://api-blue:8090
+      - DEPLOYMENT_COLOR=blue
+    networks:
+      - zakops-bluegreen
+    depends_on:
+      api-blue:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.dashboard-blue.rule=Host(`dashboard.zakops.local`)"
+      - "traefik.http.services.dashboard-blue.loadbalancer.server.port=3000"
+
+  # Shared services
+  postgres:
+    image: postgres:15-alpine
+    container_name: zakops-postgres
+    environment:
+      - POSTGRES_USER=zakops
+      - POSTGRES_PASSWORD=${DB_PASSWORD:-zakops}
+      - POSTGRES_DB=zakops
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - zakops-bluegreen
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U zakops"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: zakops-redis
+    volumes:
+      - redis_data:/data
+    networks:
+      - zakops-bluegreen
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+networks:
+  zakops-bluegreen:
+    name: zakops-bluegreen
+    driver: bridge
+
+volumes:
+  postgres_data:
+  redis_data:

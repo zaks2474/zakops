@@ -1,0 +1,111 @@
+version: '3.8'
+
+# Demo Environment - Isolated from production
+# Uses different ports, volumes, and network
+
+services:
+  api-demo:
+    image: zakops/deal-lifecycle-api:${DEMO_VERSION:-latest}
+    container_name: zakops-api-demo
+    ports:
+      - "18090:8090"  # Different port from production (8090)
+    environment:
+      - DATABASE_URL=postgresql://zakops:${DB_PASSWORD:-demo}@postgres-demo:5432/zakops_demo
+      - REDIS_URL=redis://redis-demo:6379/0
+      - DEMO_MODE=true
+      - LOG_LEVEL=${LOG_LEVEL:-info}
+      - LLM_MOCK_MODE=true
+      - ANTHROPIC_API_KEY=demo-key-not-real
+    networks:
+      - zakops-demo
+    depends_on:
+      postgres-demo:
+        condition: service_healthy
+      redis-demo:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8090/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  mcp-demo:
+    image: zakops/mcp-server:${DEMO_VERSION:-latest}
+    container_name: zakops-mcp-demo
+    ports:
+      - "19100:9100"  # Different port from production (9100)
+    environment:
+      - API_URL=http://api-demo:8090
+      - DEMO_MODE=true
+    networks:
+      - zakops-demo
+    depends_on:
+      api-demo:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9100/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  dashboard-demo:
+    image: zakops/dashboard:${DEMO_VERSION:-latest}
+    container_name: zakops-dashboard-demo
+    ports:
+      - "13003:3000"  # Different port from production (3003)
+    environment:
+      - NEXT_PUBLIC_API_URL=http://localhost:18090
+      - DEMO_MODE=true
+    networks:
+      - zakops-demo
+    depends_on:
+      api-demo:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  postgres-demo:
+    image: postgres:15-alpine
+    container_name: zakops-postgres-demo
+    environment:
+      - POSTGRES_USER=zakops
+      - POSTGRES_PASSWORD=${DB_PASSWORD:-demo}
+      - POSTGRES_DB=zakops_demo
+    volumes:
+      - zakops_demo_postgres:/var/lib/postgresql/data
+    networks:
+      - zakops-demo
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U zakops"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  redis-demo:
+    image: redis:7-alpine
+    container_name: zakops-redis-demo
+    volumes:
+      - zakops_demo_redis:/data
+    networks:
+      - zakops-demo
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+networks:
+  zakops-demo:
+    name: zakops-demo
+    driver: bridge
+    # No external networks - fully isolated
+
+volumes:
+  zakops_demo_postgres:
+    name: zakops_demo_postgres
+  zakops_demo_redis:
+    name: zakops_demo_redis

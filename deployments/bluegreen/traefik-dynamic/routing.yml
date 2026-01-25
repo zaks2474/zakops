@@ -1,0 +1,89 @@
+# Dynamic routing configuration for blue/green deployment
+# This file is watched by Traefik for live reloads
+# Modify the active_deployment to switch traffic
+
+http:
+  routers:
+    # API Router - routes to active deployment
+    api-router:
+      rule: "Host(`api.zakops.local`) || PathPrefix(`/api`)"
+      service: api-service
+      entryPoints:
+        - web
+        - websecure
+
+    # MCP Router
+    mcp-router:
+      rule: "Host(`mcp.zakops.local`) || PathPrefix(`/mcp`)"
+      service: mcp-service
+      entryPoints:
+        - web
+        - websecure
+
+    # Dashboard Router
+    dashboard-router:
+      rule: "Host(`dashboard.zakops.local`) || PathPrefix(`/`)"
+      service: dashboard-service
+      entryPoints:
+        - web
+        - websecure
+      priority: 1
+
+  services:
+    # API Service - Blue (default active)
+    api-service:
+      loadBalancer:
+        servers:
+          - url: "http://zakops-api-blue:8090"
+        healthCheck:
+          path: /health
+          interval: "10s"
+          timeout: "3s"
+
+    # MCP Service - Blue (default active)
+    mcp-service:
+      loadBalancer:
+        servers:
+          - url: "http://zakops-mcp-blue:9100"
+        healthCheck:
+          path: /health
+          interval: "10s"
+          timeout: "3s"
+
+    # Dashboard Service - Blue (default active)
+    dashboard-service:
+      loadBalancer:
+        servers:
+          - url: "http://zakops-dashboard-blue:3000"
+        healthCheck:
+          path: /
+          interval: "10s"
+          timeout: "3s"
+
+    # Inactive services (for quick switching)
+    api-service-green:
+      loadBalancer:
+        servers:
+          - url: "http://zakops-api-green:8090"
+        healthCheck:
+          path: /health
+          interval: "10s"
+          timeout: "3s"
+
+    mcp-service-green:
+      loadBalancer:
+        servers:
+          - url: "http://zakops-mcp-green:9100"
+        healthCheck:
+          path: /health
+          interval: "10s"
+          timeout: "3s"
+
+    dashboard-service-green:
+      loadBalancer:
+        servers:
+          - url: "http://zakops-dashboard-green:3000"
+        healthCheck:
+          path: /
+          interval: "10s"
+          timeout: "3s"

@@ -1,0 +1,33 @@
+version: '3.8'
+
+# Isolated restore environment for testing database restores
+# Uses different ports and volumes to avoid conflicts with production
+
+services:
+  postgres-restore:
+    image: postgres:15-alpine
+    container_name: zakops-postgres-restore
+    environment:
+      - POSTGRES_USER=zakops
+      - POSTGRES_PASSWORD=${DB_PASSWORD:-zakops}
+      - POSTGRES_DB=zakops_restore
+    ports:
+      - "15432:5432"  # Different port from production
+    volumes:
+      - postgres_restore_data:/var/lib/postgresql/data
+    networks:
+      - zakops-restore
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U zakops"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+networks:
+  zakops-restore:
+    name: zakops-restore
+    driver: bridge
+
+volumes:
+  postgres_restore_data:
+    name: zakops_postgres_restore_data

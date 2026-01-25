@@ -1,0 +1,269 @@
+{
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": "-- Grafana --",
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "description": "ZakOps Business Metrics Dashboard",
+  "editable": true,
+  "gnetId": null,
+  "graphTooltip": 0,
+  "id": null,
+  "iteration": 1706000000000,
+  "links": [],
+  "panels": [
+    {
+      "gridPos": {"h": 4, "w": 24, "x": 0, "y": 0},
+      "id": 1,
+      "options": {
+        "content": "# ZakOps Business Metrics\n\nKey performance indicators for the ZakOps platform.",
+        "mode": "markdown"
+      },
+      "title": "",
+      "type": "text"
+    },
+    {
+      "gridPos": {"h": 6, "w": 6, "x": 0, "y": 4},
+      "id": 2,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "horizontal",
+        "reduceOptions": {
+          "calcs": ["lastNotNull"],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto"
+      },
+      "targets": [
+        {
+          "expr": "sum(rate(users_activated_total[7d])) / sum(rate(users_invited_total[7d])) * 100",
+          "legendFormat": "Activation Rate"
+        }
+      ],
+      "title": "7-Day Activation Rate",
+      "type": "stat",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {"color": "red", "value": null},
+              {"color": "yellow", "value": 50},
+              {"color": "green", "value": 60}
+            ]
+          }
+        }
+      }
+    },
+    {
+      "gridPos": {"h": 6, "w": 6, "x": 6, "y": 4},
+      "id": 3,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "horizontal",
+        "reduceOptions": {
+          "calcs": ["lastNotNull"],
+          "fields": "",
+          "values": false
+        }
+      },
+      "targets": [
+        {
+          "expr": "count(count by (user_id) (user_actions_total{time>now()-7d}))",
+          "legendFormat": "WAU"
+        }
+      ],
+      "title": "Weekly Active Users",
+      "type": "stat"
+    },
+    {
+      "gridPos": {"h": 6, "w": 6, "x": 12, "y": 4},
+      "id": 4,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "reduceOptions": {
+          "calcs": ["lastNotNull"],
+          "fields": "",
+          "values": false
+        }
+      },
+      "targets": [
+        {
+          "expr": "sum(agent_invocations_total) / sum(deals_total) * 100",
+          "legendFormat": "Agent Adoption"
+        }
+      ],
+      "title": "Agent Adoption Rate",
+      "type": "stat",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {"color": "red", "value": null},
+              {"color": "yellow", "value": 20},
+              {"color": "green", "value": 30}
+            ]
+          }
+        }
+      }
+    },
+    {
+      "gridPos": {"h": 6, "w": 6, "x": 18, "y": 4},
+      "id": 5,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "reduceOptions": {
+          "calcs": ["lastNotNull"],
+          "fields": "",
+          "values": false
+        }
+      },
+      "targets": [
+        {
+          "expr": "sum(rate(feedback_submissions_total[24h]))",
+          "legendFormat": "Feedback/Day"
+        }
+      ],
+      "title": "Daily Feedback",
+      "type": "stat"
+    },
+    {
+      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 10},
+      "id": 6,
+      "options": {
+        "legend": {"displayMode": "list", "placement": "bottom"},
+        "tooltip": {"mode": "single"}
+      },
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.50, sum(rate(approval_latency_seconds_bucket[1h])) by (le, priority))",
+          "legendFormat": "P50 - {{priority}}"
+        },
+        {
+          "expr": "histogram_quantile(0.95, sum(rate(approval_latency_seconds_bucket[1h])) by (le, priority))",
+          "legendFormat": "P95 - {{priority}}"
+        }
+      ],
+      "title": "Approval Latency by Priority",
+      "type": "timeseries",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s"
+        }
+      }
+    },
+    {
+      "gridPos": {"h": 8, "w": 12, "x": 12, "y": 10},
+      "id": 7,
+      "options": {
+        "legend": {"displayMode": "list", "placement": "bottom"},
+        "tooltip": {"mode": "single"}
+      },
+      "targets": [
+        {
+          "expr": "sum(rate(agent_suggestions_accepted_total[1h])) by (type)",
+          "legendFormat": "Accepted - {{type}}"
+        },
+        {
+          "expr": "sum(rate(agent_suggestions_total[1h])) by (type) - sum(rate(agent_suggestions_accepted_total[1h])) by (type)",
+          "legendFormat": "Rejected - {{type}}"
+        }
+      ],
+      "title": "Agent Suggestion Acceptance",
+      "type": "timeseries"
+    },
+    {
+      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 18},
+      "id": 8,
+      "options": {
+        "legend": {"displayMode": "list", "placement": "bottom"}
+      },
+      "targets": [
+        {
+          "expr": "sum(rate(feedback_submissions_total[1h])) by (type)",
+          "legendFormat": "{{type}}"
+        }
+      ],
+      "title": "Feedback by Type",
+      "type": "timeseries"
+    },
+    {
+      "gridPos": {"h": 8, "w": 12, "x": 12, "y": 18},
+      "id": 9,
+      "options": {
+        "legend": {"displayMode": "list", "placement": "bottom"}
+      },
+      "targets": [
+        {
+          "expr": "sum(rate(user_actions_total[1h])) by (action)",
+          "legendFormat": "{{action}}"
+        }
+      ],
+      "title": "User Actions",
+      "type": "timeseries"
+    },
+    {
+      "gridPos": {"h": 6, "w": 24, "x": 0, "y": 26},
+      "id": 10,
+      "options": {
+        "showHeader": true
+      },
+      "targets": [
+        {
+          "expr": "topk(10, sum by (user_id) (user_actions_total))",
+          "format": "table",
+          "instant": true
+        }
+      ],
+      "title": "Top Active Users (This Week)",
+      "type": "table",
+      "transformations": [
+        {
+          "id": "organize",
+          "options": {
+            "renameByName": {
+              "Value": "Actions",
+              "user_id": "User ID"
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "refresh": "30s",
+  "schemaVersion": 30,
+  "style": "dark",
+  "tags": ["zakops", "business", "metrics"],
+  "templating": {
+    "list": []
+  },
+  "time": {
+    "from": "now-7d",
+    "to": "now"
+  },
+  "timepicker": {},
+  "timezone": "browser",
+  "title": "ZakOps Business Metrics",
+  "uid": "zakops-business",
+  "version": 1
+}
