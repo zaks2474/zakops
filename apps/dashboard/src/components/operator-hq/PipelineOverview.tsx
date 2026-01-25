@@ -66,11 +66,11 @@ export function PipelineOverview({
   isLoading = false,
   className = '',
 }: PipelineOverviewProps) {
-  const dealsByStage = stats?.deals_by_stage ?? {};
+  const dealsByStage: Record<DealStage, number> = stats?.deals_by_stage ?? {} as Record<DealStage, number>;
   const totalDeals = stats?.total_active_deals ?? 0;
 
   // Calculate max for relative sizing
-  const maxDeals = Math.max(...Object.values(dealsByStage), 1);
+  const maxDeals = Math.max(...Object.values(dealsByStage) as number[], 1);
 
   return (
     <div className={`space-y-6 ${className}`}>

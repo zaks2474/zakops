@@ -6,6 +6,7 @@
       "dom.iterable",
       "esnext"
     ],
+    "downlevelIteration": true,
     "allowJs": true,
     "skipLibCheck": true,
     "strict": true,
@@ -43,11 +44,7 @@
   "exclude": [
     "node_modules",
     "e2e",
-    "playwright.config.ts"
-  ],
-  "moduleResolution": [
-    "node_modules",
-    ".next",
-    "node"
+    "playwright.config.ts",
+    "vitest.config.ts"
   ]
 }

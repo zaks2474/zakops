@@ -41,13 +41,17 @@ import { formatDistanceToNow, format } from 'date-fns';
 import { getToolDefinition, type RiskLevel } from '@/lib/agent/toolRegistry';
 import { getRiskLevelColor } from '@/components/agent/hooks/useAgentRun';
 import type { AgentToolCall } from '@/types/execution-contracts';
+import type { PendingToolApproval } from '@/lib/agent-client';
 
 // =============================================================================
 // Types
 // =============================================================================
 
+// Common fields between AgentToolCall and PendingToolApproval
+type ToolCallLike = AgentToolCall | PendingToolApproval;
+
 interface ApprovalCardProps {
-  toolCall: AgentToolCall;
+  toolCall: ToolCallLike;
   threadId: string;
   runId: string;
   dealId?: string;

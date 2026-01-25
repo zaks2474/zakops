@@ -233,7 +233,7 @@ function TimelineEvent({ event, isLast }: TimelineEventProps) {
             Moved from{' '}
             <strong>{fromStage ? DEAL_STAGE_LABELS[fromStage] : 'unknown'}</strong> to{' '}
             <strong>{toStage ? DEAL_STAGE_LABELS[toStage] : 'unknown'}</strong>
-            {details.reason && <span className="text-muted-foreground"> - {String(details.reason)}</span>}
+            {details.reason ? <span className="text-muted-foreground"> - {String(details.reason)}</span> : null}
           </span>
         );
 
@@ -241,7 +241,7 @@ function TimelineEvent({ event, isLast }: TimelineEventProps) {
         return (
           <span>
             Uploaded <strong>{String(details.filename || 'document')}</strong>
-            {details.size && <span className="text-muted-foreground"> ({formatFileSize(Number(details.size))})</span>}
+            {details.size ? <span className="text-muted-foreground"> ({formatFileSize(Number(details.size))})</span> : null}
           </span>
         );
 
@@ -251,9 +251,9 @@ function TimelineEvent({ event, isLast }: TimelineEventProps) {
           <span>
             {event.event_type === 'email_received' ? 'Received' : 'Sent'}{' '}
             <strong>{String(details.subject || 'Email')}</strong>
-            {details.from && (
+            {details.from ? (
               <span className="text-muted-foreground"> from {String(details.from)}</span>
-            )}
+            ) : null}
           </span>
         );
 
@@ -278,7 +278,7 @@ function TimelineEvent({ event, isLast }: TimelineEventProps) {
         return (
           <span>
             {config.label}
-            {details.description && `: ${String(details.description)}`}
+            {details.description ? `: ${String(details.description)}` : null}
           </span>
         );
     }

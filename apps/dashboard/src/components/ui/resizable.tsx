@@ -5,13 +5,19 @@ import { GripVerticalIcon } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
 
+interface ResizablePanelGroupProps extends React.ComponentProps<'div'> {
+  direction?: 'horizontal' | 'vertical';
+}
+
 function ResizablePanelGroup({
   className,
+  direction = 'horizontal',
   ...props
-}: React.ComponentProps<'div'>) {
+}: ResizablePanelGroupProps) {
   return (
     <div
       data-slot='resizable-panel-group'
+      data-panel-group-direction={direction}
       className={cn(
         'flex h-full w-full data-[panel-group-direction=vertical]:flex-col',
         className
@@ -21,9 +27,18 @@ function ResizablePanelGroup({
   );
 }
 
+interface ResizablePanelProps extends React.ComponentProps<'div'> {
+  defaultSize?: number;
+  minSize?: number;
+  maxSize?: number;
+}
+
 function ResizablePanel({
+  defaultSize,
+  minSize,
+  maxSize,
   ...props
-}: React.ComponentProps<'div'>) {
+}: ResizablePanelProps) {
   return <div data-slot='resizable-panel' {...props} />;
 }
 

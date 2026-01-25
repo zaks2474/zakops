@@ -43,11 +43,15 @@ function createMockToolCall(overrides: Partial<AgentToolCall> = {}): AgentToolCa
     run_id: 'run_123',
     tool_name: 'get_deal_context',
     tool_input: { deal_id: 'deal_123' },
-    status: 'pending_approval',
-    risk_level: 'low',
+    tool_output: null,
+    status: 'pending',
     requires_approval: false,
+    approved_by: null,
+    approved_at: null,
+    started_at: null,
+    completed_at: null,
+    error: null,
     created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
     ...overrides,
   };
 }
@@ -56,7 +60,13 @@ function createMockRun(overrides: Partial<AgentRun> = {}): AgentRun {
   return {
     run_id: `run_${Date.now()}`,
     thread_id: 'thread_123',
+    assistant_id: 'asst_zakops',
     status: 'running',
+    started_at: null,
+    completed_at: null,
+    error: null,
+    tool_calls: [],
+    metadata: {},
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString(),
     ...overrides,
@@ -66,8 +76,10 @@ function createMockRun(overrides: Partial<AgentRun> = {}): AgentRun {
 function createMockThread(overrides: Partial<AgentThread> = {}): AgentThread {
   return {
     thread_id: `thread_${Date.now()}`,
+    deal_id: null,
     assistant_id: 'asst_zakops',
     status: 'active',
+    metadata: {},
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString(),
     ...overrides,

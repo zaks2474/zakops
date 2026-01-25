@@ -307,18 +307,14 @@ export function mergeSafetyConfig(
   return {
     ...base,
     ...overrides,
-    // Arrays should be merged, not replaced
-    ALWAYS_REQUIRE_APPROVAL: [
-      ...new Set([
-        ...base.ALWAYS_REQUIRE_APPROVAL,
-        ...(overrides.ALWAYS_REQUIRE_APPROVAL || []),
-      ]),
-    ],
-    DISABLED_TOOLS: [
-      ...new Set([
-        ...base.DISABLED_TOOLS,
-        ...(overrides.DISABLED_TOOLS || []),
-      ]),
-    ],
+    // Arrays should be merged, not replaced (using Array.from for ES5 compatibility)
+    ALWAYS_REQUIRE_APPROVAL: Array.from(new Set([
+      ...base.ALWAYS_REQUIRE_APPROVAL,
+      ...(overrides.ALWAYS_REQUIRE_APPROVAL || []),
+    ])),
+    DISABLED_TOOLS: Array.from(new Set([
+      ...base.DISABLED_TOOLS,
+      ...(overrides.DISABLED_TOOLS || []),
+    ])),
   };
 }

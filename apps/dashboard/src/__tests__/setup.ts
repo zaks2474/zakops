@@ -2,7 +2,7 @@
  * Vitest Test Setup
  */
 
-import { vi } from 'vitest';
+import { vi, beforeEach } from 'vitest';
 
 // Mock Next.js router
 vi.mock('next/navigation', () => ({

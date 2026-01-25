@@ -82,43 +82,44 @@ function calculateProgress(items: DiligenceItemData[]) {
 function getStatusCounts(items: DiligenceItemData[]): StatusCount[] {
   const stats = calculateProgress(items);
 
-  return [
+  const allCounts: StatusCount[] = [
     {
-      status: 'complete',
+      status: 'complete' as DiligenceItemStatus,
       count: stats.completed,
       label: 'Complete',
       icon: IconCheck,
       color: 'text-green-500',
     },
     {
-      status: 'in_progress',
+      status: 'in_progress' as DiligenceItemStatus,
       count: stats.inProgress,
       label: 'In Progress',
       icon: IconLoader2,
       color: 'text-blue-500',
     },
     {
-      status: 'pending',
+      status: 'pending' as DiligenceItemStatus,
       count: stats.pending,
       label: 'Pending',
       icon: IconClock,
       color: 'text-muted-foreground',
     },
     {
-      status: 'blocked',
+      status: 'blocked' as DiligenceItemStatus,
       count: stats.blocked,
       label: 'Blocked',
       icon: IconX,
       color: 'text-red-500',
     },
     {
-      status: 'na',
+      status: 'na' as DiligenceItemStatus,
       count: stats.na,
       label: 'N/A',
       icon: IconMinus,
       color: 'text-muted-foreground',
     },
-  ].filter((s) => s.count > 0);
+  ];
+  return allCounts.filter((s) => s.count > 0);
 }
 
 // =============================================================================

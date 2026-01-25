@@ -101,7 +101,7 @@ export function useAgentRun(options: UseAgentRunOptions): AgentRunState & {
   // Fetch tool calls for this run
   const { data: toolCalls = [] } = useQuery({
     queryKey: agentQueryKeys.runs.toolCalls(threadId, runId),
-    queryFn: () => agentClient.getRunToolCalls(threadId, runId),
+    queryFn: () => agentClient.getToolCalls(threadId, runId),
     enabled: enabled && !!threadId && !!runId,
   });
 
@@ -199,9 +199,9 @@ export function useAgentRun(options: UseAgentRunOptions): AgentRunState & {
 
   // Derived state
   const derivedState = useMemo(() => {
-    const pending = toolCalls.filter((tc) => tc.status === 'pending' && tc.requires_approval);
-    const completed = toolCalls.filter((tc) => tc.status === 'completed');
-    const failed = toolCalls.filter((tc) => tc.status === 'failed');
+    const pending = toolCalls.filter((tc: AgentToolCall) => tc.status === 'pending' && tc.requires_approval);
+    const completed = toolCalls.filter((tc: AgentToolCall) => tc.status === 'completed');
+    const failed = toolCalls.filter((tc: AgentToolCall) => tc.status === 'failed');
 
     const totalCalls = toolCalls.length;
     const completedCount = completed.length;

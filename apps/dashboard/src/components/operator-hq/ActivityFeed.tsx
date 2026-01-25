@@ -159,7 +159,7 @@ function ActivityItem({ event }: ActivityItemProps) {
         return (
           <>
             Deal moved to{' '}
-            <strong>{DEAL_STAGE_LABELS[details.to_stage as keyof typeof DEAL_STAGE_LABELS] || details.to_stage}</strong>
+            <strong>{DEAL_STAGE_LABELS[details.to_stage as keyof typeof DEAL_STAGE_LABELS] || String(details.to_stage)}</strong>
           </>
         );
       case 'document_uploaded':

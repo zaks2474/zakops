@@ -38,7 +38,7 @@ import {
 import { useApprovalFlow } from '@/components/agent/hooks/useApprovalFlow';
 import { ApprovalCard } from './ApprovalCard';
 import { getToolDefinition, type RiskLevel } from '@/lib/agent/toolRegistry';
-import type { AgentToolCall } from '@/types/execution-contracts';
+import type { PendingToolApproval } from '@/lib/agent-client';
 
 // =============================================================================
 // Types
@@ -58,7 +58,7 @@ interface ApprovalQueueProps {
 interface GroupedApprovals {
   [key: string]: {
     label: string;
-    approvals: AgentToolCall[];
+    approvals: PendingToolApproval[];
   };
 }
 
@@ -169,10 +169,9 @@ export function ApprovalQueue({
 
   // Handle approve action
   const handleApprove = useCallback(
-    async (toolCall: AgentToolCall) => {
-      // Note: threadId would need to come from context - using empty for now
+    async (toolCall: PendingToolApproval) => {
       await approve({
-        threadId: '', // Would be populated from context
+        threadId: toolCall.thread_id,
         runId: toolCall.run_id,
         toolCallId: toolCall.tool_call_id,
         approvedBy: operatorId,
@@ -183,9 +182,9 @@ export function ApprovalQueue({
 
   // Handle reject action
   const handleReject = useCallback(
-    async (toolCall: AgentToolCall) => {
+    async (toolCall: PendingToolApproval) => {
       await reject({
-        threadId: '',
+        threadId: toolCall.thread_id,
         runId: toolCall.run_id,
         toolCallId: toolCall.tool_call_id,
         rejectedBy: operatorId,
@@ -231,7 +230,7 @@ export function ApprovalQueue({
                 <ApprovalCard
                   key={approval.tool_call_id}
                   toolCall={approval}
-                  threadId=""
+                  threadId={approval.thread_id}
                   runId={approval.run_id}
                   variant="compact"
                   onApprove={() => handleApprove(approval)}
@@ -359,7 +358,7 @@ export function ApprovalQueue({
                         <ApprovalCard
                           key={approval.tool_call_id}
                           toolCall={approval}
-                          threadId=""
+                          threadId={approval.thread_id}
                           runId={approval.run_id}
                           onApprove={() => handleApprove(approval)}
                           onReject={() => handleReject(approval)}
@@ -379,7 +378,7 @@ export function ApprovalQueue({
                   <ApprovalCard
                     key={approval.tool_call_id}
                     toolCall={approval}
-                    threadId=""
+                    threadId={approval.thread_id}
                     runId={approval.run_id}
                     onApprove={() => handleApprove(approval)}
                     onReject={() => handleReject(approval)}
