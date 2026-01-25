@@ -1,0 +1,64 @@
+{
+  "generated_at": "2026-01-25T02:58:41.297347",
+  "source_file": "/home/zaks/zakops-agent-api/docs/slos/slo_config.yaml",
+  "thresholds_count": 7,
+  "thresholds": [
+    {
+      "slo_id": "api_availability",
+      "metric": "http_req_failed",
+      "threshold_name": "rate",
+      "threshold_value": "rate<0.005",
+      "target_pct": 99.5,
+      "description": "Percentage of successful HTTP responses (2xx, 3xx)"
+    },
+    {
+      "slo_id": "api_latency_p95",
+      "metric": "http_req_duration",
+      "threshold_name": "p(95)",
+      "threshold_value": "p(95)<500",
+      "target_ms": 500,
+      "description": "95th percentile request latency"
+    },
+    {
+      "slo_id": "api_latency_p99",
+      "metric": "http_req_duration",
+      "threshold_name": "p(99)",
+      "threshold_value": "p(99)<2000",
+      "target_ms": 2000,
+      "description": "99th percentile request latency"
+    },
+    {
+      "slo_id": "api_error_rate",
+      "metric": "http_req_failed",
+      "threshold_name": "rate",
+      "threshold_value": "rate<0.001",
+      "target_pct": 0.1,
+      "description": "Server error rate (5xx responses)"
+    },
+    {
+      "slo_id": "agent_availability",
+      "metric": "http_req_failed",
+      "threshold_name": "rate",
+      "threshold_value": "rate<0.01",
+      "target_pct": 99.0,
+      "description": "Agent service availability for processing requests"
+    },
+    {
+      "slo_id": "agent_latency_p95",
+      "metric": "http_req_duration",
+      "threshold_name": "p(95)",
+      "threshold_value": "p(95)<5000",
+      "target_ms": 5000,
+      "description": "95th percentile end-to-end agent request latency"
+    },
+    {
+      "slo_id": "agent_tool_accuracy",
+      "metric": "custom",
+      "threshold_name": "accuracy",
+      "threshold_value": "accuracy>=95",
+      "target_pct": 95,
+      "description": "Percentage of correct tool selections based on golden traces",
+      "notes": "Requires golden trace evaluation, not k6"
+    }
+  ]
+}

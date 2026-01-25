@@ -1,0 +1,21 @@
+{
+  "endpoint_classification": {
+    "passed": true,
+    "issues": [],
+    "endpoints_count": 13,
+    "file": "/home/zaks/zakops-agent-api/ops/external_access/endpoint_classification.yaml"
+  },
+  "cloudflared_config": {
+    "passed": true,
+    "issues": [],
+    "ingress_rules": 3,
+    "file": "/home/zaks/zakops-agent-api/ops/external_access/cloudflare/cloudflared_config.yml"
+  },
+  "access_policies": {
+    "passed": true,
+    "issues": [],
+    "applications_count": 2,
+    "file": "/home/zaks/zakops-agent-api/ops/external_access/cloudflare/access_policies.yaml"
+  },
+  "overall_passed": true
+}

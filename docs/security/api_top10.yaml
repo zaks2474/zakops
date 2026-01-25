@@ -1,0 +1,147 @@
+# OWASP API Security Top 10 (2023) Checklist
+# Machine-readable checklist for automated validation
+# Reference: https://owasp.org/API-Security/
+
+version: "2023"
+updated: "2026-01-25"
+project: zakops-agent-api
+
+risks:
+  - id: API1
+    name: "Broken Object Level Authorization"
+    severity: critical
+    status: mitigated
+    controls:
+      - description: "JWT-based authentication with actor binding"
+        location: "apps/agent-api/app/core/security/agent_auth.py"
+        test: "apps/agent-api/tests/security/test_rbac_coverage.py"
+      - description: "Actor ID bound to JWT subject"
+        location: "apps/agent-api/app/api/v1/agent.py:237"
+        test: "apps/agent-api/tests/security/test_rbac_coverage.py"
+    notes: "Approval actions bind actor_id to JWT subject when enforcement enabled"
+
+  - id: API2
+    name: "Broken Authentication"
+    severity: critical
+    status: mitigated
+    controls:
+      - description: "JWT validation with iss/aud/role claims"
+        location: "apps/agent-api/app/core/security/agent_auth.py"
+        test: "apps/agent-api/tests/security/test_rbac_coverage.py"
+      - description: "Token expiration enforcement"
+        location: "apps/agent-api/app/core/security/agent_auth.py:255-257"
+        test: "apps/agent-api/tests/security/test_rbac_coverage.py"
+    notes: "Strict JWT validation per Decision Lock requirements"
+
+  - id: API3
+    name: "Broken Object Property Level Authorization"
+    severity: high
+    status: mitigated
+    controls:
+      - description: "Pydantic schemas for request/response"
+        location: "apps/agent-api/app/schemas/agent.py"
+        test: "apps/agent-api/tests/security/test_output_sanitization.py"
+      - description: "Explicit field definitions prevent mass assignment"
+        location: "apps/agent-api/app/schemas/"
+        test: "Manual review"
+    notes: "Pydantic models explicitly define allowed fields"
+
+  - id: API4
+    name: "Unrestricted Resource Consumption"
+    severity: high
+    status: mitigated
+    controls:
+      - description: "Rate limiting per endpoint"
+        location: "apps/agent-api/app/core/middleware/rate_limiter.py"
+        test: "apps/agent-api/tests/security/test_rate_limits.py"
+      - description: "Request size limits"
+        location: "apps/agent-api/app/core/config.py"
+        test: "Manual review"
+    notes: "Slowapi rate limiter configured for all endpoints"
+
+  - id: API5
+    name: "Broken Function Level Authorization"
+    severity: critical
+    status: mitigated
+    controls:
+      - description: "RBAC with role hierarchy"
+        location: "apps/agent-api/app/core/security/agent_auth.py"
+        test: "apps/agent-api/tests/security/test_rbac_coverage.py"
+      - description: "Approve/reject endpoints require APPROVER role"
+        location: "apps/agent-api/app/api/v1/agent.py:208-214"
+        test: "apps/agent-api/tests/security/test_rbac_coverage.py"
+    notes: "Role hierarchy: VIEWER < OPERATOR < APPROVER < ADMIN"
+
+  - id: API6
+    name: "Unrestricted Access to Sensitive Business Flows"
+    severity: medium
+    status: mitigated
+    controls:
+      - description: "HITL approval workflow for critical operations"
+        location: "apps/agent-api/app/api/v1/agent.py"
+        test: "apps/agent-api/tests/security/test_rbac_coverage.py"
+      - description: "Atomic approval claiming prevents race conditions"
+        location: "apps/agent-api/app/api/v1/agent.py:246-261"
+        test: "Manual review"
+    notes: "Critical tools require human approval before execution"
+
+  - id: API7
+    name: "Server Side Request Forgery (SSRF)"
+    severity: high
+    status: mitigated
+    controls:
+      - description: "No user-controlled URLs in server requests"
+        location: "apps/agent-api/app/"
+        test: "Manual code review"
+      - description: "External API allowlist"
+        location: "apps/agent-api/app/core/config.py"
+        test: "Manual review"
+    notes: "Agent tools do not fetch user-provided URLs directly"
+
+  - id: API8
+    name: "Security Misconfiguration"
+    severity: medium
+    status: mitigated
+    controls:
+      - description: "Security headers configured"
+        location: "ops/external_access/cloudflare/"
+        test: "Manual review"
+      - description: "Debug mode disabled in production"
+        location: "apps/agent-api/app/core/config.py"
+        test: "Manual review"
+      - description: "CORS properly configured"
+        location: "apps/agent-api/app/main.py"
+        test: "Manual review"
+    notes: "Production configuration validated via gates"
+
+  - id: API9
+    name: "Improper Inventory Management"
+    severity: medium
+    status: mitigated
+    controls:
+      - description: "Endpoint classification documented"
+        location: "ops/external_access/endpoint_classification.yaml"
+        test: "tools/quality/cloudflare_config_validate.py"
+      - description: "OpenAPI spec maintained"
+        location: "apps/agent-api/app/main.py"
+        test: "Manual review"
+    notes: "All endpoints classified with access levels"
+
+  - id: API10
+    name: "Unsafe Consumption of APIs"
+    severity: medium
+    status: mitigated
+    controls:
+      - description: "Output sanitization for LLM responses"
+        location: "apps/agent-api/app/core/security/output_validation.py"
+        test: "apps/agent-api/tests/security/test_output_sanitization.py"
+      - description: "Input validation on external data"
+        location: "apps/agent-api/app/schemas/"
+        test: "Manual review"
+    notes: "LLM outputs sanitized before returning to clients"
+
+summary:
+  total_risks: 10
+  mitigated: 10
+  partially_mitigated: 0
+  not_mitigated: 0

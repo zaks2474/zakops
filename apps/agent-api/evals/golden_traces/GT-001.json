@@ -1,0 +1,40 @@
+{
+  "id": "GT-001",
+  "version": "1.0",
+  "name": "Basic deal query",
+  "description": "User asks for information about a specific deal by name",
+  "category": "query",
+  "tags": ["deal", "query", "basic"],
+  "input": {
+    "user_message": "What's the status of the Acme Corp deal?",
+    "context": {
+      "deal_id": "deal-001",
+      "deal_name": "Acme Corp"
+    }
+  },
+  "expected": {
+    "tool_calls": [
+      {
+        "tool_name": "get_deal",
+        "required_parameters": ["deal_id"]
+      }
+    ],
+    "requires_approval": false
+  },
+  "mock_response": {
+    "tool_calls": [
+      {
+        "tool_name": "get_deal",
+        "parameters": {
+          "deal_id": "deal-001"
+        }
+      }
+    ],
+    "response_text": "The Acme Corp deal is currently in the negotiation stage with a value of $150,000.",
+    "requires_approval": false
+  },
+  "metadata": {
+    "created_at": "2025-01-25",
+    "author": "ZakOps Team"
+  }
+}

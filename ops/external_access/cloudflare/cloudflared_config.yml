@@ -1,0 +1,73 @@
+# Cloudflare Tunnel Configuration
+# Copy to ~/.cloudflared/config.yml and customize
+#
+# Reference: https://developers.cloudflare.com/cloudflare-one/connections/connect-apps/configuration/
+
+# Tunnel identification
+# Replace with your actual tunnel ID from 'cloudflared tunnel create'
+tunnel: <TUNNEL_ID>
+
+# Path to tunnel credentials (created during 'cloudflared tunnel create')
+# credentials-file: /root/.cloudflared/<TUNNEL_ID>.json
+credentials-file: /etc/cloudflared/credentials.json
+
+# Ingress rules - how to route traffic
+ingress:
+  # ZakOps Agent API
+  - hostname: agent.yourdomain.com
+    service: http://localhost:8095
+    originRequest:
+      # Connection settings
+      connectTimeout: 30s
+      noTLSVerify: false  # Set to true if using self-signed cert locally
+
+      # HTTP/2 settings
+      http2Origin: true
+
+      # Keep-alive settings
+      keepAliveConnections: 10
+      keepAliveTimeout: 90s
+
+      # Access control (additional layer)
+      # cloudflaredAccess controls if cloudflared verifies Access JWT
+      # access:
+      #   required: true
+      #   teamName: your-team
+
+  # Health check endpoint (can be exposed separately)
+  - hostname: agent-health.yourdomain.com
+    path: /v1/health
+    service: http://localhost:8095
+
+  # Catch-all (required)
+  - service: http_status:404
+
+# Logging configuration
+loglevel: info
+# logDirectory: /var/log/cloudflared
+
+# Metrics server (for monitoring)
+metrics: localhost:9090
+
+# Retries and timeouts
+retries: 5
+
+# Grace period for shutdown
+grace-period: 30s
+
+# Protocol settings
+# protocol: quic  # Uncomment for QUIC transport (experimental)
+
+# No auto-update in production
+no-autoupdate: true
+
+# Transport settings
+# edge-ip-version: auto
+# edge-bind-address: ""
+
+# Post-quantum cryptography (if supported)
+# post-quantum: true
+
+# Proxy settings (if behind corporate proxy)
+# proxy-connect-dns: false
+# proxy-url: ""

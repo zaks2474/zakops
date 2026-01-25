@@ -1,5 +1,7 @@
 # ZakOps Monorepo Makefile
 .PHONY: help install test lint gates clean dev check-uv doctor
+.PHONY: phase0 phase1 phase2 phase3 phase4 phase5 security perf
+.PHONY: slo-validate risk-validate golden-traces owasp-tests trust-ux-check
 .DEFAULT_GOAL := help
 
 # Colors
@@ -102,6 +104,52 @@ gates: ## Run all gate checks
 
 gates-agent-api: ## Run agent-api gates only
 	cd apps/agent-api && ../../tools/gates/bring_up_tests.sh
+
+# =============================================================================
+# Production Readiness Phases
+# =============================================================================
+
+phase0: slo-validate risk-validate ## Phase 0: SLOs + Risk Model
+	@echo "$(GREEN)Phase 0 complete$(RESET)"
+
+phase1: golden-traces owasp-tests ## Phase 1: Agent Intelligence Validation
+	@echo "$(GREEN)Phase 1 complete$(RESET)"
+
+phase2: trust-ux-check ## Phase 2: Trust UX + Audit
+	@echo "$(GREEN)Phase 2 complete$(RESET)"
+
+slo-validate: ## Validate SLO configuration
+	@python3 tools/quality/slo_validate.py
+
+risk-validate: ## Validate risk register
+	@python3 tools/quality/risk_validate.py
+
+golden-traces: ## Run golden trace evaluation
+	@CI=true python3 apps/agent-api/evals/golden_trace_runner.py
+
+owasp-tests: ## Run OWASP LLM security tests
+	@bash tools/gates/owasp_llm_gate.sh
+
+trust-ux-check: ## Check Trust UX components
+	@bash tools/gates/phase2_trust_ux_gate.sh
+
+phase3: ## Phase 3: Security Hardening
+	@echo "$(CYAN)=== Phase 3: Security Hardening ===$(RESET)"
+	@bash tools/gates/phase3_security_gate.sh
+
+phase4: ## Phase 4: External Access + Policy Enforcement
+	@echo "$(CYAN)=== Phase 4: External Access ===$(RESET)"
+	@bash tools/gates/phase4_external_access_gate.sh
+
+phase5: ## Phase 5: Performance (SLO-bound)
+	@echo "$(CYAN)=== Phase 5: Performance ===$(RESET)"
+	@bash tools/gates/phase5_performance_gate.sh
+
+security: phase3 ## Alias for Phase 3 security gate
+	@echo "$(GREEN)Security checks complete$(RESET)"
+
+perf: phase5 ## Alias for Phase 5 performance gate
+	@echo "$(GREEN)Performance checks complete$(RESET)"
 
 # =============================================================================
 # Development

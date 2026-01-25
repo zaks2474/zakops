@@ -1,0 +1,41 @@
+{
+  "id": "GT-004",
+  "version": "1.0",
+  "name": "Deal value query",
+  "description": "User asks about the value of a specific deal",
+  "category": "query",
+  "tags": ["deal", "query", "value"],
+  "input": {
+    "user_message": "What's the value of the TechStart deal?",
+    "context": {
+      "deal_id": "deal-002",
+      "deal_name": "TechStart Inc"
+    }
+  },
+  "expected": {
+    "tool_calls": [
+      {
+        "tool_name": "get_deal",
+        "required_parameters": ["deal_id"]
+      }
+    ],
+    "requires_approval": false,
+    "response_contains": ["value", "$"]
+  },
+  "mock_response": {
+    "tool_calls": [
+      {
+        "tool_name": "get_deal",
+        "parameters": {
+          "deal_id": "deal-002"
+        }
+      }
+    ],
+    "response_text": "The TechStart Inc deal has a value of $75,000.",
+    "requires_approval": false
+  },
+  "metadata": {
+    "created_at": "2025-01-25",
+    "author": "ZakOps Team"
+  }
+}

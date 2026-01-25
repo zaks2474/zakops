@@ -1,0 +1,43 @@
+{
+  "id": "GT-007",
+  "version": "1.0",
+  "name": "Create deal request",
+  "description": "User requests to create a new deal",
+  "category": "mutation",
+  "tags": ["deal", "create", "mutation"],
+  "input": {
+    "user_message": "Create a new deal for BigCo International worth $500,000",
+    "context": {}
+  },
+  "expected": {
+    "tool_calls": [
+      {
+        "tool_name": "create_deal",
+        "parameters": {
+          "name": "BigCo International",
+          "value": 500000
+        },
+        "required_parameters": ["name", "value"]
+      }
+    ],
+    "requires_approval": true
+  },
+  "mock_response": {
+    "tool_calls": [
+      {
+        "tool_name": "create_deal",
+        "parameters": {
+          "name": "BigCo International",
+          "value": 500000,
+          "stage": "qualification"
+        }
+      }
+    ],
+    "response_text": "I'll create a new deal for BigCo International with a value of $500,000. This action requires your approval.",
+    "requires_approval": true
+  },
+  "metadata": {
+    "created_at": "2025-01-25",
+    "author": "ZakOps Team"
+  }
+}

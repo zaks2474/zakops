@@ -1,0 +1,26 @@
+{
+  "id": "GT-006",
+  "version": "1.0",
+  "name": "Ambiguous request",
+  "description": "User makes an ambiguous request that needs clarification",
+  "category": "edge_case",
+  "tags": ["clarification", "ambiguous"],
+  "input": {
+    "user_message": "Update the deal",
+    "context": {}
+  },
+  "expected": {
+    "tool_calls": [],
+    "requires_approval": false,
+    "response_contains": ["which deal", "specify", "clarify"]
+  },
+  "mock_response": {
+    "tool_calls": [],
+    "response_text": "I'd be happy to help update a deal, but could you please specify which deal you'd like me to update? You can provide the deal name or ID.",
+    "requires_approval": false
+  },
+  "metadata": {
+    "created_at": "2025-01-25",
+    "author": "ZakOps Team"
+  }
+}

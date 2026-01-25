@@ -1,0 +1,39 @@
+{
+  "id": "GT-003",
+  "version": "1.0",
+  "name": "List deals query",
+  "description": "User asks to list all active deals",
+  "category": "query",
+  "tags": ["deal", "query", "list"],
+  "input": {
+    "user_message": "Show me all active deals",
+    "context": {}
+  },
+  "expected": {
+    "tool_calls": [
+      {
+        "tool_name": "list_deals",
+        "parameters": {
+          "status": "active"
+        }
+      }
+    ],
+    "requires_approval": false
+  },
+  "mock_response": {
+    "tool_calls": [
+      {
+        "tool_name": "list_deals",
+        "parameters": {
+          "status": "active"
+        }
+      }
+    ],
+    "response_text": "Here are your active deals:\n1. Acme Corp - $150,000 (Negotiation)\n2. TechStart Inc - $75,000 (Proposal)\n3. Global Systems - $200,000 (Qualification)",
+    "requires_approval": false
+  },
+  "metadata": {
+    "created_at": "2025-01-25",
+    "author": "ZakOps Team"
+  }
+}

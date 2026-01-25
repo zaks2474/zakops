@@ -1,0 +1,26 @@
+{
+  "id": "GT-010",
+  "version": "1.0",
+  "name": "No tool needed - general question",
+  "description": "User asks a general question that doesn't require any tool",
+  "category": "no_tool",
+  "tags": ["general", "no_tool", "conversation"],
+  "input": {
+    "user_message": "What can you help me with?",
+    "context": {}
+  },
+  "expected": {
+    "tool_calls": [],
+    "requires_approval": false,
+    "response_contains": ["help", "deal", "assist"]
+  },
+  "mock_response": {
+    "tool_calls": [],
+    "response_text": "I can help you manage your deals in the CRM. I can:\n- Query deal information and status\n- Search for deals by criteria\n- Update deal stages (requires approval)\n- Create new deals (requires approval)\n\nJust ask me what you'd like to do!",
+    "requires_approval": false
+  },
+  "metadata": {
+    "created_at": "2025-01-25",
+    "author": "ZakOps Team"
+  }
+}

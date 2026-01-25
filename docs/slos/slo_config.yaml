@@ -1,0 +1,157 @@
+# ZakOps SLO Configuration
+# Machine-readable SLO definitions for automated validation
+
+version: "1.0"
+updated: "2025-01-25"
+
+slos:
+  # API Service SLOs
+  - id: api_availability
+    name: "API Availability"
+    service: api
+    type: availability
+    target: 99.5
+    unit: percent
+    window_days: 30
+    description: "Percentage of successful HTTP responses (2xx, 3xx)"
+    measurement:
+      metric: "http_requests_total"
+      success_filter: "status_code < 400"
+      total_filter: "*"
+
+  - id: api_latency_p95
+    name: "API Latency P95"
+    service: api
+    type: latency
+    target: 500
+    unit: milliseconds
+    percentile: 95
+    window_days: 30
+    description: "95th percentile request latency"
+    measurement:
+      metric: "http_request_duration_ms"
+      histogram_bucket: 0.95
+
+  - id: api_latency_p99
+    name: "API Latency P99"
+    service: api
+    type: latency
+    target: 2000
+    unit: milliseconds
+    percentile: 99
+    window_days: 30
+    description: "99th percentile request latency"
+    measurement:
+      metric: "http_request_duration_ms"
+      histogram_bucket: 0.99
+
+  - id: api_error_rate
+    name: "API Error Rate"
+    service: api
+    type: error_rate
+    target: 0.1
+    unit: percent
+    window_days: 30
+    description: "Server error rate (5xx responses)"
+    measurement:
+      metric: "http_requests_total"
+      error_filter: "status_code >= 500"
+
+  # Agent Service SLOs
+  - id: agent_availability
+    name: "Agent Availability"
+    service: agent
+    type: availability
+    target: 99.0
+    unit: percent
+    window_days: 30
+    description: "Agent service availability for processing requests"
+    measurement:
+      metric: "agent_health_check"
+      success_filter: "status = healthy"
+
+  - id: agent_latency_p95
+    name: "Agent Latency P95"
+    service: agent
+    type: latency
+    target: 5000
+    unit: milliseconds
+    percentile: 95
+    window_days: 30
+    description: "95th percentile end-to-end agent request latency"
+    measurement:
+      metric: "agent_request_duration_ms"
+      histogram_bucket: 0.95
+
+  - id: agent_tool_accuracy
+    name: "Agent Tool Accuracy"
+    service: agent
+    type: accuracy
+    target: 95
+    unit: percent
+    window_days: 30
+    description: "Percentage of correct tool selections based on golden traces"
+    measurement:
+      metric: "golden_trace_pass_rate"
+      evaluation_frequency: "weekly"
+
+error_budget:
+  thresholds:
+    green:
+      min_remaining: 50
+      description: "Healthy - more than 50% budget remaining"
+      actions:
+        - "Normal development velocity"
+        - "Feature work prioritized"
+    yellow:
+      min_remaining: 25
+      max_remaining: 50
+      description: "Caution - 25-50% budget remaining"
+      actions:
+        - "Increased monitoring"
+        - "Review recent changes"
+        - "Prepare rollback plans"
+    orange:
+      min_remaining: 10
+      max_remaining: 25
+      description: "Warning - 10-25% budget remaining"
+      actions:
+        - "Pause non-critical deployments"
+        - "Focus on reliability improvements"
+        - "Daily budget reviews"
+    red:
+      max_remaining: 10
+      description: "Critical - less than 10% budget remaining"
+      actions:
+        - "Freeze all feature deployments"
+        - "All hands on reliability"
+        - "Incident response mode"
+
+  reset_policy:
+    frequency: monthly
+    day_of_month: 1
+    carryover: false
+
+alerting:
+  channels:
+    - type: slack
+      channel: "#zakops-alerts"
+    - type: pagerduty
+      service: "zakops-api"
+
+  rules:
+    - slo_id: api_availability
+      thresholds:
+        - condition: "< 99.9"
+          window_minutes: 60
+          severity: warning
+        - condition: "< 99.5"
+          window_minutes: 240
+          severity: critical
+
+    - slo_id: agent_tool_accuracy
+      thresholds:
+        - condition: "< 95"
+          evaluation: "weekly"
+          severity: critical
+          action: "block_deployment"

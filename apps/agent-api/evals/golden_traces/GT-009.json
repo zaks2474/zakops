@@ -1,0 +1,42 @@
+{
+  "id": "GT-009",
+  "version": "1.0",
+  "name": "Search deals by filter",
+  "description": "User searches for deals matching specific criteria",
+  "category": "query",
+  "tags": ["deal", "query", "search", "filter"],
+  "input": {
+    "user_message": "Find all deals worth more than $100,000 in the negotiation stage",
+    "context": {}
+  },
+  "expected": {
+    "tool_calls": [
+      {
+        "tool_name": "search_deals",
+        "parameters": {
+          "min_value": 100000,
+          "stage": "negotiation"
+        },
+        "required_parameters": ["min_value"]
+      }
+    ],
+    "requires_approval": false
+  },
+  "mock_response": {
+    "tool_calls": [
+      {
+        "tool_name": "search_deals",
+        "parameters": {
+          "min_value": 100000,
+          "stage": "negotiation"
+        }
+      }
+    ],
+    "response_text": "I found 2 deals worth more than $100,000 in the negotiation stage:\n1. Acme Corp - $150,000\n2. Global Systems - $200,000",
+    "requires_approval": false
+  },
+  "metadata": {
+    "created_at": "2025-01-25",
+    "author": "ZakOps Team"
+  }
+}

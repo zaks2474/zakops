@@ -1,0 +1,16 @@
+{
+  "passed": true,
+  "errors": [],
+  "warnings": [],
+  "slo_count": 7,
+  "error_budget_configured": true,
+  "validated_slos": [
+    "api_availability",
+    "api_latency_p95",
+    "api_latency_p99",
+    "api_error_rate",
+    "agent_availability",
+    "agent_latency_p95",
+    "agent_tool_accuracy"
+  ]
+}

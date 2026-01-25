@@ -1,0 +1,139 @@
+{
+  "version": "1.0",
+  "description": "Tool selection test cases for agent evaluation",
+  "created_at": "2025-01-25",
+  "cases": [
+    {
+      "id": "TS-001",
+      "input": "What's the status of the Acme deal?",
+      "expected_tool": "get_deal",
+      "category": "query"
+    },
+    {
+      "id": "TS-002",
+      "input": "Show me all my deals",
+      "expected_tool": "list_deals",
+      "category": "query"
+    },
+    {
+      "id": "TS-003",
+      "input": "Move deal 123 to negotiation",
+      "expected_tool": "update_deal_stage",
+      "category": "mutation"
+    },
+    {
+      "id": "TS-004",
+      "input": "Create a new deal for Company XYZ",
+      "expected_tool": "create_deal",
+      "category": "mutation"
+    },
+    {
+      "id": "TS-005",
+      "input": "Find deals worth over $50k",
+      "expected_tool": "search_deals",
+      "category": "query"
+    },
+    {
+      "id": "TS-006",
+      "input": "What can you help me with?",
+      "expected_tool": null,
+      "category": "no_tool"
+    },
+    {
+      "id": "TS-007",
+      "input": "Close the BigCo deal as won",
+      "expected_tool": "update_deal_stage",
+      "category": "mutation"
+    },
+    {
+      "id": "TS-008",
+      "input": "How much is the TechStart deal worth?",
+      "expected_tool": "get_deal",
+      "category": "query"
+    },
+    {
+      "id": "TS-009",
+      "input": "List all deals in the proposal stage",
+      "expected_tool": "search_deals",
+      "category": "query"
+    },
+    {
+      "id": "TS-010",
+      "input": "Delete the old deal",
+      "expected_tool": "delete_deal",
+      "category": "mutation"
+    },
+    {
+      "id": "TS-011",
+      "input": "Update the deal value to $100,000",
+      "expected_tool": "update_deal_profile",
+      "category": "mutation"
+    },
+    {
+      "id": "TS-012",
+      "input": "Send a follow-up email to the client",
+      "expected_tool": "send_email",
+      "category": "external"
+    },
+    {
+      "id": "TS-013",
+      "input": "Generate a proposal document",
+      "expected_tool": "create_document",
+      "category": "mutation"
+    },
+    {
+      "id": "TS-014",
+      "input": "Add a note to the deal",
+      "expected_tool": "write_deal_artifact",
+      "category": "mutation"
+    },
+    {
+      "id": "TS-015",
+      "input": "Schedule a meeting with the client",
+      "expected_tool": "create_action",
+      "category": "mutation"
+    },
+    {
+      "id": "TS-016",
+      "input": "Show me deals closing this month",
+      "expected_tool": "search_deals",
+      "category": "query"
+    },
+    {
+      "id": "TS-017",
+      "input": "What's in my pipeline?",
+      "expected_tool": "list_deals",
+      "category": "query"
+    },
+    {
+      "id": "TS-018",
+      "input": "Mark deal as lost",
+      "expected_tool": "update_deal_stage",
+      "category": "mutation"
+    },
+    {
+      "id": "TS-019",
+      "input": "Who is the contact for this deal?",
+      "expected_tool": "get_deal",
+      "category": "query"
+    },
+    {
+      "id": "TS-020",
+      "input": "Hello!",
+      "expected_tool": null,
+      "category": "no_tool"
+    },
+    {
+      "id": "TS-021",
+      "input": "Approve the quarantine item",
+      "expected_tool": "approve_quarantine",
+      "category": "mutation"
+    },
+    {
+      "id": "TS-022",
+      "input": "Send a reminder to follow up",
+      "expected_tool": "send_followup",
+      "category": "external"
+    }
+  ]
+}

@@ -1,0 +1,130 @@
+# Cloudflare Zero Trust Access Policies
+# Configure these in the Cloudflare Zero Trust Dashboard
+# Reference: https://developers.cloudflare.com/cloudflare-one/policies/access/
+
+version: "1.0"
+updated: "2026-01-25"
+team_domain: "your-team.cloudflareaccess.com"
+
+applications:
+  # Main Agent API Application
+  - name: "ZakOps Agent API"
+    domain: "agent.yourdomain.com"
+    type: "self_hosted"
+
+    # Session settings
+    session_duration: "24h"
+    allow_authenticate_via_warp: true
+
+    # Logo and branding (optional)
+    # logo_url: "https://yourdomain.com/logo.png"
+
+    # CORS settings
+    cors_headers:
+      allowed_origins:
+        - "https://dashboard.yourdomain.com"
+        - "https://app.yourdomain.com"
+      allowed_methods:
+        - "GET"
+        - "POST"
+        - "OPTIONS"
+      allowed_headers:
+        - "Authorization"
+        - "Content-Type"
+        - "X-Request-ID"
+      max_age: 86400
+
+    # Access policies (evaluated in order)
+    policies:
+      # Allow internal team members
+      - name: "Internal Team Access"
+        decision: "allow"
+        include:
+          - email_domain: "yourdomain.com"
+
+      # Allow specific external partners
+      - name: "External Partners"
+        decision: "allow"
+        include:
+          - emails:
+              - "partner1@external.com"
+              - "partner2@external.com"
+        require:
+          - mfa: true
+
+      # Service token for automated systems
+      - name: "Service Accounts"
+        decision: "service_auth"
+        include:
+          - service_token: true
+
+      # Block all other traffic
+      - name: "Default Deny"
+        decision: "deny"
+        include:
+          - everyone: true
+
+  # Health check endpoint (public)
+  - name: "ZakOps Health Check"
+    domain: "agent-health.yourdomain.com"
+    path: "/v1/health"
+    type: "self_hosted"
+
+    policies:
+      - name: "Public Health Check"
+        decision: "bypass"
+        include:
+          - everyone: true
+
+# Service tokens for machine-to-machine auth
+service_tokens:
+  - name: "CI/CD Pipeline"
+    duration: "8760h"  # 1 year
+    description: "Used by CI/CD for deployment verification"
+
+  - name: "Monitoring Service"
+    duration: "8760h"
+    description: "Used by monitoring system for health checks"
+
+# IP access rules (supplement to policies)
+ip_access_rules:
+  # Allow from office IPs
+  - action: "allow"
+    ip: "203.0.113.0/24"
+    note: "Office network"
+
+  # Allow from VPN
+  - action: "allow"
+    ip: "198.51.100.0/24"
+    note: "Corporate VPN"
+
+# WAF Rules (configure in Cloudflare WAF)
+waf_rules:
+  # Rate limiting
+  - name: "API Rate Limit"
+    expression: "(http.request.uri.path contains \"/v1/agent/\")"
+    action: "rate_limit"
+    characteristics:
+      - "ip.src"
+      - "http.request.headers[\"authorization\"]"
+    period: 60
+    requests_per_period: 60
+    mitigation_timeout: 300
+
+  # Block suspicious patterns
+  - name: "Block SQL Injection"
+    expression: "(http.request.uri.query contains \"UNION\" or http.request.uri.query contains \"SELECT\")"
+    action: "block"
+
+  # Require specific headers
+  - name: "Require Content-Type"
+    expression: "(http.request.method eq \"POST\" and not http.request.headers[\"content-type\"] contains \"application/json\")"
+    action: "block"
+
+# Logging settings
+access_logs:
+  enabled: true
+  retention_days: 90
+  include_headers:
+    - "X-Request-ID"
+    - "X-Forwarded-For"

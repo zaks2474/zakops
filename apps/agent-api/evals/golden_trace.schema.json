@@ -1,0 +1,216 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Golden Trace",
+  "description": "Schema for golden trace test cases used in agent evaluation",
+  "type": "object",
+  "required": [
+    "id",
+    "version",
+    "name",
+    "description",
+    "input",
+    "expected"
+  ],
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^GT-\\d{3}$",
+      "description": "Unique identifier for the golden trace (e.g., GT-001)"
+    },
+    "version": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+$",
+      "description": "Version of this trace (e.g., 1.0)"
+    },
+    "name": {
+      "type": "string",
+      "minLength": 3,
+      "maxLength": 100,
+      "description": "Short descriptive name for the trace"
+    },
+    "description": {
+      "type": "string",
+      "minLength": 10,
+      "description": "Detailed description of what this trace tests"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "query",
+        "mutation",
+        "approval_required",
+        "error_handling",
+        "edge_case",
+        "no_tool"
+      ],
+      "description": "Category of test case"
+    },
+    "tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Tags for filtering and organization"
+    },
+    "input": {
+      "type": "object",
+      "required": [
+        "user_message"
+      ],
+      "properties": {
+        "user_message": {
+          "type": "string",
+          "minLength": 1,
+          "description": "The user's input message to the agent"
+        },
+        "context": {
+          "type": "object",
+          "properties": {
+            "deal_id": {
+              "type": "string",
+              "description": "Optional deal ID for context"
+            },
+            "deal_name": {
+              "type": "string",
+              "description": "Optional deal name for context"
+            },
+            "current_stage": {
+              "type": "string",
+              "description": "Current deal stage if relevant"
+            },
+            "user_role": {
+              "type": "string",
+              "description": "User's role for RBAC testing"
+            }
+          },
+          "additionalProperties": true,
+          "description": "Additional context provided to the agent"
+        },
+        "conversation_history": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "role",
+              "content"
+            ],
+            "properties": {
+              "role": {
+                "type": "string",
+                "enum": [
+                  "user",
+                  "assistant"
+                ]
+              },
+              "content": {
+                "type": "string"
+              }
+            }
+          },
+          "description": "Previous conversation history if relevant"
+        }
+      }
+    },
+    "expected": {
+      "type": "object",
+      "required": [
+        "tool_calls"
+      ],
+      "properties": {
+        "tool_calls": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "tool_name"
+            ],
+            "properties": {
+              "tool_name": {
+                "type": "string",
+                "description": "Expected tool to be called"
+              },
+              "parameters": {
+                "type": "object",
+                "additionalProperties": true,
+                "description": "Expected parameters (partial match supported)"
+              },
+              "required_parameters": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "Parameters that must be present"
+              }
+            }
+          },
+          "description": "Expected tool calls (empty array means no tool expected)"
+        },
+        "requires_approval": {
+          "type": "boolean",
+          "default": false,
+          "description": "Whether this action should require human approval"
+        },
+        "response_contains": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Substrings that should appear in the response"
+        },
+        "response_not_contains": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Substrings that should NOT appear in the response"
+        }
+      }
+    },
+    "mock_response": {
+      "type": "object",
+      "description": "Mock response for CI mode (simulates agent behavior)",
+      "properties": {
+        "tool_calls": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "tool_name": {
+                "type": "string"
+              },
+              "parameters": {
+                "type": "object"
+              }
+            }
+          }
+        },
+        "response_text": {
+          "type": "string"
+        },
+        "requires_approval": {
+          "type": "boolean"
+        }
+      }
+    },
+    "metadata": {
+      "type": "object",
+      "properties": {
+        "created_at": {
+          "type": "string",
+          "format": "date"
+        },
+        "updated_at": {
+          "type": "string",
+          "format": "date"
+        },
+        "author": {
+          "type": "string"
+        },
+        "jira_ticket": {
+          "type": "string"
+        }
+      }
+    }
+  },
+  "additionalProperties": false
+}

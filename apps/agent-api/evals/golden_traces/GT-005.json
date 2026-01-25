@@ -1,0 +1,40 @@
+{
+  "id": "GT-005",
+  "version": "1.0",
+  "name": "Invalid deal ID handling",
+  "description": "User queries a non-existent deal, agent should handle gracefully",
+  "category": "error_handling",
+  "tags": ["deal", "error", "validation"],
+  "input": {
+    "user_message": "What's the status of deal XYZ123?",
+    "context": {}
+  },
+  "expected": {
+    "tool_calls": [
+      {
+        "tool_name": "get_deal",
+        "parameters": {
+          "deal_id": "XYZ123"
+        }
+      }
+    ],
+    "requires_approval": false,
+    "response_contains": ["not found", "doesn't exist"]
+  },
+  "mock_response": {
+    "tool_calls": [
+      {
+        "tool_name": "get_deal",
+        "parameters": {
+          "deal_id": "XYZ123"
+        }
+      }
+    ],
+    "response_text": "I couldn't find a deal with ID XYZ123. The deal doesn't exist or may have been deleted.",
+    "requires_approval": false
+  },
+  "metadata": {
+    "created_at": "2025-01-25",
+    "author": "ZakOps Team"
+  }
+}

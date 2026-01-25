@@ -1,0 +1,188 @@
+# Endpoint Classification for ZakOps Agent API
+# Defines access levels and rate limits for all API endpoints
+# Reference: OWASP API Security - Improper Inventory Management (API9)
+
+version: "1.0"
+updated: "2026-01-25"
+service: zakops-agent-api
+
+# Rate limit profiles
+rate_limit_profiles:
+  high_frequency:
+    requests_per_minute: 100
+    burst: 20
+    description: "For read-only, lightweight endpoints"
+
+  standard:
+    requests_per_minute: 60
+    burst: 10
+    description: "For most authenticated endpoints"
+
+  write_operations:
+    requests_per_minute: 30
+    burst: 5
+    description: "For endpoints that create/modify resources"
+
+  sensitive:
+    requests_per_minute: 10
+    burst: 2
+    description: "For sensitive operations requiring human review"
+
+  admin:
+    requests_per_minute: 20
+    burst: 3
+    description: "For administrative operations"
+
+# Endpoint classifications
+endpoints:
+  # Health and status endpoints - Public
+  - path: "/v1/health"
+    method: "GET"
+    classification: public
+    rate_limit_profile: high_frequency
+    description: "Health check endpoint"
+    auth_required: false
+    roles: []
+
+  - path: "/docs"
+    method: "GET"
+    classification: public
+    rate_limit_profile: high_frequency
+    description: "OpenAPI documentation"
+    auth_required: false
+    roles: []
+
+  - path: "/openapi.json"
+    method: "GET"
+    classification: public
+    rate_limit_profile: high_frequency
+    description: "OpenAPI spec"
+    auth_required: false
+    roles: []
+
+  - path: "/redoc"
+    method: "GET"
+    classification: public
+    rate_limit_profile: high_frequency
+    description: "ReDoc documentation"
+    auth_required: false
+    roles: []
+
+  # Auth endpoints - Public (for obtaining tokens)
+  - path: "/v1/auth/token"
+    method: "POST"
+    classification: public
+    rate_limit_profile: sensitive
+    description: "Token generation endpoint"
+    auth_required: false
+    roles: []
+    notes: "Rate limited to prevent brute force"
+
+  # Agent endpoints - Authenticated
+  - path: "/v1/agent/invoke"
+    method: "POST"
+    classification: authenticated
+    rate_limit_profile: write_operations
+    description: "Invoke agent with message"
+    auth_required: true
+    roles: ["VIEWER", "OPERATOR", "APPROVER", "ADMIN"]
+
+  - path: "/v1/agent/invoke/stream"
+    method: "POST"
+    classification: authenticated
+    rate_limit_profile: write_operations
+    description: "Stream agent responses via SSE"
+    auth_required: true
+    roles: ["VIEWER", "OPERATOR", "APPROVER", "ADMIN"]
+
+  # Approval endpoints - Requires APPROVER role
+  - path: "/v1/agent/approvals"
+    method: "GET"
+    classification: authenticated
+    rate_limit_profile: standard
+    description: "List pending approvals"
+    auth_required: true
+    roles: ["VIEWER", "OPERATOR", "APPROVER", "ADMIN"]
+
+  - path: "/v1/agent/approvals/{approval_id}"
+    method: "GET"
+    classification: authenticated
+    rate_limit_profile: standard
+    description: "Get specific approval"
+    auth_required: true
+    roles: ["VIEWER", "OPERATOR", "APPROVER", "ADMIN"]
+
+  - path: "/v1/agent/approvals/{approval_id}:approve"
+    method: "POST"
+    classification: admin
+    rate_limit_profile: sensitive
+    description: "Approve pending action"
+    auth_required: true
+    roles: ["APPROVER", "ADMIN"]
+    notes: "HITL critical - requires APPROVER role"
+
+  - path: "/v1/agent/approvals/{approval_id}:reject"
+    method: "POST"
+    classification: admin
+    rate_limit_profile: sensitive
+    description: "Reject pending action"
+    auth_required: true
+    roles: ["APPROVER", "ADMIN"]
+    notes: "HITL critical - requires APPROVER role"
+
+  # Thread state endpoints - Authenticated
+  - path: "/v1/agent/threads/{thread_id}/state"
+    method: "GET"
+    classification: authenticated
+    rate_limit_profile: standard
+    description: "Get thread state"
+    auth_required: true
+    roles: ["VIEWER", "OPERATOR", "APPROVER", "ADMIN"]
+
+  # Chatbot endpoints - Authenticated
+  - path: "/v1/chatbot/chat"
+    method: "POST"
+    classification: authenticated
+    rate_limit_profile: write_operations
+    description: "Chatbot interaction"
+    auth_required: true
+    roles: ["VIEWER", "OPERATOR", "APPROVER", "ADMIN"]
+
+# Summary statistics
+summary:
+  total_endpoints: 13
+  public: 5
+  authenticated: 6
+  admin: 2
+  internal: 0
+
+# Access matrix
+access_matrix:
+  VIEWER:
+    - "/v1/agent/invoke"
+    - "/v1/agent/invoke/stream"
+    - "/v1/agent/approvals"
+    - "/v1/agent/approvals/{approval_id}"
+    - "/v1/agent/threads/{thread_id}/state"
+    - "/v1/chatbot/chat"
+
+  OPERATOR:
+    - "/v1/agent/invoke"
+    - "/v1/agent/invoke/stream"
+    - "/v1/agent/approvals"
+    - "/v1/agent/approvals/{approval_id}"
+    - "/v1/agent/threads/{thread_id}/state"
+    - "/v1/chatbot/chat"
+
+  APPROVER:
+    - "/v1/agent/invoke"
+    - "/v1/agent/invoke/stream"
+    - "/v1/agent/approvals"
+    - "/v1/agent/approvals/{approval_id}"
+    - "/v1/agent/approvals/{approval_id}:approve"
+    - "/v1/agent/approvals/{approval_id}:reject"
+    - "/v1/agent/threads/{thread_id}/state"
+    - "/v1/chatbot/chat"
+
+  ADMIN:
+    - "*"  # Full access

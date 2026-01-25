@@ -1,0 +1,45 @@
+{
+  "id": "GT-008",
+  "version": "1.0",
+  "name": "Stage transition to closed_won",
+  "description": "User requests to close a deal as won, which requires approval",
+  "category": "approval_required",
+  "tags": ["deal", "mutation", "approval", "close"],
+  "input": {
+    "user_message": "Mark the Acme Corp deal as closed won",
+    "context": {
+      "deal_id": "deal-001",
+      "deal_name": "Acme Corp",
+      "current_stage": "negotiation"
+    }
+  },
+  "expected": {
+    "tool_calls": [
+      {
+        "tool_name": "update_deal_stage",
+        "parameters": {
+          "stage": "closed_won"
+        },
+        "required_parameters": ["deal_id", "stage"]
+      }
+    ],
+    "requires_approval": true
+  },
+  "mock_response": {
+    "tool_calls": [
+      {
+        "tool_name": "update_deal_stage",
+        "parameters": {
+          "deal_id": "deal-001",
+          "stage": "closed_won"
+        }
+      }
+    ],
+    "response_text": "I'll mark the Acme Corp deal as closed won. This is a significant action that requires your approval.",
+    "requires_approval": true
+  },
+  "metadata": {
+    "created_at": "2025-01-25",
+    "author": "ZakOps Team"
+  }
+}

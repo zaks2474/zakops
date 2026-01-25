@@ -1,0 +1,45 @@
+{
+  "id": "GT-002",
+  "version": "1.0",
+  "name": "Deal transition requiring approval",
+  "description": "User requests to move a deal to a new stage, which requires approval",
+  "category": "approval_required",
+  "tags": ["deal", "mutation", "approval", "stage_transition"],
+  "input": {
+    "user_message": "Move the Acme Corp deal to the proposal stage",
+    "context": {
+      "deal_id": "deal-001",
+      "deal_name": "Acme Corp",
+      "current_stage": "qualification"
+    }
+  },
+  "expected": {
+    "tool_calls": [
+      {
+        "tool_name": "update_deal_stage",
+        "parameters": {
+          "stage": "proposal"
+        },
+        "required_parameters": ["deal_id", "stage"]
+      }
+    ],
+    "requires_approval": true
+  },
+  "mock_response": {
+    "tool_calls": [
+      {
+        "tool_name": "update_deal_stage",
+        "parameters": {
+          "deal_id": "deal-001",
+          "stage": "proposal"
+        }
+      }
+    ],
+    "response_text": "I'll move the Acme Corp deal to the proposal stage. This action requires your approval.",
+    "requires_approval": true
+  },
+  "metadata": {
+    "created_at": "2025-01-25",
+    "author": "ZakOps Team"
+  }
+}
