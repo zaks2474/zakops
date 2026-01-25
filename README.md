@@ -119,4 +119,4 @@ make gates
 
 ## License
 
-Proprietary - ZakOps
+MIT License - See [LICENSE](LICENSE) file

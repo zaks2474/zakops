@@ -116,6 +116,7 @@ services:
 
   rag-rest:
     image: zakops/rag-rest:latest
+    profiles: ["rag"]  # Won't start by default; use: docker compose --profile rag up -d
     ports:
       - "8052:8052"
     environment:

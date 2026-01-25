@@ -1,5 +1,5 @@
 # ZakOps Monorepo Makefile
-.PHONY: help install test lint gates clean dev
+.PHONY: help install test lint gates clean dev check-uv doctor
 .DEFAULT_GOAL := help
 
 # Colors
@@ -14,12 +14,38 @@ help: ## Show this help
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "$(GREEN)%-15s$(RESET) %s\n", $$1, $$2}'
 
 # =============================================================================
+# Prerequisites Check
+# =============================================================================
+
+check-uv: ## Check if uv is available
+	@command -v uv >/dev/null 2>&1 || { \
+		echo ""; \
+		echo "$(YELLOW)❌ ERROR: 'uv' is not installed$(RESET)"; \
+		echo ""; \
+		echo "Install it with:"; \
+		echo "  curl -LsSf https://astral.sh/uv/install.sh | sh"; \
+		echo "  source ~/.bashrc  # or restart terminal"; \
+		echo ""; \
+		exit 1; \
+	}
+
+doctor: ## Health check for all development tools
+	@echo "$(CYAN)🔍 Checking development environment...$(RESET)"
+	@echo ""
+	@printf "uv:     " && (command -v uv >/dev/null 2>&1 && uv --version || echo "$(YELLOW)❌ NOT FOUND$(RESET) - run: curl -LsSf https://astral.sh/uv/install.sh | sh")
+	@printf "docker: " && (command -v docker >/dev/null 2>&1 && docker --version | head -1 || echo "$(YELLOW)❌ NOT FOUND$(RESET)")
+	@printf "node:   " && (command -v node >/dev/null 2>&1 && echo "v$$(node --version | tr -d 'v')" || echo "$(YELLOW)❌ NOT FOUND$(RESET)")
+	@printf "npm:    " && (command -v npm >/dev/null 2>&1 && npm --version || echo "$(YELLOW)❌ NOT FOUND$(RESET)")
+	@printf "python: " && (command -v python3 >/dev/null 2>&1 && python3 --version || echo "$(YELLOW)❌ NOT FOUND$(RESET)")
+	@echo ""
+
+# =============================================================================
 # Installation
 # =============================================================================
 
 install: install-agent-api install-backend install-dashboard ## Install all dependencies
 
-install-agent-api: ## Install agent-api dependencies (uv)
+install-agent-api: check-uv ## Install agent-api dependencies (uv)
 	@echo "$(CYAN)[agent-api]$(RESET) Installing..."
 	cd apps/agent-api && uv sync
 
@@ -37,7 +63,7 @@ install-dashboard: ## Install dashboard dependencies (npm)
 
 test: test-agent-api test-backend test-dashboard ## Run all tests
 
-test-agent-api: ## Run agent-api tests
+test-agent-api: check-uv ## Run agent-api tests
 	@echo "$(CYAN)[agent-api]$(RESET) Testing..."
 	cd apps/agent-api && uv run pytest evals/ -v
 
@@ -55,7 +81,7 @@ test-dashboard: ## Run dashboard tests
 
 lint: lint-agent-api lint-backend lint-dashboard ## Lint all code
 
-lint-agent-api: ## Lint agent-api
+lint-agent-api: check-uv ## Lint agent-api
 	@echo "$(CYAN)[agent-api]$(RESET) Linting..."
 	cd apps/agent-api && uv run ruff check app/
 
