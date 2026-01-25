@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "generated_at": "2026-01-24T17:44:33-06:00",
+  "generated_at": "2026-01-24T18:29:35-06:00",
   "gates": {
     "baseline": [
       {
@@ -247,6 +247,72 @@
         "id": "P5-RATE-001",
         "name": "Rate Limiting",
         "artifact": "rate_limit_test.log",
+        "required": true
+      }
+    ],
+    "phase6": [
+      {
+        "id": "P6-CI-001",
+        "name": "CI Gate Runner",
+        "artifact": "ci_gate_run.log",
+        "required": true
+      },
+      {
+        "id": "P6-REDTEAM-001",
+        "name": "Red-Team Suite",
+        "artifact": "redteam_report.json",
+        "required": true
+      },
+      {
+        "id": "P6-EVALTREND-001",
+        "name": "Eval Trend Tracking",
+        "artifact": "eval_trend.csv",
+        "required": true
+      }
+    ],
+    "phase7": [
+      {
+        "id": "P7-OPS-001",
+        "name": "Runbooks",
+        "artifact": "runbook_lint.log",
+        "required": true
+      },
+      {
+        "id": "P7-BACKUP-001",
+        "name": "Backup/Restore Drill",
+        "artifact": "backup_restore_drill.log",
+        "required": true
+      },
+      {
+        "id": "P7-MONITORING-001",
+        "name": "Monitoring Smoke",
+        "artifact": "monitoring_smoke.log",
+        "required": true
+      },
+      {
+        "id": "P7-RELEASE-001",
+        "name": "Release Readiness",
+        "artifact": "release_readiness_check.json",
+        "required": true
+      }
+    ],
+    "phase8": [
+      {
+        "id": "P8-BENCH-001",
+        "name": "Benchmarks",
+        "artifact": "benchmarks.json",
+        "required": true
+      },
+      {
+        "id": "P8-BENCH-001b",
+        "name": "Migration Triggers",
+        "artifact": "migration_trigger_status.json",
+        "required": true
+      },
+      {
+        "id": "P8-CADENCE-001",
+        "name": "CI Cadence Schedule",
+        "artifact": "ci_cadence_schedule.md",
         "required": true
       }
     ]

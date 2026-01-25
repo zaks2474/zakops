@@ -1,4 +1,4 @@
-time="2026-01-24T17:43:04-06:00" level=warning msg="/home/zaks/zakops-agent-api/docker-compose.yml: the attribute `version` is obsolete, it will be ignored, please remove it to avoid potential confusion"
+time="2026-01-24T18:28:08-06:00" level=warning msg="/home/zaks/zakops-agent-api/docker-compose.yml: the attribute `version` is obsolete, it will be ignored, please remove it to avoid potential confusion"
 #1 [internal] load local bake definitions
 #1 reading from stdin 595B done
 #1 DONE 0.0s
@@ -8,7 +8,7 @@ time="2026-01-24T17:43:04-06:00" level=warning msg="/home/zaks/zakops-agent-api/
 #2 DONE 0.0s
 
 #3 [internal] load metadata for docker.io/library/python:3.13.2-slim
-#3 DONE 0.3s
+#3 DONE 0.4s
 
 #4 [internal] load .dockerignore
 #4 transferring context: 628B done
@@ -19,57 +19,56 @@ time="2026-01-24T17:43:04-06:00" level=warning msg="/home/zaks/zakops-agent-api/
 #5 DONE 0.0s
 
 #6 [internal] load build context
-#6 transferring context: 11.41kB done
+#6 transferring context: 11.60kB done
 #6 DONE 0.0s
 
 #7 [ 2/10] WORKDIR /app
 #7 CACHED
 
-#8 [ 3/10] RUN apt-get update && apt-get install -y     build-essential     libpq-dev     && pip install --upgrade pip     && pip install uv     && rm -rf /var/lib/apt/lists/*
+#8 [ 4/10] COPY pyproject.toml .
 #8 CACHED
 
-#9 [ 4/10] COPY pyproject.toml .
+#9 [ 3/10] RUN apt-get update && apt-get install -y     build-essential     libpq-dev     && pip install --upgrade pip     && pip install uv     && rm -rf /var/lib/apt/lists/*
 #9 CACHED
 
 #10 [ 5/10] RUN uv venv && . .venv/bin/activate && uv pip install -e .
 #10 CACHED
 
 #11 [ 6/10] COPY . .
-#11 DONE 0.1s
+#11 DONE 0.0s
 
 #12 [ 7/10] RUN chmod +x /app/scripts/docker-entrypoint.sh
-#12 DONE 0.2s
+#12 DONE 0.3s
 
 #13 [ 8/10] RUN useradd -m appuser && chown -R appuser:appuser /app
-#13 DONE 29.1s
+#13 DONE 28.8s
 
 #14 [ 9/10] RUN mkdir -p /app/logs
-#14 DONE 0.5s
+#14 DONE 0.4s
 
 #15 [10/10] RUN echo "Using development environment"
-#15 0.466 Using development environment
+#15 0.493 Using development environment
 #15 DONE 0.5s
 
 #16 exporting to image
 #16 exporting layers
-#16 exporting layers 8.4s done
-#16 exporting manifest sha256:9df11f71ffeeb89860cd3c2db3bb4e341413f0d2a7ce3dcbc99622a88c75f99c 0.0s done
-#16 exporting config sha256:144d6cabefa12415c054a34c0958e6dbe0ca4aa6bfe0977190692a25a75059e3 0.0s done
-#16 exporting attestation manifest sha256:c8010fc39c6b7566bbe70883e9665d9172dd71969b198919696268cfce562559
-#16 exporting attestation manifest sha256:c8010fc39c6b7566bbe70883e9665d9172dd71969b198919696268cfce562559 0.0s done
-#16 exporting manifest list sha256:4eff60db854a45d0e3811fe894e3078bff8a30456181b40202b76ad84f5f3a46 0.0s done
+#16 exporting layers 7.7s done
+#16 exporting manifest sha256:1bb76677d2971b205a4180e9b5c2194b75903119276101004ce079fbb8b5856a 0.0s done
+#16 exporting config sha256:b10eb54d2165a4ed3f0158673aaeb56b728b2e8cdfeec8fca0d1da013a45dcf6 0.0s done
+#16 exporting attestation manifest sha256:36c464c50c45c7b5b3d3fddf174ccbcf7d75a2b15eefa6b3cab02d72bb10a850 0.0s done
+#16 exporting manifest list sha256:f26f9f2141f929a56bc43a9f5472037418f18f2291da51f9133b8608bd373fe0 0.0s done
 #16 naming to docker.io/library/zakops-agent-api-agent-api:latest done
 #16 unpacking to docker.io/library/zakops-agent-api-agent-api:latest
-#16 unpacking to docker.io/library/zakops-agent-api-agent-api:latest 2.2s done
-#16 DONE 10.9s
+#16 unpacking to docker.io/library/zakops-agent-api-agent-api:latest 2.0s done
+#16 DONE 9.8s
 
 #17 resolving provenance for metadata file
 #17 DONE 0.0s
  zakops-agent-api-agent-api  Built
-time="2026-01-24T17:43:46-06:00" level=warning msg="/home/zaks/zakops-agent-api/docker-compose.yml: the attribute `version` is obsolete, it will be ignored, please remove it to avoid potential confusion"
-time="2026-01-24T17:43:46-06:00" level=warning msg="The \"LANGFUSE_PUBLIC_KEY\" variable is not set. Defaulting to a blank string."
-time="2026-01-24T17:43:46-06:00" level=warning msg="The \"LANGFUSE_SECRET_KEY\" variable is not set. Defaulting to a blank string."
-time="2026-01-24T17:43:46-06:00" level=warning msg="The \"OPENAI_API_KEY\" variable is not set. Defaulting to a blank string."
+time="2026-01-24T18:28:49-06:00" level=warning msg="/home/zaks/zakops-agent-api/docker-compose.yml: the attribute `version` is obsolete, it will be ignored, please remove it to avoid potential confusion"
+time="2026-01-24T18:28:49-06:00" level=warning msg="The \"LANGFUSE_PUBLIC_KEY\" variable is not set. Defaulting to a blank string."
+time="2026-01-24T18:28:49-06:00" level=warning msg="The \"LANGFUSE_SECRET_KEY\" variable is not set. Defaulting to a blank string."
+time="2026-01-24T18:28:49-06:00" level=warning msg="The \"OPENAI_API_KEY\" variable is not set. Defaulting to a blank string."
  Container zakops-agent-db  Running
  Container zakops-agent-api  Recreate
  Container zakops-agent-api  Recreated

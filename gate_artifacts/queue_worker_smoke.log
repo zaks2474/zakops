@@ -1,5 +1,5 @@
 === Queue Worker Smoke Test ===
-Timestamp: 2026-01-24T17:44:45-06:00
+Timestamp: 2026-01-24T18:29:48-06:00
 
 Checking queue tables...
 NOTICE:  relation "task_queue" already exists, skipping
@@ -14,9 +14,9 @@ Queue tables created or already exist
 
 Testing queue operations...
 INSERT 0 1
-SKIP LOCKED claim: SUCCESS (id=496ccc77-2a50-44c6-91a4-e2c79c2c6f19UPDATE1)
-ERROR:  invalid input syntax for type uuid: "496ccc77-2a50-44c6-91a4-e2c79c2c6f19UPDATE1"
-LINE 1: ...TE task_queue SET status = 'completed' WHERE id = '496ccc77-...
+SKIP LOCKED claim: SUCCESS (id=0a07dc8f-2723-4d50-b17f-f155f10c3ed4UPDATE1)
+ERROR:  invalid input syntax for type uuid: "0a07dc8f-2723-4d50-b17f-f155f10c3ed4UPDATE1"
+LINE 1: ...TE task_queue SET status = 'completed' WHERE id = '0a07dc8f-...
                                                              ^
 
 Testing retry backoff (30s * 2^attempt)...

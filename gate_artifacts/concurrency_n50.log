@@ -1,6 +1,6 @@
 === Concurrency N=50 Test ===
-Timestamp: 2026-01-24T17:44:54-06:00
-Approval ID: a060cfda-3470-4997-b76b-b804a5cc0628
+Timestamp: 2026-01-24T18:29:57-06:00
+Approval ID: f4803b2c-a5e5-4e87-9849-efdb62f3a527
 Running 50 concurrent approve requests...
 HTTP Codes:
 409
@@ -26,13 +26,13 @@ HTTP Codes:
 409
 409
 409
+409
+409
+409
+409
+409
+409
 200
-409
-409
-409
-409
-409
-409
 429
 429
 429

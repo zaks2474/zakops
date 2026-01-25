@@ -1,0 +1,21 @@
+=== CI Gate Runner ===
+Timestamp: 2026-01-24T18:29:59-06:00
+CI Mode: true
+Reproducible: true
+Deterministic: true
+
+Running all gates in CI mode...
+
+Artifact Check:
+  All required artifacts present
+
+PASS Marker Verification:
+  [OK] streaming_test.log contains STATUS=PASSED
+  [OK] hitl_scope_test.log contains "status": "PASSED"
+  [OK] ports_md_lint.log contains PORTS_MD_LINT: PASSED
+  [OK] encryption_verify.log contains ENCRYPTION_VERIFY: PASSED
+  [OK] ui_smoke_test.log contains UI_SMOKE: PASSED
+  [OK] queue_worker_smoke.log contains QUEUE_WORKER_SMOKE: PASSED
+  [OK] audit_immutability_test.log contains AUDIT_IMMUTABILITY: PASSED
+
+CI_GATES: PASSED

@@ -1,5 +1,5 @@
 === Audit Log Immutability Test ===
-Timestamp: 2026-01-24T17:44:45-06:00
+Timestamp: 2026-01-24T18:29:48-06:00
 
 Creating immutability trigger...
 CREATE FUNCTION

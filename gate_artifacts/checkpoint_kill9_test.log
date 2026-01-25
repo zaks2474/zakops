@@ -1,12 +1,12 @@
 === Kill-9 Recovery Test ===
-Timestamp: 2026-01-24T17:44:01-06:00
+Timestamp: 2026-01-24T18:29:03-06:00
 Invoke response:
 {
-  "thread_id": "15ef620c-5958-4ffa-bd86-382bf85eba89",
+  "thread_id": "a08c1816-85a4-4abd-8677-a383ef4ec1fb",
   "status": "awaiting_approval",
   "content": null,
   "pending_approval": {
-    "approval_id": "946543b4-ffdf-4657-8f96-33103dadde83",
+    "approval_id": "9d443615-800a-4850-b1c8-2f001a2989ce",
     "tool": "transition_deal",
     "args": {
       "deal_id": "CRASH-001",
@@ -15,18 +15,18 @@ Invoke response:
     },
     "permission_tier": "CRITICAL",
     "requested_by": "crash-test",
-    "requested_at": "2026-01-24T23:44:03.553460Z"
+    "requested_at": "2026-01-25T00:29:05.753419Z"
   },
   "actions_taken": [],
   "error": null
 }
-Crash approval ID: 946543b4-ffdf-4657-8f96-33103dadde83
-Killing container: 2026-01-24T17:44:03-06:00
+Crash approval ID: 9d443615-800a-4850-b1c8-2f001a2989ce
+Killing container: 2026-01-24T18:29:05-06:00
 zakops-agent-api
-Restarting: 2026-01-24T17:44:03-06:00
+Restarting: 2026-01-24T18:29:06-06:00
 Recovered approval:
 {
-  "approval_id": "946543b4-ffdf-4657-8f96-33103dadde83",
+  "approval_id": "9d443615-800a-4850-b1c8-2f001a2989ce",
   "tool": "transition_deal",
   "args": {
     "deal_id": "CRASH-001",
@@ -35,12 +35,12 @@ Recovered approval:
   },
   "permission_tier": "CRITICAL",
   "requested_by": "crash-test",
-  "requested_at": "2026-01-24T23:44:03.553460Z"
+  "requested_at": "2026-01-25T00:29:05.753419Z"
 }
 RESULT: PASSED
 Post-crash approve:
 {
-  "thread_id": "15ef620c-5958-4ffa-bd86-382bf85eba89",
+  "thread_id": "a08c1816-85a4-4abd-8677-a383ef4ec1fb",
   "status": "completed",
   "content": "",
   "pending_approval": null,

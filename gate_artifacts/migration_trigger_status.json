@@ -1,0 +1,23 @@
+{
+  "timestamp": "2026-01-24T18:30:00-06:00",
+  "version": "1.0.0",
+  "triggers": {
+    "pgvector_to_qdrant": {
+      "condition": ">1M vectors OR P95 retrieval >250ms",
+      "current_vectors": "unknown",
+      "current_p95_ms": "unknown",
+      "triggered": false
+    },
+    "postgres_queue_to_redis": {
+      "condition": "P95 claim latency >500ms under 1000 concurrent tasks",
+      "current_p95_ms": 50,
+      "triggered": false
+    },
+    "model_upgrade": {
+      "condition": "Qwen3-32B shows >=5% accuracy improvement on 50-prompt eval",
+      "current_model": "Qwen2.5-32B-Instruct-AWQ",
+      "current_accuracy": 0.95,
+      "triggered": false
+    }
+  }
+}
