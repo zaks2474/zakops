@@ -1,7 +1,6 @@
 # ZakOps Monorepo - Docker Compose
 # Unified services for development and production
 
-version: "3.9"
 
 services:
   # ==========================================================================
