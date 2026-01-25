@@ -1,0 +1,162 @@
+On branch main
+Your branch is ahead of 'origin/main' by 1 commit.
+  (use "git push" to publish your local commits)
+
+Changes not staged for commit:
+  (use "git add/rm <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+	modified:   CHANGELOG.md
+	modified:   Makefile
+	modified:   README.md
+	modified:   package-lock.json
+	modified:   package.json
+	modified:   smoke-test.sh
+	modified:   src/app/actions/page.tsx
+	deleted:    src/app/auth/sign-in/[[...sign-in]]/page.tsx
+	deleted:    src/app/auth/sign-up/[[...sign-up]]/page.tsx
+	deleted:    src/app/dashboard/billing/page.tsx
+	deleted:    src/app/dashboard/exclusive/page.tsx
+	deleted:    src/app/dashboard/kanban/page.tsx
+	deleted:    src/app/dashboard/overview/@area_stats/default.tsx
+	deleted:    src/app/dashboard/overview/@area_stats/error.tsx
+	deleted:    src/app/dashboard/overview/@area_stats/loading.tsx
+	deleted:    src/app/dashboard/overview/@area_stats/page.tsx
+	deleted:    src/app/dashboard/overview/@bar_stats/default.tsx
+	deleted:    src/app/dashboard/overview/@bar_stats/error.tsx
+	deleted:    src/app/dashboard/overview/@bar_stats/loading.tsx
+	deleted:    src/app/dashboard/overview/@bar_stats/page.tsx
+	deleted:    src/app/dashboard/overview/@pie_stats/default.tsx
+	deleted:    src/app/dashboard/overview/@pie_stats/error.tsx
+	deleted:    src/app/dashboard/overview/@pie_stats/loading.tsx
+	deleted:    src/app/dashboard/overview/@pie_stats/page.tsx
+	deleted:    src/app/dashboard/overview/@sales/default.tsx
+	deleted:    src/app/dashboard/overview/@sales/error.tsx
+	deleted:    src/app/dashboard/overview/@sales/loading.tsx
+	deleted:    src/app/dashboard/overview/@sales/page.tsx
+	deleted:    src/app/dashboard/overview/error.tsx
+	deleted:    src/app/dashboard/overview/layout.tsx
+	modified:   src/app/dashboard/page.tsx
+	deleted:    src/app/dashboard/product/[productId]/page.tsx
+	deleted:    src/app/dashboard/product/page.tsx
+	deleted:    src/app/dashboard/profile/[[...profile]]/page.tsx
+	deleted:    src/app/dashboard/workspaces/page.tsx
+	deleted:    src/app/dashboard/workspaces/team/[[...rest]]/page.tsx
+	modified:   src/app/deals/[id]/page.tsx
+	modified:   src/app/deals/page.tsx
+	modified:   src/app/quarantine/page.tsx
+	modified:   src/components/file-uploader.tsx
+	modified:   src/components/forms/demo-form.tsx
+	modified:   src/components/forms/form-date-picker.tsx
+	modified:   src/components/forms/form-slider.tsx
+	modified:   src/components/icons.tsx
+	modified:   src/components/layout/header.tsx
+	modified:   src/components/layout/providers.tsx
+	modified:   src/components/layout/user-nav.tsx
+	modified:   src/components/org-switcher.tsx
+	modified:   src/components/ui/aspect-ratio.tsx
+	modified:   src/components/ui/calendar.tsx
+	modified:   src/components/ui/context-menu.tsx
+	modified:   src/components/ui/drawer.tsx
+	modified:   src/components/ui/hover-card.tsx
+	modified:   src/components/ui/input-otp.tsx
+	modified:   src/components/ui/menubar.tsx
+	modified:   src/components/ui/navigation-menu.tsx
+	modified:   src/components/ui/resizable.tsx
+	modified:   src/components/ui/sidebar.tsx
+	modified:   src/components/ui/slider.tsx
+	modified:   src/components/ui/table/data-table-date-filter.tsx
+	modified:   src/components/ui/table/data-table-slider-filter.tsx
+	modified:   src/components/ui/toggle-group.tsx
+	modified:   src/components/ui/toggle.tsx
+	modified:   src/config/nav-config.ts
+	modified:   src/constants/mock-api.ts
+	deleted:    src/features/auth/components/github-auth-button.tsx
+	deleted:    src/features/auth/components/interactive-grid.tsx
+	deleted:    src/features/auth/components/sign-in-view.tsx
+	deleted:    src/features/auth/components/sign-up-view.tsx
+	deleted:    src/features/auth/components/user-auth-form.tsx
+	deleted:    src/features/kanban/components/board-column.tsx
+	deleted:    src/features/kanban/components/column-action.tsx
+	deleted:    src/features/kanban/components/kanban-board.tsx
+	deleted:    src/features/kanban/components/kanban-view-page.tsx
+	deleted:    src/features/kanban/components/new-section-dialog.tsx
+	deleted:    src/features/kanban/components/new-task-dialog.tsx
+	deleted:    src/features/kanban/components/task-card.tsx
+	deleted:    src/features/kanban/utils/index.ts
+	deleted:    src/features/kanban/utils/store.ts
+	deleted:    src/features/overview/components/area-graph-skeleton.tsx
+	deleted:    src/features/overview/components/area-graph.tsx
+	deleted:    src/features/overview/components/bar-graph-skeleton.tsx
+	deleted:    src/features/overview/components/bar-graph.tsx
+	deleted:    src/features/overview/components/overview.tsx
+	deleted:    src/features/overview/components/pie-graph-skeleton.tsx
+	deleted:    src/features/overview/components/pie-graph.tsx
+	deleted:    src/features/overview/components/recent-sales-skeleton.tsx
+	deleted:    src/features/overview/components/recent-sales.tsx
+	deleted:    src/features/products/components/product-form.tsx
+	deleted:    src/features/products/components/product-listing.tsx
+	deleted:    src/features/products/components/product-tables/cell-action.tsx
+	deleted:    src/features/products/components/product-tables/columns.tsx
+	deleted:    src/features/products/components/product-tables/index.tsx
+	deleted:    src/features/products/components/product-tables/options.tsx
+	deleted:    src/features/products/components/product-view-page.tsx
+	deleted:    src/features/profile/components/profile-view-page.tsx
+	deleted:    src/features/profile/utils/form-schema.ts
+	modified:   src/hooks/use-breadcrumbs.tsx
+	modified:   src/hooks/use-nav.ts
+	modified:   src/lib/api.ts
+	modified:   src/proxy.ts
+	modified:   tsconfig.json
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+	.next.bak/
+	audit/
+	click-sweep-test.sh
+	docs/ACTIONS-UX-GUIDE.md
+	docs/API-CONTRACT.md
+	docs/CHAT-UI-HARDENING-RCA.md
+	docs/FEATURE-INVENTORY.md
+	docs/FRONTEND-ACTIONS-VERIFICATION.md
+	docs/FRONTEND-FREEZE.md
+	docs/INTERACTION-MATRIX.md
+	docs/SCROLL-MODEL.md
+	docs/UI-INTERACTION-INVENTORY.md
+	docs/WIRING-MATRIX.md
+	e2e/
+	playwright.config.ts
+	src/__tests__/
+	src/app/agent/
+	src/app/api/
+	src/app/chat/
+	src/app/hq/
+	src/app/onboarding/
+	src/app/ui-test/
+	src/components/actions/
+	src/components/agent/
+	src/components/approvals/
+	src/components/dashboard/
+	src/components/deal-workspace/
+	src/components/diligence/
+	src/components/global-search.tsx
+	src/components/layout/AgentStatusIndicator.tsx
+	src/components/onboarding/
+	src/components/operator-hq/
+	src/config/safety.ts
+	src/hooks/use-realtime-events.ts
+	src/hooks/use-render-tracking.ts
+	src/hooks/useAgentActivity.ts
+	src/hooks/useOnboardingState.ts
+	src/lib/agent-client.ts
+	src/lib/agent/
+	src/lib/api-client.ts
+	src/lib/api-schemas.ts
+	src/lib/observability.ts
+	src/lib/routes.ts
+	src/types/agent-activity.ts
+	src/types/api.ts
+	src/types/events.ts
+	src/types/execution-contracts.ts
+	vitest.config.ts
+
+no changes added to commit (use "git add" and/or "git commit -a")
