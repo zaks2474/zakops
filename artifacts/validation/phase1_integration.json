@@ -1,0 +1,9 @@
+{
+  "phase": 1,
+  "name": "Integration Contract Verification",
+  "timestamp": "2026-01-25T17:14:35-06:00",
+  "verdict": "PASS",
+  "passed": 11,
+  "failed": 0,
+  "tests": [{"name":"Deal API - List Deals","status":"PASS"},{"name":"Deal API - Pipeline Summary","status":"PASS"},{"name":"Deal API - List Tools","status":"PASS"},{"name":"Agent API - Approvals Endpoint","status":"PASS"},{"name":"Agent API - Health Details","status":"PASS"},{"name":"Orchestration API - Health","status":"PASS"},{"name":"Orchestration API - Agent Tools","status":"PASS"},{"name":"Orchestration API - Auth Check","status":"PASS"},{"name":"Dashboard - Serves HTML","status":"PASS"},{"name":"Deal API <-> Orchestration API - Health Format","status":"PASS"},{"name":"Agent API <-> Deal API - Health Format","status":"PASS"}]
+}
