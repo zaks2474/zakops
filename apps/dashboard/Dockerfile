@@ -16,10 +16,14 @@ FROM base AS builder
 WORKDIR /app
 
 # Build-time environment variables for Next.js
-ARG NEXT_PUBLIC_API_URL=http://localhost:8090
+ARG NEXT_PUBLIC_API_URL=http://localhost:8091
 ARG NEXT_PUBLIC_AGENT_API_URL=http://localhost:8095
+ARG API_URL=http://localhost:8091
+ARG BACKEND_URL=http://localhost:8091
 ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
 ENV NEXT_PUBLIC_AGENT_API_URL=$NEXT_PUBLIC_AGENT_API_URL
+ENV API_URL=$API_URL
+ENV BACKEND_URL=$BACKEND_URL
 
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .

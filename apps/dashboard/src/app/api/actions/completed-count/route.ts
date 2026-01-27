@@ -8,7 +8,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 
-const BACKEND_URL = process.env.BACKEND_URL || 'http://localhost:8090';
+const BACKEND_URL = process.env.BACKEND_URL || process.env.API_URL || 'http://localhost:8091';
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);

@@ -28,7 +28,7 @@ from typing import Any, Dict, List, Optional
 import httpx
 
 # Configuration
-API_BASE = os.getenv("BENCHMARK_API_BASE", "http://localhost:8090")
+API_BASE = os.getenv("BENCHMARK_API_BASE", "http://localhost:8091")
 RESULTS_DIR = Path(os.getenv("BENCHMARK_RESULTS_DIR", "/tmp/chat_benchmarks"))
 DEFAULT_ITERATIONS = int(os.getenv("BENCHMARK_ITERATIONS", "3"))
 

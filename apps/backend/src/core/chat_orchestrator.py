@@ -607,7 +607,7 @@ class ChatOrchestrator:
         from datetime import datetime, timedelta
 
         query_lower = query.lower().strip()
-        API_BASE = "http://localhost:8090"
+        API_BASE = "http://localhost:8091"
 
         # Helper to create deterministic response
         def make_response(content: str, sources: list = None, extra: dict = None) -> ChatResponse:

@@ -4,7 +4,7 @@ This module defines timeouts, retries, backoff, and circuit breaker
 configurations for external service calls per P1-RESILIENCE-001.
 
 Services covered:
-- Deal API (:8090)
+- Backend API (:8091)
 - RAG REST (:8052)
 - MCP (:9100)
 - vLLM (:8000)
@@ -79,8 +79,8 @@ class ServiceConfig:
 # Service configurations per Decision Lock
 RESILIENCE_CONFIG: Dict[str, ServiceConfig] = {
     "deal_api": ServiceConfig(
-        name="Deal API",
-        base_url="${DEAL_API_URL:-http://host.docker.internal:8090}",
+        name="Backend API",
+        base_url="${DEAL_API_URL:-http://host.docker.internal:8091}",
         timeout=TimeoutConfig(
             connect_timeout_seconds=5.0,
             read_timeout_seconds=30.0,

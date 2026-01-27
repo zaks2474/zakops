@@ -150,7 +150,7 @@ export default function ActionsCommandCenter() {
           setApiConfigWarning(`API returned status ${response.status}. Backend may be down.`);
         }
       } catch (err) {
-        setApiConfigWarning('Cannot reach API. Ensure backend is running on port 8090.');
+        setApiConfigWarning('Cannot reach API. Ensure backend is running on port 8091.');
         console.error('API check failed:', err);
       }
     };
@@ -159,7 +159,7 @@ export default function ActionsCommandCenter() {
     // Log configuration in dev
     if (process.env.NODE_ENV === 'development') {
       console.log('[Actions] API Base URL:', API_BASE_URL);
-      console.log('[Actions] API requests will proxy through Next.js to backend (port 8090)');
+      console.log('[Actions] API requests will proxy through Next.js to backend (port 8091)');
     }
   }, []);
 

@@ -9,7 +9,7 @@ Tests the chat backend endpoints:
 
 Usage:
     python3 chat_smoke_test.py
-    python3 chat_smoke_test.py --api-url http://localhost:8090
+    python3 chat_smoke_test.py --api-url http://localhost:8091
 """
 
 import argparse
@@ -22,7 +22,7 @@ from typing import Any, Dict, List
 import httpx
 
 # Default configuration
-DEFAULT_API_URL = "http://localhost:8090"
+DEFAULT_API_URL = "http://localhost:8091"
 
 
 class ChatSmokeTest:

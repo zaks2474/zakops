@@ -11,6 +11,7 @@ from fastapi import (
     APIRouter,
     Depends,
     Form,
+    Header,
     HTTPException,
     Request,
 )
@@ -18,6 +19,7 @@ from fastapi.security import (
     HTTPAuthorizationCredentials,
     HTTPBearer,
 )
+from typing import Optional
 
 from app.core.config import settings
 from app.core.limiter import limiter
@@ -151,6 +153,66 @@ async def get_current_session(
             detail="Invalid token format",
             headers={"WWW-Authenticate": "Bearer"},
         )
+
+
+# Optional Bearer scheme that doesn't require authentication
+optional_security = HTTPBearer(auto_error=False)
+
+
+async def get_session_or_service(
+    credentials: Optional[HTTPAuthorizationCredentials] = Depends(optional_security),
+    x_service_token: Optional[str] = Header(None, alias="X-Service-Token"),
+) -> Session:
+    """Get session from JWT token OR validate service token for internal calls.
+
+    This allows the Dashboard and other internal services to call chat endpoints
+    without requiring a full user session. Service token is checked first, then
+    falls back to JWT session auth.
+
+    Args:
+        credentials: Optional HTTP authorization credentials containing JWT token.
+        x_service_token: Optional service token for internal service-to-service calls.
+
+    Returns:
+        Session: A real or synthetic session for the request.
+
+    Raises:
+        HTTPException: If neither valid service token nor valid session token provided.
+    """
+    # Check service token first (for Dashboard and internal services)
+    if x_service_token and settings.DASHBOARD_SERVICE_TOKEN:
+        if x_service_token == settings.DASHBOARD_SERVICE_TOKEN:
+            logger.info("service_token_auth_success", source="dashboard")
+            # Return a synthetic service session
+            return Session(
+                id="service-session",
+                user_id=0,  # System user
+                name="Dashboard Service"
+            )
+        else:
+            logger.warning("service_token_auth_failed", token_prefix=x_service_token[:8] + "...")
+
+    # Fall back to JWT session auth
+    if credentials:
+        try:
+            token = sanitize_string(credentials.credentials)
+            session_id = verify_token(token)
+            if session_id:
+                session_id = sanitize_string(session_id)
+                session = await db_service.get_session(session_id)
+                if session:
+                    bind_context(user_id=session.user_id)
+                    return session
+        except (ValueError, Exception) as e:
+            logger.debug("jwt_auth_failed", error=str(e))
+
+    # Neither auth method succeeded
+    logger.error("auth_required", has_service_token=bool(x_service_token), has_bearer=bool(credentials))
+    raise HTTPException(
+        status_code=401,
+        detail="Not authenticated. Provide either X-Service-Token or Bearer token.",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
 
 
 @router.post("/register", response_model=UserResponse)

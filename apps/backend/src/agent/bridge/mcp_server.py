@@ -6,7 +6,7 @@ True MCP server for LangSmith Agent Builder integration.
 
 Architecture:
 - LangSmith Agent Builder (cloud) -> Cloudflare Tunnel -> This MCP Server (local)
-- Server proxies to: Deal Lifecycle API (:8090), RAG API (:8052), DataRoom filesystem
+- Server proxies to: Backend API (:8091), RAG API (:8052), DataRoom filesystem
 
 Transport: SSE (Server-Sent Events)
 Endpoint: /sse
@@ -44,7 +44,7 @@ BRIDGE_HOST = os.getenv("ZAKOPS_BRIDGE_HOST", "127.0.0.1")
 API_KEY = os.getenv("ZAKOPS_BRIDGE_API_KEY", "")
 
 # Backend services
-DEAL_API_URL = os.getenv("ZAKOPS_DEAL_API_URL", "http://localhost:8090")
+DEAL_API_URL = os.getenv("ZAKOPS_DEAL_API_URL", "http://localhost:8091")
 RAG_API_URL = os.getenv("ZAKOPS_RAG_API_URL", "http://localhost:8052")
 
 # Filesystem paths

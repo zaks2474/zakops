@@ -15,7 +15,7 @@ from fastapi import (
 )
 from fastapi.responses import StreamingResponse
 
-from app.api.v1.auth import get_current_session
+from app.api.v1.auth import get_current_session, get_session_or_service
 from app.core.config import settings
 from app.core.langgraph.graph import LangGraphAgent
 from app.core.limiter import limiter
@@ -38,7 +38,7 @@ agent = LangGraphAgent()
 async def chat(
     request: Request,
     chat_request: ChatRequest,
-    session: Session = Depends(get_current_session),
+    session: Session = Depends(get_session_or_service),
 ):
     """Process a chat request using LangGraph.
 
@@ -75,7 +75,7 @@ async def chat(
 async def chat_stream(
     request: Request,
     chat_request: ChatRequest,
-    session: Session = Depends(get_current_session),
+    session: Session = Depends(get_session_or_service),
 ):
     """Process a chat request using LangGraph with streaming response.
 

@@ -8,7 +8,7 @@ services:
     image: zakops/deal-lifecycle-api:${GREEN_VERSION:-latest}
     container_name: zakops-api-green
     ports:
-      - "8091:8090"
+      - "8091:8091"
     environment:
       - DATABASE_URL=postgresql://zakops:${DB_PASSWORD:-zakops}@postgres:5432/zakops
       - REDIS_URL=redis://redis:6379/0
@@ -22,7 +22,7 @@ services:
       redis:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8090/health"]
+      test: ["CMD", "curl", "-f", "http://localhost:8091/health"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -30,7 +30,7 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.api-green.rule=Host(`api.zakops.local`)"
-      - "traefik.http.services.api-green.loadbalancer.server.port=8090"
+      - "traefik.http.services.api-green.loadbalancer.server.port=8091"
 
   mcp-green:
     image: zakops/mcp-server:${GREEN_VERSION:-latest}
@@ -38,7 +38,7 @@ services:
     ports:
       - "9101:9100"
     environment:
-      - API_URL=http://api-green:8090
+      - API_URL=http://api-green:8091
       - DEPLOYMENT_COLOR=green
     networks:
       - zakops-bluegreen
@@ -61,7 +61,7 @@ services:
     ports:
       - "3004:3000"
     environment:
-      - NEXT_PUBLIC_API_URL=http://api-green:8090
+      - NEXT_PUBLIC_API_URL=http://api-green:8091
       - DEPLOYMENT_COLOR=green
     networks:
       - zakops-bluegreen

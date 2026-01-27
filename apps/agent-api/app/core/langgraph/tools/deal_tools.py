@@ -5,6 +5,7 @@ including transition_deal which requires HITL approval.
 """
 
 import os
+import json
 from typing import Optional
 
 import httpx
@@ -12,15 +13,16 @@ from langchain_core.tools import tool
 from pydantic import BaseModel, ConfigDict, Field
 
 from app.core.logging import logger
+from app.core.idempotency import tool_idempotency_key
 
 
 # External service URLs (use host.docker.internal for Docker)
-DEAL_API_URL = os.getenv("DEAL_API_URL", "http://host.docker.internal:8090")
+DEAL_API_URL = os.getenv("DEAL_API_URL", "http://host.docker.internal:8091")
 RAG_REST_URL = os.getenv("RAG_REST_URL", "http://host.docker.internal:8052")
 
 # Environment check for mock behavior
 ENVIRONMENT = os.getenv("APP_ENV", "development")
-ALLOW_TOOL_MOCKS = os.getenv("ALLOW_TOOL_MOCKS", "true").lower() == "true"
+ALLOW_TOOL_MOCKS = os.getenv("ALLOW_TOOL_MOCKS", "false").lower() == "true"
 
 
 class TransitionDealInput(BaseModel):
@@ -83,9 +85,19 @@ async def transition_deal(
             response = await client.post(
                 f"{DEAL_API_URL}/api/deals/{deal_id}/transition",
                 json={
-                    "from_stage": from_stage,
-                    "to_stage": to_stage,
+                    # Backend contract: new_stage (+ optional idempotency_key)
+                    "new_stage": to_stage,
                     "reason": reason,
+                    "idempotency_key": tool_idempotency_key(
+                        thread_id="agent",
+                        tool_name="transition_deal",
+                        tool_args={
+                            "deal_id": deal_id,
+                            "from_stage": from_stage,
+                            "to_stage": to_stage,
+                            "reason": reason,
+                        },
+                    ),
                 },
             )
 
@@ -161,8 +173,22 @@ async def get_deal(deal_id: str) -> str:
                 return f"Error getting deal: {response.text}"
 
     except httpx.ConnectError:
-        # Mock response for testing
-        return f'{{"id": "{deal_id}", "stage": "qualification", "value": 50000, "status": "active"}}'
+        if ENVIRONMENT == "development" and ALLOW_TOOL_MOCKS:
+            return json.dumps(
+                {
+                    "deal_id": deal_id,
+                    "stage": "qualification",
+                    "status": "active",
+                    "note": "MOCK: Deal API unavailable",
+                }
+            )
+        logger.error(
+            "deal_api_unavailable_fail_closed",
+            deal_id=deal_id,
+            environment=ENVIRONMENT,
+            allow_mocks=ALLOW_TOOL_MOCKS,
+        )
+        raise httpx.ConnectError(f"Deal API unavailable at {DEAL_API_URL} and mocks disabled")
 
     except Exception as e:
         logger.error("get_deal_error", error=str(e))
@@ -185,11 +211,10 @@ async def search_deals(query: str, limit: int = 10) -> str:
     try:
         async with httpx.AsyncClient(timeout=30.0) as client:
             response = await client.post(
-                f"{RAG_REST_URL}/search",
+                f"{RAG_REST_URL}/rag/query",
                 json={
                     "query": query,
-                    "limit": limit,
-                    "collection": "deals",
+                    "top_k": limit,
                 },
             )
 
@@ -199,8 +224,21 @@ async def search_deals(query: str, limit: int = 10) -> str:
                 return f"Error searching deals: {response.text}"
 
     except httpx.ConnectError:
-        # Mock response for testing
-        return f'{{"results": [{{"id": "deal-001", "title": "Sample Deal", "stage": "proposal"}}], "total": 1}}'
+        if ENVIRONMENT == "development" and ALLOW_TOOL_MOCKS:
+            return json.dumps(
+                {
+                    "results": [{"id": "deal-001", "title": "Sample Deal", "stage": "proposal"}],
+                    "total": 1,
+                    "note": "MOCK: RAG REST unavailable",
+                }
+            )
+        logger.error(
+            "rag_rest_unavailable_fail_closed",
+            query=query,
+            environment=ENVIRONMENT,
+            allow_mocks=ALLOW_TOOL_MOCKS,
+        )
+        raise httpx.ConnectError(f"RAG REST unavailable at {RAG_REST_URL} and mocks disabled")
 
     except Exception as e:
         logger.error("search_deals_error", error=str(e))

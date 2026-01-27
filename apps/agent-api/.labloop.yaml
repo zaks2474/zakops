@@ -51,8 +51,8 @@ required_services:
   - name: "Langfuse"
     health_url: "http://localhost:3001/api/public/health"
     optional: true
-  - name: "Deal API"
-    health_url: "http://localhost:8090/health"
+  - name: "Backend API"
+    health_url: "http://localhost:8091/health"
     optional: true
 
 # QA configuration

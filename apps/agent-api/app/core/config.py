@@ -217,9 +217,13 @@ class Settings:
         self.HITL_MAX_PENDING_APPROVALS = int(os.getenv("HITL_MAX_PENDING_APPROVALS", "100"))
 
         # External Service URLs (use host.docker.internal for Docker)
-        self.DEAL_API_URL = os.getenv("DEAL_API_URL", "http://host.docker.internal:8090")
+        self.DEAL_API_URL = os.getenv("DEAL_API_URL", "http://host.docker.internal:8091")
         self.RAG_REST_URL = os.getenv("RAG_REST_URL", "http://host.docker.internal:8052")
         self.MCP_URL = os.getenv("MCP_URL", "http://host.docker.internal:9100")
+
+        # Service Authentication (for internal service-to-service calls like Dashboard)
+        # Generate with: python -c "import secrets; print(secrets.token_urlsafe(32))"
+        self.DASHBOARD_SERVICE_TOKEN = os.getenv("DASHBOARD_SERVICE_TOKEN", "")
 
         # Apply environment-specific settings
         self.apply_environment_settings()

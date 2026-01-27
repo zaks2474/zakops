@@ -46,6 +46,28 @@ function coerceToNumber(val: unknown): number | null | undefined {
 // Schema for numeric fields that might arrive as strings
 const coercedNumber = z.preprocess(coerceToNumber, z.number().nullable().optional());
 
+/**
+ * Coerce broker field to string. Backend may return:
+ * - string: broker name directly
+ * - object: { name?: string, email?: string, ... }
+ * - null/undefined
+ * We extract the name for display purposes.
+ */
+function coerceBrokerToString(val: unknown): string | null {
+  if (val === null || val === undefined) return null;
+  if (typeof val === 'string') return val || null;
+  if (typeof val === 'object' && val !== null) {
+    const obj = val as Record<string, unknown>;
+    // Extract name from broker object
+    if (typeof obj.name === 'string' && obj.name) {
+      return obj.name;
+    }
+    // Empty object {} returns null
+    return null;
+  }
+  return null;
+}
+
 // Deal schema
 export const DealSchema = z.object({
   deal_id: z.string(),
@@ -53,7 +75,7 @@ export const DealSchema = z.object({
   display_name: z.string().optional().nullable(),
   stage: z.string(),
   status: z.string(),
-  broker: z.string().nullable().optional(),
+  broker: z.preprocess(coerceBrokerToString, z.string().nullable().optional()),
   priority: z.string().nullable().optional(),
   updated_at: z.string().nullable().optional(),
   created_at: z.string().nullable().optional(),

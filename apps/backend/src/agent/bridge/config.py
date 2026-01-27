@@ -23,7 +23,7 @@ class BridgeConfig:
     API_KEY: str = os.getenv("ZAKOPS_BRIDGE_API_KEY", "")
 
     # Backend service URLs
-    DEAL_API_URL: str = os.getenv("ZAKOPS_DEAL_API_URL", "http://localhost:8090")
+    DEAL_API_URL: str = os.getenv("ZAKOPS_DEAL_API_URL", "http://localhost:8091")
     RAG_API_URL: str = os.getenv("ZAKOPS_RAG_API_URL", "http://localhost:8052")
 
     # Filesystem paths

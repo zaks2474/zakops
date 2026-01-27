@@ -24,7 +24,9 @@ class Message(BaseModel):
     model_config = {"extra": "ignore"}
 
     role: Literal["user", "assistant", "system"] = Field(..., description="The role of the message sender")
-    content: str = Field(..., description="The content of the message", min_length=1, max_length=3000)
+    # Tool-calling assistant messages can legitimately have empty content (only tool_calls),
+    # so we must allow empty strings to avoid 5xx during tool execution paths.
+    content: str = Field(..., description="The content of the message", min_length=0, max_length=20000)
 
     @field_validator("content")
     @classmethod

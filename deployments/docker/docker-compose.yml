@@ -17,7 +17,7 @@ services:
       - DATABASE_URL=postgresql://zakops:zakops@postgres:5432/zakops
       - REDIS_URL=redis://redis:6379/0
       - RAG_REST_URL=http://rag-rest:8052
-      - AUTH_REQUIRED=true
+      - DASHBOARD_SERVICE_TOKEN=${DASHBOARD_SERVICE_TOKEN:-k-bG0Us8LHBso4S4OnjqVOXkCNR_C8smNqtflzukWpo}
     depends_on:
       - postgres
       - redis
@@ -34,7 +34,7 @@ services:
       context: ../../apps/backend
       dockerfile: infra/docker/Dockerfile.deal_lifecycle
     ports:
-      - "8090:8090"
+      - "8091:8091"
     environment:
       - DATABASE_URL=postgresql://zakops:zakops@postgres:5432/zakops
       - REDIS_URL=redis://redis:6379/1
@@ -63,10 +63,18 @@ services:
     build:
       context: ../../apps/dashboard
       dockerfile: Dockerfile
+      args:
+        - NEXT_PUBLIC_API_URL=http://localhost:8091
+        - NEXT_PUBLIC_AGENT_API_URL=http://localhost:8095
+        - API_URL=http://localhost:8091
+        - BACKEND_URL=http://localhost:8091
     network_mode: host  # Required for Next.js rewrites to reach localhost APIs
     environment:
-      - NEXT_PUBLIC_API_URL=http://localhost:8090
+      - NEXT_PUBLIC_API_URL=http://localhost:8091
       - NEXT_PUBLIC_AGENT_API_URL=http://localhost:8095
+      - API_URL=http://localhost:8091  # For Next.js rewrites in next.config.ts
+      - BACKEND_URL=http://localhost:8091  # For route handlers in /app/api/*
+      - DASHBOARD_SERVICE_TOKEN=${DASHBOARD_SERVICE_TOKEN:-k-bG0Us8LHBso4S4OnjqVOXkCNR_C8smNqtflzukWpo}
 
   # ==========================================================================
   # Infrastructure
@@ -142,20 +150,62 @@ services:
     networks:
       - zakops-network
 
+  # Loki - Log aggregation
+  loki:
+    image: grafana/loki:2.9.4
+    container_name: zakops-loki
+    ports:
+      - "3100:3100"
+    volumes:
+      - ../../ops/observability/loki/loki-config.yml:/etc/loki/local-config.yaml:ro
+      - loki-data:/loki
+    command: -config.file=/etc/loki/local-config.yaml
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://localhost:3100/ready || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - zakops-network
+    restart: unless-stopped
+
+  # Promtail - Log shipping from Docker containers
+  promtail:
+    image: grafana/promtail:2.9.4
+    container_name: zakops-promtail
+    volumes:
+      - ../../ops/observability/promtail/promtail-config.yml:/etc/promtail/config.yml:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+    command: -config.file=/etc/promtail/config.yml
+    depends_on:
+      loki:
+        condition: service_healthy
+    networks:
+      - zakops-network
+    restart: unless-stopped
+
   grafana:
     image: grafana/grafana:10.4.1
+    container_name: zakops-grafana
     ports:
-      - "3001:3000"
+      - "3002:3000"
     environment:
+      - GF_SECURITY_ADMIN_USER=admin
       - GF_SECURITY_ADMIN_PASSWORD=admin
       - GF_USERS_ALLOW_SIGN_UP=false
+      - GF_AUTH_ANONYMOUS_ENABLED=true
+      - GF_AUTH_ANONYMOUS_ORG_ROLE=Viewer
     volumes:
-      - ../../ops/observability/grafana:/etc/grafana/provisioning/dashboards:ro
+      - ../../ops/observability/grafana/dashboards:/etc/grafana/provisioning/dashboards:ro
+      - ../../ops/observability/grafana/provisioning/datasources:/etc/grafana/provisioning/datasources:ro
       - grafana-data:/var/lib/grafana
     depends_on:
       - prometheus
+      - loki
     networks:
       - zakops-network
+    restart: unless-stopped
 
 networks:
   zakops-network:
@@ -166,3 +216,4 @@ volumes:
   redis-data:
   prometheus-data:
   grafana-data:
+  loki-data:

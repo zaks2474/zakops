@@ -268,6 +268,53 @@ release-ready: ## Validate repository hygiene for releases
 	@bash tools/gates/release_ready_gate.sh
 
 # =============================================================================
+# Logging Infrastructure
+# =============================================================================
+
+logs-up: ## Start centralized logging stack (Loki + Promtail + Grafana)
+	docker compose -f deployments/docker/docker-compose.yml up -d loki promtail grafana
+	@echo "Grafana: http://localhost:3001 (admin/admin)"
+	@echo "Loki: http://localhost:3100"
+
+logs-down: ## Stop logging stack
+	docker compose -f deployments/docker/docker-compose.yml stop loki promtail grafana
+
+logs-tail: ## Tail aggregated logs locally
+	docker compose -f deployments/docker/docker-compose.yml logs -f --tail=100
+
+logs-verify: ## Verify logging stack is working
+	bash tools/gates/logging_stack_gate.sh
+
+# =============================================================================
+# System State Management
+# =============================================================================
+
+reset-state: ## Hard reset - wipe ALL data and restart (DESTRUCTIVE)
+	FORCE_RESET=true bash tools/ops/reset_state.sh
+
+reset-state-verify: ## Verify system reset state
+	bash tools/gates/reset_state_gate.sh
+
+# =============================================================================
+# E2E Testing
+# =============================================================================
+
+e2e-smoke: ## Run structured E2E smoke test
+	python3 tools/tests/e2e/system_smoke.py
+
+test-e2e: e2e-smoke ## Alias for e2e-smoke
+
+# =============================================================================
+# Mission Gates
+# =============================================================================
+
+logging-mission: ## Run complete logging + reset + E2E mission
+	bash tools/gates/logging_reset_e2e_master_gate.sh
+
+logging-discovery: ## Run Phase 0: Discovery
+	bash tools/ops/phase0_logging_discovery.sh
+
+# =============================================================================
 # Utilities
 # =============================================================================
 

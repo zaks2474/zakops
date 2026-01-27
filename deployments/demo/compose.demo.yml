@@ -8,7 +8,7 @@ services:
     image: zakops/deal-lifecycle-api:${DEMO_VERSION:-latest}
     container_name: zakops-api-demo
     ports:
-      - "18090:8090"  # Different port from production (8090)
+      - "18091:8091"  # Different port from production (8091)
     environment:
       - DATABASE_URL=postgresql://zakops:${DB_PASSWORD:-demo}@postgres-demo:5432/zakops_demo
       - REDIS_URL=redis://redis-demo:6379/0
@@ -24,7 +24,7 @@ services:
       redis-demo:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8090/health"]
+      test: ["CMD", "curl", "-f", "http://localhost:8091/health"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -36,7 +36,7 @@ services:
     ports:
       - "19100:9100"  # Different port from production (9100)
     environment:
-      - API_URL=http://api-demo:8090
+      - API_URL=http://api-demo:8091
       - DEMO_MODE=true
     networks:
       - zakops-demo
@@ -55,7 +55,7 @@ services:
     ports:
       - "13003:3000"  # Different port from production (3003)
     environment:
-      - NEXT_PUBLIC_API_URL=http://localhost:18090
+      - NEXT_PUBLIC_API_URL=http://localhost:18091
       - DEMO_MODE=true
     networks:
       - zakops-demo

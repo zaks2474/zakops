@@ -11,7 +11,7 @@ Security:
 - Enforces approval gates via state machine
 
 Usage:
-    python3 deal_lifecycle_api.py  # Start API server on port 8090
+    python3 deal_lifecycle_api.py  # Start API server on port 8091
     python3 deal_lifecycle_api.py --port 8091 --host 0.0.0.0  # Custom binding
 
 Endpoints:
@@ -3844,7 +3844,7 @@ def health_check():
 def main():
     parser = argparse.ArgumentParser(description="Deal Lifecycle API Server")
     parser.add_argument("--host", default="127.0.0.1", help="Host to bind to")
-    parser.add_argument("--port", type=int, default=8090, help="Port to bind to")
+    parser.add_argument("--port", type=int, default=8091, help="Port to bind to")
     parser.add_argument("--reload", action="store_true", help="Enable auto-reload")
     args = parser.parse_args()
 

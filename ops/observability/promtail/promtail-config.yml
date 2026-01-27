@@ -1,0 +1,111 @@
+server:
+  http_listen_port: 9080
+  grpc_listen_port: 0
+
+positions:
+  filename: /tmp/positions.yaml
+
+clients:
+  - url: http://loki:3100/loki/api/v1/push
+    tenant_id: zakops
+
+scrape_configs:
+  # Scrape all Docker containers
+  - job_name: docker
+    docker_sd_configs:
+      - host: unix:///var/run/docker.sock
+        refresh_interval: 5s
+    relabel_configs:
+      # Only keep zakops containers
+      - source_labels: ['__meta_docker_container_name']
+        regex: '.*zakops.*|.*backend.*|.*agent.*|.*dashboard.*|.*orchestration.*|.*postgres.*|.*redis.*|.*rag.*|.*vllm.*|.*loki.*|.*grafana.*'
+        action: keep
+
+      # Extract service name from container name
+      - source_labels: ['__meta_docker_container_name']
+        regex: '/?(.*)'
+        target_label: container
+
+      # Add service label based on container name patterns
+      - source_labels: ['__meta_docker_container_name']
+        regex: '.*backend-deal.*|.*deal-lifecycle.*'
+        target_label: service
+        replacement: 'backend'
+      - source_labels: ['__meta_docker_container_name']
+        regex: '.*agent-api.*|.*agent_api.*'
+        target_label: service
+        replacement: 'agent-api'
+      - source_labels: ['__meta_docker_container_name']
+        regex: '.*dashboard.*'
+        target_label: service
+        replacement: 'dashboard'
+      - source_labels: ['__meta_docker_container_name']
+        regex: '.*orchestration.*'
+        target_label: service
+        replacement: 'orchestration'
+      - source_labels: ['__meta_docker_container_name']
+        regex: '.*postgres.*'
+        target_label: service
+        replacement: 'postgres'
+      - source_labels: ['__meta_docker_container_name']
+        regex: '.*redis.*'
+        target_label: service
+        replacement: 'redis'
+      - source_labels: ['__meta_docker_container_name']
+        regex: '.*rag.*'
+        target_label: service
+        replacement: 'rag'
+      - source_labels: ['__meta_docker_container_name']
+        regex: '.*vllm.*'
+        target_label: service
+        replacement: 'vllm'
+      - source_labels: ['__meta_docker_container_name']
+        regex: '.*loki.*'
+        target_label: service
+        replacement: 'loki'
+      - source_labels: ['__meta_docker_container_name']
+        regex: '.*promtail.*'
+        target_label: service
+        replacement: 'promtail'
+      - source_labels: ['__meta_docker_container_name']
+        regex: '.*grafana.*'
+        target_label: service
+        replacement: 'grafana'
+
+      # Add environment label
+      - source_labels: []
+        target_label: env
+        replacement: 'dev'
+
+    pipeline_stages:
+      # Try to parse JSON logs
+      - json:
+          expressions:
+            request_id: request_id
+            trace_id: trace_id
+            level: level
+            message: message
+            msg: msg
+
+      # Extract request_id from various formats
+      - regex:
+          expression: 'request_id[=:]["]*(?P<request_id>[a-zA-Z0-9-]+)'
+      - regex:
+          expression: 'X-Request-ID[=:]["]*(?P<request_id>[a-zA-Z0-9-]+)'
+
+      # Add extracted fields as labels (for filtering)
+      - labels:
+          request_id:
+          trace_id:
+          level:
+
+      # Redact potential PII patterns
+      - replace:
+          expression: '([a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+)'
+          replace: '[EMAIL_REDACTED]'
+      - replace:
+          expression: '\b\d{3}-\d{2}-\d{4}\b'
+          replace: '[SSN_REDACTED]'
+      - replace:
+          expression: '\b\d{16}\b'
+          replace: '[CARD_REDACTED]'
