@@ -1,58 +1,20 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
+import Link from 'next/link';
 import { Badge } from '@/components/ui/badge';
-import { IconRobot, IconBrandOpenai, IconCloud, IconServer } from '@tabler/icons-react';
+import { Button } from '@/components/ui/button';
+import { IconServer, IconSettings, IconCheck, IconLoader2 } from '@tabler/icons-react';
+import { getSettings, type ProviderSettings } from '@/lib/settings/provider-settings';
 
 export type ProviderType = 'local' | 'openai' | 'anthropic' | 'custom';
 
-interface ProviderOption {
-  id: ProviderType;
-  name: string;
-  description: string;
-  icon: React.ReactNode;
-  enabled: boolean;
-}
-
-const PROVIDERS: ProviderOption[] = [
-  {
-    id: 'local',
-    name: 'Local (Queen)',
-    description: 'ZakOps vLLM Agent',
-    icon: <IconServer className="h-4 w-4" />,
-    enabled: true,
-  },
-  {
-    id: 'openai',
-    name: 'OpenAI GPT-4',
-    description: 'OpenAI API',
-    icon: <IconBrandOpenai className="h-4 w-4" />,
-    enabled: false,
-  },
-  {
-    id: 'anthropic',
-    name: 'Anthropic Claude',
-    description: 'Anthropic API',
-    icon: <IconRobot className="h-4 w-4" />,
-    enabled: false,
-  },
-  {
-    id: 'custom',
-    name: 'Custom',
-    description: 'Custom endpoint',
-    icon: <IconCloud className="h-4 w-4" />,
-    enabled: false,
-  },
-];
-
-const STORAGE_KEY = 'zakops-chat-provider';
+const PROVIDER_NAMES: Record<ProviderType, string> = {
+  local: 'Local vLLM (Qwen)',
+  openai: 'OpenAI',
+  anthropic: 'Anthropic Claude',
+  custom: 'Custom',
+};
 
 interface ProviderSelectorProps {
   onSelect?: (provider: ProviderType) => void;
@@ -60,90 +22,70 @@ interface ProviderSelectorProps {
 }
 
 export function ProviderSelector({ onSelect, className }: ProviderSelectorProps) {
-  const [selected, setSelected] = useState<ProviderType>('local');
+  const [settings, setSettings] = useState<ProviderSettings | null>(null);
+  const [status, setStatus] = useState<'idle' | 'checking' | 'connected' | 'error'>('idle');
 
-  // Load saved preference on mount
+  // Load settings on mount
   useEffect(() => {
-    try {
-      const saved = localStorage.getItem(STORAGE_KEY) as ProviderType;
-      if (saved && PROVIDERS.find((p) => p.id === saved && p.enabled)) {
-        setSelected(saved);
-      }
-    } catch {
-      // localStorage not available
-    }
+    setSettings(getSettings());
   }, []);
 
-  const handleSelect = (value: string) => {
-    const provider = value as ProviderType;
-    const option = PROVIDERS.find((p) => p.id === provider);
-    if (!option?.enabled) return;
+  // Check connection status
+  useEffect(() => {
+    const checkStatus = async () => {
+      setStatus('checking');
+      try {
+        const response = await fetch('/api/chat');
+        if (response.ok) {
+          const data = await response.json();
+          setStatus(data.status === 'available' ? 'connected' : 'error');
+        } else {
+          setStatus('error');
+        }
+      } catch {
+        setStatus('error');
+      }
+    };
 
-    setSelected(provider);
-    try {
-      localStorage.setItem(STORAGE_KEY, provider);
-    } catch {
-      // localStorage not available
-    }
-    onSelect?.(provider);
-  };
+    checkStatus();
+    // Re-check every 30 seconds
+    const interval = setInterval(checkStatus, 30000);
+    return () => clearInterval(interval);
+  }, []);
 
-  const current = PROVIDERS.find((p) => p.id === selected);
+  const activeProvider = settings?.activeProvider || 'local';
 
   return (
-    <Select value={selected} onValueChange={handleSelect}>
-      <SelectTrigger className={className || 'w-[180px]'}>
-        <SelectValue>
-          <div className="flex items-center gap-2">
-            {current?.icon}
-            <span>{current?.name}</span>
-          </div>
-        </SelectValue>
-      </SelectTrigger>
-      <SelectContent>
-        {PROVIDERS.map((provider) => (
-          <SelectItem
-            key={provider.id}
-            value={provider.id}
-            disabled={!provider.enabled}
-            className={!provider.enabled ? 'opacity-50' : ''}
-          >
-            <div className="flex items-center gap-2">
-              {provider.icon}
-              <div className="flex flex-col">
-                <div className="flex items-center gap-2">
-                  <span>{provider.name}</span>
-                  {!provider.enabled && (
-                    <Badge variant="outline" className="text-[10px] py-0">
-                      soon
-                    </Badge>
-                  )}
-                </div>
-                <span className="text-xs text-muted-foreground">
-                  {provider.description}
-                </span>
-              </div>
-            </div>
-          </SelectItem>
-        ))}
-      </SelectContent>
-    </Select>
+    <div className={`flex items-center gap-2 ${className || ''}`}>
+      <div className="flex items-center gap-2 px-3 py-1.5 bg-muted rounded-md">
+        <IconServer className="h-4 w-4 text-muted-foreground" />
+        <span className="text-sm">{PROVIDER_NAMES[activeProvider]}</span>
+        {status === 'checking' && (
+          <IconLoader2 className="h-3 w-3 animate-spin text-muted-foreground" />
+        )}
+        {status === 'connected' && (
+          <Badge variant="secondary" className="text-[10px] py-0 px-1 bg-green-500/20 text-green-600">
+            <IconCheck className="h-3 w-3" />
+          </Badge>
+        )}
+        {status === 'error' && (
+          <Badge variant="destructive" className="text-[10px] py-0">
+            offline
+          </Badge>
+        )}
+      </div>
+      <Button variant="ghost" size="sm" asChild>
+        <Link href="/settings">
+          <IconSettings className="h-4 w-4" />
+        </Link>
+      </Button>
+    </div>
   );
 }
 
 /**
- * Get the currently selected provider from localStorage
+ * Get the currently selected provider from settings
  */
 export function getSelectedProvider(): ProviderType {
-  try {
-    const saved = localStorage.getItem(STORAGE_KEY) as ProviderType;
-    if (saved && PROVIDERS.find((p) => p.id === saved && p.enabled)) {
-      return saved;
-    }
-  } catch {
-    // localStorage not available
-  }
-  return 'local';
+  return getSettings().activeProvider;
 }
-
-export { PROVIDERS };

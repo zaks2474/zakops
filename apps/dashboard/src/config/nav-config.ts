@@ -67,5 +67,13 @@ export const navItems: NavItem[] = [
     isActive: false,
     shortcut: ['g', 'o'],
     items: []
+  },
+  {
+    title: 'Settings',
+    url: '/settings',
+    icon: 'settings',
+    isActive: false,
+    shortcut: ['g', 's'],
+    items: []
   }
 ];
