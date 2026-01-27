@@ -1,15 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { agentProvider } from '@/lib/agent/provider-service';
+import type { AgentMessage } from '@/lib/agent/types';
 
 const AGENT_API_URL = process.env.NEXT_PUBLIC_AGENT_API_URL || process.env.AGENT_API_URL || 'http://localhost:8095';
 const BACKEND_URL = process.env.API_URL || process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8091';
-const AGENT_SERVICE_TOKEN = process.env.AGENT_SERVICE_TOKEN || process.env.DASHBOARD_SERVICE_TOKEN || '';
 
 /**
  * POST /api/chat
  *
  * Handles chat requests with multiple fallback strategies:
- * 1. Try Agent API chatbot endpoint
- * 2. Try Backend agent invoke endpoint
+ * 1. Try Agent Provider (configured backend - local vLLM by default)
+ * 2. Try Backend agent invoke endpoint (for deal-scoped queries)
  * 3. Return a helpful response if both fail
  */
 export async function POST(request: NextRequest) {
@@ -28,57 +29,33 @@ export async function POST(request: NextRequest) {
     }
 
     // Transform the request to match Agent API's expected format
-    const messages = body.messages || [
+    const messages: AgentMessage[] = body.messages || [
       { role: 'user', content: userMessage }
     ];
 
-    // Strategy 1: Try Agent API chatbot
+    // Strategy 1: Try Agent Provider (uses configured backend)
     try {
-      const agentUrl = `${AGENT_API_URL}/api/v1/chatbot/chat`;
-
-      const headers: Record<string, string> = {
-        'Content-Type': 'application/json',
-      };
-
-      // Add service token for authentication if configured
-      if (AGENT_SERVICE_TOKEN) {
-        headers['X-Service-Token'] = AGENT_SERVICE_TOKEN;
-      }
-
-      const response = await fetch(agentUrl, {
-        method: 'POST',
-        headers,
-        body: JSON.stringify({
-          messages,
-          session_id: body.session_id,
-          ...body.options,
-        }),
+      const response = await agentProvider.chat({
+        messages,
+        session_id: body.session_id,
+        options: body.options,
       });
 
-      // If successful, return the response
-      if (response.ok) {
-        const contentType = response.headers.get('content-type');
-        if (contentType?.includes('text/event-stream')) {
-          return new NextResponse(response.body, {
-            status: response.status,
-            headers: {
-              'Content-Type': 'text/event-stream',
-              'Cache-Control': 'no-cache',
-              'Connection': 'keep-alive',
-            },
-          });
-        }
-        const data = await response.json();
-        return NextResponse.json(data);
-      }
-
-      // If auth error, continue to fallback
-      if (response.status !== 401 && response.status !== 403) {
-        const errorData = await response.json().catch(() => ({}));
-        console.log('[Chat] Agent API returned:', response.status, errorData);
-      }
+      // Return successful response
+      return NextResponse.json({
+        messages: response.messages || [
+          ...messages,
+          { role: 'assistant', content: response.content }
+        ],
+        content: response.content,
+        model_used: response.model_used,
+        latency_ms: response.latency_ms,
+        citations: response.citations || [],
+        proposals: response.proposals || [],
+        warnings: response.warnings || [],
+      });
     } catch (agentError) {
-      console.log('[Chat] Agent API unavailable, trying fallback');
+      console.log('[Chat] Agent Provider error:', agentError instanceof Error ? agentError.message : agentError);
     }
 
     // Strategy 2: Try Backend agent invoke (for deal-scoped queries)
@@ -238,31 +215,38 @@ The full AI assistant will be available shortly to provide detailed answers.`;
  */
 export async function GET() {
   try {
-    // Check if Agent API is available
-    const healthResponse = await fetch(`${AGENT_API_URL}/health`, {
-      method: 'GET',
-      headers: { 'Content-Type': 'application/json' },
-    });
+    // Check if Agent Provider is healthy
+    const healthy = await agentProvider.healthCheck();
 
-    if (healthResponse.ok) {
-      const health = await healthResponse.json();
+    if (healthy) {
+      // Fetch additional health details
+      const healthResponse = await fetch(`${AGENT_API_URL}/health`, {
+        method: 'GET',
+        headers: { 'Content-Type': 'application/json' },
+      });
+
+      const health = healthResponse.ok ? await healthResponse.json() : { status: 'unknown' };
+
       return NextResponse.json({
         status: 'available',
+        provider: agentProvider.name,
         agent_api: AGENT_API_URL,
         agent_health: health,
-        note: 'Chat is proxied to Agent API. Some features may require authentication.',
+        note: 'Chat is handled by Agent Provider. Authentication is configured.',
       });
     }
 
     return NextResponse.json({
       status: 'unavailable',
+      provider: agentProvider.name,
       agent_api: AGENT_API_URL,
-      error: 'Agent API is not responding',
+      error: 'Agent Provider health check failed',
     }, { status: 503 });
 
   } catch (error) {
     return NextResponse.json({
       status: 'error',
+      provider: agentProvider.name,
       agent_api: AGENT_API_URL,
       error: error instanceof Error ? error.message : 'Unknown error',
     }, { status: 500 });

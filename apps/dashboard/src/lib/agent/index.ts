@@ -3,6 +3,7 @@
  * ====================
  *
  * Exports for the agent infrastructure including:
+ * - Agent Provider System (pluggable backends)
  * - Tool Registry
  * - Tool Gateway
  * - Safety Config
@@ -43,3 +44,27 @@ export {
   type GatewayEventEmitter,
   type GatewayConfig,
 } from './toolGateway';
+
+// Agent Provider System
+export {
+  agentProvider,
+  getAgentProvider,
+  resetAgentProvider,
+  type AgentProvider,
+  type AgentRequest,
+  type AgentResponse,
+  type AgentStreamChunk,
+} from './provider-service';
+
+export {
+  LocalProvider,
+  createLocalProvider,
+} from './providers/local';
+
+export type {
+  AgentMessage,
+  LocalProviderConfig,
+  ProviderType,
+  ProviderConfig,
+  ProviderServiceConfig,
+} from './types';
