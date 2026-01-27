@@ -33,7 +33,12 @@ export async function POST(request: NextRequest) {
       { role: 'user', content: userMessage }
     ];
 
+    // Extract provider selection from options (for future multi-provider support)
+    const selectedProvider = body.options?.provider || 'local';
+    console.log(`[Chat] Provider: ${selectedProvider}, Message: ${userMessage.slice(0, 50)}...`);
+
     // Strategy 1: Try Agent Provider (uses configured backend)
+    // TODO: Route to different providers based on selectedProvider when implemented
     try {
       const response = await agentProvider.chat({
         messages,
@@ -41,18 +46,45 @@ export async function POST(request: NextRequest) {
         options: body.options,
       });
 
-      // Return successful response
-      return NextResponse.json({
-        messages: response.messages || [
-          ...messages,
-          { role: 'assistant', content: response.content }
-        ],
-        content: response.content,
-        model_used: response.model_used,
-        latency_ms: response.latency_ms,
-        citations: response.citations || [],
-        proposals: response.proposals || [],
-        warnings: response.warnings || [],
+      // Extract the assistant's response content
+      const assistantContent = response.content ||
+        (response.messages && response.messages.length > 0
+          ? response.messages[response.messages.length - 1]?.content
+          : '') || '';
+
+      // Return as SSE stream (frontend expects SSE, not JSON)
+      const encoder = new TextEncoder();
+      const stream = new ReadableStream({
+        start(controller) {
+          // Send the full response as a single token event
+          // (Agent API doesn't stream, so we send it all at once)
+          if (assistantContent) {
+            const tokenEvent = `event: token\ndata: ${JSON.stringify({ token: assistantContent })}\n\n`;
+            controller.enqueue(encoder.encode(tokenEvent));
+          }
+
+          // Send done event with metadata
+          const doneEvent = `event: done\ndata: ${JSON.stringify({
+            citations: response.citations || [],
+            proposals: response.proposals || [],
+            session_id: response.session_id || body.session_id,
+            model_used: response.model_used || 'local',
+            latency_ms: response.latency_ms || 0,
+            warnings: response.warnings || [],
+            final_text: assistantContent,
+          })}\n\n`;
+          controller.enqueue(encoder.encode(doneEvent));
+          controller.close();
+        },
+      });
+
+      return new NextResponse(stream, {
+        status: 200,
+        headers: {
+          'Content-Type': 'text/event-stream',
+          'Cache-Control': 'no-cache',
+          'Connection': 'keep-alive',
+        },
       });
     } catch (agentError) {
       console.log('[Chat] Agent Provider error:', agentError instanceof Error ? agentError.message : agentError);
@@ -74,11 +106,34 @@ export async function POST(request: NextRequest) {
 
         if (response.ok) {
           const data = await response.json();
-          return NextResponse.json({
-            content: data.response || data.output || JSON.stringify(data),
-            citations: [],
-            proposals: [],
-            model_used: 'backend-agent',
+          const backendContent = data.response || data.output || JSON.stringify(data);
+
+          // Return as SSE stream
+          const encoder = new TextEncoder();
+          const stream = new ReadableStream({
+            start(controller) {
+              const tokenEvent = `event: token\ndata: ${JSON.stringify({ token: backendContent })}\n\n`;
+              controller.enqueue(encoder.encode(tokenEvent));
+
+              const doneEvent = `event: done\ndata: ${JSON.stringify({
+                citations: [],
+                proposals: [],
+                model_used: 'backend-agent',
+                latency_ms: 0,
+                final_text: backendContent,
+              })}\n\n`;
+              controller.enqueue(encoder.encode(doneEvent));
+              controller.close();
+            },
+          });
+
+          return new NextResponse(stream, {
+            status: 200,
+            headers: {
+              'Content-Type': 'text/event-stream',
+              'Cache-Control': 'no-cache',
+              'Connection': 'keep-alive',
+            },
           });
         }
       } catch (backendError) {

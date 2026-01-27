@@ -47,6 +47,7 @@ import {
   type ChatEvidenceSummary,
   normalizeChatProposalType,
 } from '@/lib/api';
+import { ProviderSelector, getSelectedProvider, type ProviderType } from '@/components/chat/ProviderSelector';
 
 // ═══════════════════════════════════════════════════════════════════════════
 // Types
@@ -214,6 +215,9 @@ export default function ChatPage() {
   const [showDebug, setShowDebug] = useState(false);
   const [lastTimings, setLastTimings] = useState<TimingData | null>(null);
 
+  // Provider selection
+  const [selectedProvider, setSelectedProvider] = useState<ProviderType>('local');
+
   // Refs for token batching
   const tokenBufferRef = useRef<string>('');
   const flushTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -222,6 +226,13 @@ export default function ChatPage() {
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // Load saved provider preference
+  // ─────────────────────────────────────────────────────────────────────────
+  useEffect(() => {
+    setSelectedProvider(getSelectedProvider());
+  }, []);
 
   // ─────────────────────────────────────────────────────────────────────────
   // Session Restoration (backend-first, then localStorage fallback)
@@ -442,7 +453,8 @@ export default function ChatPage() {
       for await (const event of streamChatMessage(
         userMessage.content,
         scope,
-        sessionId || undefined
+        sessionId || undefined,
+        { provider: selectedProvider }
       )) {
         // Check if aborted
         if (abortControllerRef.current?.signal.aborted) break;
@@ -778,6 +790,12 @@ export default function ChatPage() {
         </div>
 
         <div className='flex items-center gap-2'>
+          {/* Provider selector */}
+          <ProviderSelector
+            onSelect={setSelectedProvider}
+            className='w-[180px]'
+          />
+
           {/* Scope selector */}
           <div className='flex items-center gap-2'>
             <Select
