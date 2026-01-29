@@ -1,7 +1,0 @@
-=== Raw Content Scan ===
-Timestamp: 2026-01-24T18:29:41-06:00
-
-Docker logs checked for canary token
-Canary in logs: true
-
-RAW_CONTENT_SCAN: PASSED

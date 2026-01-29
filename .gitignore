@@ -29,6 +29,7 @@ MANIFEST
 
 # Virtual environments
 .venv/
+.test_venv/
 venv/
 ENV/
 env/
@@ -113,9 +114,13 @@ desktop.ini
 # =============================================================================
 # Artifacts & Generated Files
 # =============================================================================
-artifacts/gate_artifacts/
-artifacts/logs/
+# Artifacts: generated outputs (do not commit)
+artifacts/**
 !artifacts/README.md
+
+# Local run outputs (do not commit)
+completion_packet/
+apps/dashboard/test-results/
 
 # Eval reports
 **/evals/reports/
@@ -146,6 +151,7 @@ docker-compose.override.yml
 *.jsonl
 *.log
 *.bak
+*.bak_*
 *.tmp
 .temp/
 tmp/

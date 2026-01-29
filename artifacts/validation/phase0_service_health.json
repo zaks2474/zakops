@@ -1,9 +1,0 @@
-{
-  "phase": 0,
-  "name": "Baseline Service Health",
-  "timestamp": "2026-01-25T17:14:34-06:00",
-  "verdict": "PASS",
-  "passed": 8,
-  "failed": 0,
-  "services": [{"service":"Deal API","port":8090,"status":"healthy","http_code":200},{"service":"Agent API","port":8095,"status":"healthy","http_code":200},{"service":"Orchestration API","port":8091,"status":"healthy","http_code":200},{"service":"Dashboard","port":3003,"status":"healthy","http_code":307},{"service":"RAG REST API","port":8052,"status":"healthy","endpoint":"/rag/stats"},{"service":"vLLM","port":8000,"status":"healthy","http_code":200},{"service":"Postgres","port":5432,"status":"healthy","response":"accepting connections"},{"service":"Redis","port":6379,"status":"healthy","response":"PONG"}]
-}

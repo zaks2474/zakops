@@ -1,8 +1,0 @@
-=== Langfuse Self-Host Gate ===
-Timestamp: 2026-01-24T18:29:41-06:00
-Langfuse connection: OK
-Health response: {"status":"OK","version":"2.95.11"}
-Trace verification: SKIPPED (requires API credentials)
-
-Note: Langfuse gate is optional - service may not be running in test environment
-LANGFUSE_SELFHOST: PASSED

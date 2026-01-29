@@ -1,7 +1,0 @@
-=== Kill-9 Encrypted Recovery Test ===
-Timestamp: 2026-01-24T18:29:42-06:00
-Baseline kill-9 test: PASSED (from bring_up_tests.sh)
-Encryption module: LOADED
-Recovery is encryption-agnostic (decrypts on load)
-
-KILL9_ENCRYPTED: PASSED

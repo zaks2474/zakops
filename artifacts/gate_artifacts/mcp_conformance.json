@@ -1,7 +1,0 @@
-{
-  "timestamp": "2026-01-24T18:29:47-06:00",
-  "status": "SKIPPED",
-  "reason": "MCP client not fully implemented",
-  "tests": [],
-  "note": "MCP is optional - gate SKIPPED is acceptable"
-}

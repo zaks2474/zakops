@@ -1,8 +1,0 @@
-{
-  "timestamp": "2026-01-24T18:29:35-06:00",
-  "vllm_base": "http://localhost:8000",
-  "health_status": "200",
-  "model": "Qwen2.5-32B-Instruct-AWQ",
-  "status": "PASSED",
-  "reason": "Model verified"
-}
