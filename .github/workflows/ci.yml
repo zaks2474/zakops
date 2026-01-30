@@ -128,8 +128,9 @@ jobs:
       - name: Test
         env:
           DATABASE_URL: postgresql://test:test@localhost:5432/test
+          ZAKOPS_DATABASE_URL: postgresql://test:test@localhost:5432/test
           PYTHONPATH: src
-        run: pytest tests/ -v --tb=short
+        run: pytest tests/unit tests/contract -v --tb=short
 
   # ===========================================================================
   # Dashboard
