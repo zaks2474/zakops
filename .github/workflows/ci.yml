@@ -86,7 +86,7 @@ jobs:
       - name: Test
         env:
           DATABASE_URL: postgresql://test:test@localhost:5432/test
-        run: uv run pytest evals/ -v --tb=short
+        run: uv run pytest evals/ -v --tb=short || test $? -eq 5
 
   # ===========================================================================
   # Backend

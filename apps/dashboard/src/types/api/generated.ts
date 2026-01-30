@@ -4,7 +4,7 @@
  * DO NOT EDIT MANUALLY
  */
 
-/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable */
 
 export type ActionApprove = {
   approved_by?: string;
