@@ -73,7 +73,7 @@ jobs:
         run: uv python install 3.12
 
       - name: Install dependencies
-        run: uv sync
+        run: uv sync --extra dev
 
       - name: Lint
         run: uv run ruff check app/
@@ -120,7 +120,7 @@ jobs:
           cache: 'pip'
 
       - name: Install dependencies
-        run: pip install -r requirements.txt
+        run: pip install -r dev-requirements.txt
 
       - name: Lint
         run: ruff check src/
