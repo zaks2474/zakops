@@ -11,16 +11,15 @@ from __future__ import annotations
 
 import os
 from pathlib import Path
-from typing import BinaryIO, Dict, Optional, Union
+from typing import BinaryIO
 
 from actions.engine.models import ActionError
 from actions.executors.base import ActionExecutionError, ExecutionContext
 
 # Import storage abstraction
 from core.storage import (
-    ArtifactStore,
     ArtifactMetadata,
-    LocalFilesystemArtifactStore,
+    ArtifactStore,
     get_artifact_store,
 )
 
@@ -104,10 +103,10 @@ def get_action_storage_key(ctx: ExecutionContext, filename: str) -> str:
 def store_action_artifact(
     ctx: ExecutionContext,
     filename: str,
-    data: Union[bytes, BinaryIO],
+    data: bytes | BinaryIO,
     *,
     mime_type: str = "application/octet-stream",
-    metadata: Optional[Dict[str, str]] = None,
+    metadata: dict[str, str] | None = None,
 ) -> ArtifactMetadata:
     """
     Store an artifact for the current action using the ArtifactStore.
@@ -137,7 +136,7 @@ def store_action_artifact(
     )
 
 
-def get_deal_storage_key(deal_id: str, category: str, filename: str, subcategory: Optional[str] = None) -> str:
+def get_deal_storage_key(deal_id: str, category: str, filename: str, subcategory: str | None = None) -> str:
     """
     Build a storage key for a deal artifact following the spec convention.
 
@@ -158,11 +157,11 @@ def store_deal_artifact(
     deal_id: str,
     category: str,
     filename: str,
-    data: Union[bytes, BinaryIO],
+    data: bytes | BinaryIO,
     *,
-    subcategory: Optional[str] = None,
+    subcategory: str | None = None,
     mime_type: str = "application/octet-stream",
-    metadata: Optional[Dict[str, str]] = None,
+    metadata: dict[str, str] | None = None,
 ) -> ArtifactMetadata:
     """
     Store an artifact for a deal using the standard key convention.

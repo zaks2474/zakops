@@ -4,12 +4,16 @@ import json
 import re
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 from actions.engine.models import ActionError, ActionPayload, ArtifactMetadata, now_utc_iso
 from actions.executors._artifacts import resolve_action_artifact_dir
-from actions.executors.base import ActionExecutionError, ActionExecutor, ExecutionContext, ExecutionResult
-
+from actions.executors.base import (
+    ActionExecutionError,
+    ActionExecutor,
+    ExecutionContext,
+    ExecutionResult,
+)
 
 _MONEY_RE = re.compile(
     r"(?P<prefix>\\$)?(?P<num>\\d{1,3}(?:,\\d{3})*(?:\\.\\d+)?|\\d+(?:\\.\\d+)?)\\s*(?P<scale>mm|m|million|k|thousand|b|bn|billion)?",
@@ -31,7 +35,7 @@ def _safe_read_text(path: Path, *, max_bytes: int) -> str:
         return raw.decode("utf-8", errors="replace")
 
 
-def _detect_doc_type(filename: str) -> Tuple[str, float]:
+def _detect_doc_type(filename: str) -> tuple[str, float]:
     name = (filename or "").lower()
     if "nda" in name or "non-disclosure" in name or "confidentiality" in name:
         return "nda", 0.9
@@ -50,8 +54,8 @@ def _detect_doc_type(filename: str) -> Tuple[str, float]:
     return "other", 0.3
 
 
-def _extract_numbers(text: str) -> List[Dict[str, Any]]:
-    out: List[Dict[str, Any]] = []
+def _extract_numbers(text: str) -> list[dict[str, Any]]:
+    out: list[dict[str, Any]] = []
     if not text:
         return out
 
@@ -69,7 +73,7 @@ def _extract_numbers(text: str) -> List[Dict[str, Any]]:
     return out
 
 
-def _extract_metrics(text: str) -> List[str]:
+def _extract_metrics(text: str) -> list[str]:
     if not text:
         return []
     metrics = set(m.group(1).lower() for m in _METRIC_RE.finditer(text))
@@ -97,7 +101,7 @@ class ExtractEmailArtifactsExecutor(ActionExecutor):
 
     action_type = "DEAL.EXTRACT_EMAIL_ARTIFACTS"
 
-    def validate(self, payload: ActionPayload) -> tuple[bool, Optional[str]]:
+    def validate(self, payload: ActionPayload) -> tuple[bool, str | None]:
         inputs = payload.inputs or {}
         artifact_paths = inputs.get("artifact_paths")
         if not isinstance(artifact_paths, list) or not artifact_paths:
@@ -128,13 +132,13 @@ class ExtractEmailArtifactsExecutor(ActionExecutor):
         deal_path = Path(deal_folder).expanduser().resolve()
 
         artifact_paths_raw = inputs.get("artifact_paths") or []
-        artifact_paths: List[Path] = []
+        artifact_paths: list[Path] = []
         for raw in artifact_paths_raw:
             if not isinstance(raw, str) or not raw.strip():
                 continue
             artifact_paths.append(Path(raw).expanduser().resolve())
 
-        signals: List[ArtifactSignal] = []
+        signals: list[ArtifactSignal] = []
         combined_text = ""
 
         for ap in artifact_paths:
@@ -222,7 +226,7 @@ class ExtractEmailArtifactsExecutor(ActionExecutor):
             ArtifactMetadata(filename=doc_types_path.name, mime_type="application/json", path=str(doc_types_path), created_at=now_utc_iso()),
         ]
 
-        outputs: Dict[str, Any] = {
+        outputs: dict[str, Any] = {
             "deal_id": payload.deal_id or inputs.get("deal_id"),
             "deal_path": str(deal_path),
             "artifacts_scanned": len(signals),

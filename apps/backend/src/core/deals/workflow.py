@@ -4,13 +4,13 @@ Deal Workflow Engine
 Manages deal stage transitions with validation, events, and idempotency.
 """
 
-from datetime import datetime, timezone, timedelta
-from typing import Optional, Dict, Any, List
-from uuid import UUID
-from enum import Enum
-from dataclasses import dataclass, field
 import json
 import logging
+from dataclasses import dataclass, field
+from datetime import UTC, datetime
+from enum import Enum
+from typing import Any
+from uuid import UUID
 
 from ..database.adapter import get_database
 from ..events import publish_deal_event
@@ -33,7 +33,7 @@ class DealStage(str, Enum):
 
 
 # Valid stage transitions
-STAGE_TRANSITIONS: Dict[DealStage, List[DealStage]] = {
+STAGE_TRANSITIONS: dict[DealStage, list[DealStage]] = {
     DealStage.INBOUND: [DealStage.INITIAL_REVIEW, DealStage.CLOSED_LOST, DealStage.ARCHIVED],
     DealStage.INITIAL_REVIEW: [DealStage.DUE_DILIGENCE, DealStage.INBOUND, DealStage.CLOSED_LOST],
     DealStage.DUE_DILIGENCE: [DealStage.NEGOTIATION, DealStage.INITIAL_REVIEW, DealStage.CLOSED_LOST],
@@ -52,9 +52,9 @@ class StageTransition:
     deal_id: str
     from_stage: str
     to_stage: str
-    transitioned_by: Optional[str] = None
-    reason: Optional[str] = None
-    timestamp: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    transitioned_by: str | None = None
+    reason: str | None = None
+    timestamp: datetime = field(default_factory=lambda: datetime.now(UTC))
     idempotent_hit: bool = False  # True if this was a duplicate request
 
 
@@ -63,7 +63,7 @@ class DealWorkflowEngine:
     Manages deal lifecycle and stage transitions.
     """
 
-    async def get_valid_transitions(self, deal_id: str) -> List[str]:
+    async def get_valid_transitions(self, deal_id: str) -> list[str]:
         """Get valid next stages for a deal."""
         db = await get_database()
 
@@ -88,10 +88,10 @@ class DealWorkflowEngine:
         self,
         deal_id: str,
         new_stage: str,
-        idempotency_key: Optional[str] = None,
-        transitioned_by: Optional[str] = None,
-        reason: Optional[str] = None,
-        trace_id: Optional[str] = None
+        idempotency_key: str | None = None,
+        transitioned_by: str | None = None,
+        reason: str | None = None,
+        trace_id: str | None = None
     ) -> StageTransition:
         """
         Transition a deal to a new stage (idempotent).
@@ -174,7 +174,7 @@ class DealWorkflowEngine:
                 to_stage=new_stage,
                 transitioned_by=transitioned_by,
                 reason="Already in target stage (no-op)",
-                timestamp=datetime.now(timezone.utc),
+                timestamp=datetime.now(UTC),
                 idempotent_hit=True
             )
 
@@ -193,7 +193,7 @@ class DealWorkflowEngine:
             )
 
         # Perform transition
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
 
         await db.execute(
             """
@@ -255,7 +255,7 @@ class DealWorkflowEngine:
             idempotent_hit=False
         )
 
-    async def get_stage_history(self, deal_id: str) -> List[Dict[str, Any]]:
+    async def get_stage_history(self, deal_id: str) -> list[dict[str, Any]]:
         """Get stage transition history for a deal."""
         db = await get_database()
 
@@ -289,7 +289,7 @@ class DealWorkflowEngine:
 
         return result
 
-    async def get_deal_stages_summary(self) -> Dict[str, int]:
+    async def get_deal_stages_summary(self) -> dict[str, int]:
         """Get count of deals in each stage."""
         db = await get_database()
 
@@ -307,7 +307,7 @@ class DealWorkflowEngine:
 
 
 # Singleton instance
-_workflow_engine: Optional[DealWorkflowEngine] = None
+_workflow_engine: DealWorkflowEngine | None = None
 
 
 async def get_workflow_engine() -> DealWorkflowEngine:

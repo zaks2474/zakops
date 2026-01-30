@@ -7,37 +7,43 @@ FastAPI-based REST API for the Deal Lifecycle Engine UI.
 Provides endpoints for deals, actions, quarantine, and pipeline management.
 """
 
-import os
 import json
-import asyncio
-from datetime import datetime, timezone
-from typing import Optional, List, Any, Dict
+import os
 from contextlib import asynccontextmanager
+from datetime import UTC, datetime
+from typing import Any
 
 import asyncpg
-from fastapi import FastAPI, HTTPException, Query, WebSocket, WebSocketDisconnect, Depends
+from fastapi import Depends, FastAPI, HTTPException, Query, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel, Field, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 
 # Phase 5: API Stabilization - Middleware imports
-from ..shared.middleware import register_error_handlers, TraceMiddleware
 # Phase 7: Authentication - Middleware and router imports
-from ..shared.middleware import AuthMiddleware
+# Phase 15: Observability
+from ..shared.middleware import (
+    AuthMiddleware,
+    TraceMiddleware,
+    TracingMiddleware,
+    register_error_handlers,
+)
+from ..shared.openapi import setup_openapi
 from ..shared.routers.auth import router as auth_router
+
 # Phase 8: Health endpoints
 from ..shared.routers.health import router as health_router
-from ..shared.openapi import setup_openapi
-# Phase 10: Agent Integration
-from .routers.invoke import router as agent_router
+from ..shared.security import SecurityMiddleware
+
 # Phase 13: Production Hardening
 from .routers.admin import router as admin_router
-from ..shared.security import SecurityMiddleware
-# Phase 15: Observability
-from ..shared.middleware import TracingMiddleware
-# Phase 16: Feature Development
-from .routers.workflow import router as workflow_router
+
+# Phase 10: Agent Integration
+from .routers.invoke import router as agent_router
 from .routers.search import router as search_router
 from .routers.timeline import router as timeline_router
+
+# Phase 16: Feature Development
+from .routers.workflow import router as workflow_router
 
 # Configuration
 DB_URL = os.environ.get(
@@ -48,7 +54,7 @@ API_HOST = os.environ.get("API_HOST", "0.0.0.0")
 API_PORT = int(os.environ.get("API_PORT", "9200"))
 
 # Database connection pool
-db_pool: Optional[asyncpg.Pool] = None
+db_pool: asyncpg.Pool | None = None
 
 
 # =============================================================================
@@ -57,75 +63,75 @@ db_pool: Optional[asyncpg.Pool] = None
 
 class DealBase(BaseModel):
     canonical_name: str
-    display_name: Optional[str] = None
-    folder_path: Optional[str] = None
+    display_name: str | None = None
+    folder_path: str | None = None
     stage: str = "inbound"
     status: str = "active"
 
 
 class DealCreate(DealBase):
-    identifiers: Optional[Dict[str, Any]] = None
-    company_info: Optional[Dict[str, Any]] = None
-    broker: Optional[Dict[str, Any]] = None
-    metadata: Optional[Dict[str, Any]] = None
+    identifiers: dict[str, Any] | None = None
+    company_info: dict[str, Any] | None = None
+    broker: dict[str, Any] | None = None
+    metadata: dict[str, Any] | None = None
 
 
 class DealUpdate(BaseModel):
-    canonical_name: Optional[str] = None
-    display_name: Optional[str] = None
-    folder_path: Optional[str] = None
-    stage: Optional[str] = None
-    status: Optional[str] = None
-    identifiers: Optional[Dict[str, Any]] = None
-    company_info: Optional[Dict[str, Any]] = None
-    broker: Optional[Dict[str, Any]] = None
-    metadata: Optional[Dict[str, Any]] = None
+    canonical_name: str | None = None
+    display_name: str | None = None
+    folder_path: str | None = None
+    stage: str | None = None
+    status: str | None = None
+    identifiers: dict[str, Any] | None = None
+    company_info: dict[str, Any] | None = None
+    broker: dict[str, Any] | None = None
+    metadata: dict[str, Any] | None = None
 
 
 class DealResponse(BaseModel):
     deal_id: str
     canonical_name: str
-    display_name: Optional[str]
-    folder_path: Optional[str]
+    display_name: str | None
+    folder_path: str | None
     stage: str
     status: str
-    identifiers: Dict[str, Any]
-    company_info: Dict[str, Any]
-    broker: Dict[str, Any]
-    metadata: Dict[str, Any]
-    email_thread_ids: List[str]
+    identifiers: dict[str, Any]
+    company_info: dict[str, Any]
+    broker: dict[str, Any]
+    metadata: dict[str, Any]
+    email_thread_ids: list[str]
     created_at: datetime
     updated_at: datetime
-    days_since_update: Optional[float] = None
-    action_count: Optional[int] = None
-    alias_count: Optional[int] = None
+    days_since_update: float | None = None
+    action_count: int | None = None
+    alias_count: int | None = None
 
     model_config = ConfigDict(from_attributes=True)
 
 
 class ActionResponse(BaseModel):
     action_id: str
-    deal_id: Optional[str]
+    deal_id: str | None
     capability_id: str
     action_type: str
     title: str
-    summary: Optional[str]
+    summary: str | None
     status: str
     created_at: datetime
     updated_at: datetime
     risk_level: str
     requires_human_review: bool
-    inputs: Dict[str, Any]
-    outputs: Dict[str, Any]
-    deal_name: Optional[str] = None
-    deal_stage: Optional[str] = None
+    inputs: dict[str, Any]
+    outputs: dict[str, Any]
+    deal_name: str | None = None
+    deal_stage: str | None = None
 
     model_config = ConfigDict(from_attributes=True)
 
 
 class ActionApprove(BaseModel):
     approved_by: str = "ui_user"
-    notes: Optional[str] = None
+    notes: str | None = None
 
 
 class ActionReject(BaseModel):
@@ -135,21 +141,21 @@ class ActionReject(BaseModel):
 
 class QuarantineResponse(BaseModel):
     id: str
-    message_id: Optional[str]
-    email_subject: Optional[str]
-    sender: Optional[str]
-    sender_domain: Optional[str]
-    received_at: Optional[datetime]
+    message_id: str | None
+    email_subject: str | None
+    sender: str | None
+    sender_domain: str | None
+    received_at: datetime | None
     classification: str
     urgency: str
-    confidence: Optional[float]
-    company_name: Optional[str]
-    broker_name: Optional[str]
+    confidence: float | None
+    company_name: str | None
+    broker_name: str | None
     status: str
     created_at: datetime
-    sender_name: Optional[str] = None
-    sender_company: Optional[str] = None
-    is_broker: Optional[bool] = None
+    sender_name: str | None = None
+    sender_company: str | None = None
+    is_broker: bool | None = None
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -157,14 +163,14 @@ class QuarantineResponse(BaseModel):
 class QuarantineProcess(BaseModel):
     action: str = Field(..., pattern="^(approve|reject)$")
     processed_by: str = "ui_user"
-    deal_id: Optional[str] = None
-    notes: Optional[str] = None
+    deal_id: str | None = None
+    notes: str | None = None
 
 
 class PipelineSummary(BaseModel):
     stage: str
     count: int
-    avg_days_in_stage: Optional[float]
+    avg_days_in_stage: float | None
 
 
 class DealEvent(BaseModel):
@@ -172,8 +178,8 @@ class DealEvent(BaseModel):
     deal_id: str
     event_type: str
     source: str
-    actor: Optional[str]
-    details: Dict[str, Any]
+    actor: str | None
+    details: dict[str, Any]
     created_at: datetime
 
     model_config = ConfigDict(from_attributes=True)
@@ -190,7 +196,7 @@ async def get_db() -> asyncpg.Pool:
     return db_pool
 
 
-def record_to_dict(record: asyncpg.Record) -> Dict[str, Any]:
+def record_to_dict(record: asyncpg.Record) -> dict[str, Any]:
     """Convert asyncpg Record to dict, handling JSON fields."""
     result = dict(record)
     for key, value in result.items():
@@ -210,7 +216,7 @@ def record_to_dict(record: asyncpg.Record) -> Dict[str, Any]:
 
 def init_observability():
     """Initialize observability components (tracing, metrics, logging)."""
-    from ...core.observability import init_tracing, init_metrics, configure_logging
+    from ...core.observability import configure_logging, init_metrics, init_tracing
 
     # Get OTel config from environment
     otlp_endpoint = os.getenv("OTEL_EXPORTER_OTLP_ENDPOINT")
@@ -332,11 +338,11 @@ setup_openapi(app)
 # DEALS ENDPOINTS
 # =============================================================================
 
-@app.get("/api/deals", response_model=List[DealResponse])
+@app.get("/api/deals", response_model=list[DealResponse])
 async def list_deals(
-    stage: Optional[str] = Query(None, description="Filter by stage"),
-    status: Optional[str] = Query("active", description="Filter by status"),
-    search: Optional[str] = Query(None, description="Search in name"),
+    stage: str | None = Query(None, description="Filter by stage"),
+    status: str | None = Query("active", description="Filter by status"),
+    search: str | None = Query(None, description="Search in name"),
     limit: int = Query(50, ge=1, le=200),
     offset: int = Query(0, ge=0),
     pool: asyncpg.Pool = Depends(get_db)
@@ -508,7 +514,7 @@ async def update_deal(
     return record_to_dict(row)
 
 
-@app.get("/api/deals/{deal_id}/events", response_model=List[DealEvent])
+@app.get("/api/deals/{deal_id}/events", response_model=list[DealEvent])
 async def get_deal_events(
     deal_id: str,
     limit: int = Query(50, ge=1, le=200),
@@ -547,10 +553,10 @@ async def get_deal_aliases(deal_id: str, pool: asyncpg.Pool = Depends(get_db)):
 # ACTIONS ENDPOINTS
 # =============================================================================
 
-@app.get("/api/actions", response_model=List[ActionResponse])
+@app.get("/api/actions", response_model=list[ActionResponse])
 async def list_actions(
-    status: Optional[str] = Query(None, description="Filter by status"),
-    deal_id: Optional[str] = Query(None, description="Filter by deal"),
+    status: str | None = Query(None, description="Filter by status"),
+    deal_id: str | None = Query(None, description="Filter by deal"),
     pending_only: bool = Query(False, description="Show only pending actions"),
     limit: int = Query(50, ge=1, le=200),
     offset: int = Query(0, ge=0),
@@ -650,7 +656,7 @@ async def approve_action(
             json.dumps([{
                 "action": "approved",
                 "by": approval.approved_by,
-                "at": datetime.now(timezone.utc).isoformat(),
+                "at": datetime.now(UTC).isoformat(),
                 "notes": approval.notes
             }])
         )
@@ -689,7 +695,7 @@ async def reject_action(
             json.dumps([{
                 "action": "rejected",
                 "by": rejection.rejected_by,
-                "at": datetime.now(timezone.utc).isoformat(),
+                "at": datetime.now(UTC).isoformat(),
                 "reason": rejection.reason
             }])
         )
@@ -701,10 +707,10 @@ async def reject_action(
 # QUARANTINE ENDPOINTS
 # =============================================================================
 
-@app.get("/api/quarantine", response_model=List[QuarantineResponse])
+@app.get("/api/quarantine", response_model=list[QuarantineResponse])
 async def list_quarantine(
-    status: Optional[str] = Query("pending", description="Filter by status"),
-    classification: Optional[str] = Query(None, description="Filter by classification"),
+    status: str | None = Query("pending", description="Filter by status"),
+    classification: str | None = Query(None, description="Filter by classification"),
     limit: int = Query(50, ge=1, le=200),
     offset: int = Query(0, ge=0),
     pool: asyncpg.Pool = Depends(get_db)
@@ -820,7 +826,7 @@ async def process_quarantine(
 # PIPELINE ENDPOINTS
 # =============================================================================
 
-@app.get("/api/pipeline/summary", response_model=List[PipelineSummary])
+@app.get("/api/pipeline/summary", response_model=list[PipelineSummary])
 async def get_pipeline_summary(pool: asyncpg.Pool = Depends(get_db)):
     """Get pipeline summary with deal counts per stage."""
     query = """
@@ -883,55 +889,46 @@ async def get_pipeline_stats(pool: asyncpg.Pool = Depends(get_db)):
 # AGENT THREAD/RUN ENDPOINTS (Phase 2 - Agent Invocation)
 # =============================================================================
 
-from starlette.responses import StreamingResponse
 
 # Import agent invocation module
 import sys
+
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from agent_invocation import (
-    create_thread,
-    get_thread,
-    archive_thread,
-    create_run,
-    get_run,
-    list_runs,
-    start_run,
-    complete_run,
-    fail_run,
-    emit_stream_token,
-    create_tool_call,
-    get_tool_call,
-    approve_tool_call,
-    reject_tool_call,
-    complete_tool_call,
-    fail_tool_call,
-    record_event,
-    get_events_since,
-    create_sse_response,
-    thread_to_dict,
-    run_to_dict,
-    tool_call_to_dict,
-    event_to_dict,
-    ThreadStatus,
+    AgentEventType,
     RunStatus,
     ToolCallStatus,
-    ToolRiskLevel,
-    AgentEventType,
+    approve_tool_call,
+    archive_thread,
+    create_run,
+    create_sse_response,
+    create_thread,
+    event_to_dict,
+    get_events_since,
+    get_run,
+    get_thread,
+    get_tool_call,
+    list_runs,
+    record_event,
+    reject_tool_call,
+    run_to_dict,
+    thread_to_dict,
+    tool_call_to_dict,
 )
 
 
 class ThreadCreate(BaseModel):
     assistant_id: str
-    deal_id: Optional[str] = None
-    user_id: Optional[str] = None
-    metadata: Optional[Dict[str, Any]] = None
-    user_context: Optional[Dict[str, Any]] = None
+    deal_id: str | None = None
+    user_id: str | None = None
+    metadata: dict[str, Any] | None = None
+    user_context: dict[str, Any] | None = None
 
 
 class RunCreate(BaseModel):
     input_message: str
-    assistant_id: Optional[str] = None  # Override thread's assistant_id
-    metadata: Optional[Dict[str, Any]] = None
+    assistant_id: str | None = None  # Override thread's assistant_id
+    metadata: dict[str, Any] | None = None
     stream: bool = False  # Whether to stream response
 
 
@@ -979,7 +976,7 @@ async def api_archive_thread(thread_id: str):
 @app.get("/api/threads/{thread_id}/runs")
 async def api_list_runs(
     thread_id: str,
-    status: Optional[str] = Query(None),
+    status: str | None = Query(None),
     limit: int = Query(20, ge=1, le=100),
 ):
     """List runs for a thread."""
@@ -1023,7 +1020,7 @@ async def api_create_run(thread_id: str, data: RunCreate):
 async def api_create_and_stream_run(
     thread_id: str,
     data: RunCreate,
-    last_event_id: Optional[str] = Query(None, alias="Last-Event-ID"),
+    last_event_id: str | None = Query(None, alias="Last-Event-ID"),
 ):
     """Create a run and stream events via SSE.
 
@@ -1067,7 +1064,7 @@ async def api_get_run(thread_id: str, run_id: str):
 async def api_get_run_events(
     thread_id: str,
     run_id: str,
-    last_event_id: Optional[str] = Query(None),
+    last_event_id: str | None = Query(None),
     limit: int = Query(100, ge=1, le=500),
 ):
     """Get events for a run, optionally starting after a specific event."""
@@ -1083,7 +1080,7 @@ async def api_get_run_events(
 async def api_stream_run_events(
     thread_id: str,
     run_id: str,
-    last_event_id: Optional[str] = Query(None, alias="Last-Event-ID"),
+    last_event_id: str | None = Query(None, alias="Last-Event-ID"),
 ):
     """Stream events for an existing run via SSE.
 
@@ -1279,7 +1276,7 @@ class ConnectionManager:
     """Manage WebSocket connections for real-time updates."""
 
     def __init__(self):
-        self.active_connections: List[WebSocket] = []
+        self.active_connections: list[WebSocket] = []
 
     async def connect(self, websocket: WebSocket):
         await websocket.accept()
@@ -1320,7 +1317,7 @@ async def websocket_updates(websocket: WebSocket):
 
 @app.get("/api/senders")
 async def list_senders(
-    is_broker: Optional[bool] = Query(None),
+    is_broker: bool | None = Query(None),
     limit: int = Query(50, ge=1, le=200),
     pool: asyncpg.Pool = Depends(get_db)
 ):

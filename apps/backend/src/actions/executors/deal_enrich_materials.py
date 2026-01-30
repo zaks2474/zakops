@@ -4,14 +4,18 @@ import json
 import os
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 import requests
-
-from actions.engine.models import ActionError, ActionPayload, now_utc_iso
-from actions.executors._artifacts import resolve_action_artifact_dir
-from actions.executors.base import ActionExecutionError, ActionExecutor, ExecutionContext, ExecutionResult
 from integrations.n8n_webhook import emit_auth_required_links_detected
+
+from actions.engine.models import ActionPayload, now_utc_iso
+from actions.executors._artifacts import resolve_action_artifact_dir
+from actions.executors.base import (
+    ActionExecutor,
+    ExecutionContext,
+    ExecutionResult,
+)
 
 
 def _dataroom_root() -> Path:
@@ -44,12 +48,12 @@ class LinkRecord:
     url: str
     type: str
     auth_required: bool
-    vendor_hint: Optional[str] = None
+    vendor_hint: str | None = None
 
 
-def _extract_links_from_inputs(inputs: Dict[str, Any]) -> List[LinkRecord]:
+def _extract_links_from_inputs(inputs: dict[str, Any]) -> list[LinkRecord]:
     links_in = inputs.get("links")
-    out: List[LinkRecord] = []
+    out: list[LinkRecord] = []
     if isinstance(links_in, list):
         for item in links_in:
             if not isinstance(item, dict):
@@ -68,8 +72,8 @@ def _extract_links_from_inputs(inputs: Dict[str, Any]) -> List[LinkRecord]:
     return out
 
 
-def _extract_links_from_artifacts(artifact_paths: List[Path]) -> List[LinkRecord]:
-    links: List[LinkRecord] = []
+def _extract_links_from_artifacts(artifact_paths: list[Path]) -> list[LinkRecord]:
+    links: list[LinkRecord] = []
     for p in artifact_paths:
         if not p.exists() or not p.is_file():
             continue
@@ -98,14 +102,14 @@ def _extract_links_from_artifacts(artifact_paths: List[Path]) -> List[LinkRecord
     return links
 
 
-def _write_link_intake_queue(*, deal_id: Optional[str], links: List[LinkRecord], source: Dict[str, Any]) -> Dict[str, Any]:
+def _write_link_intake_queue(*, deal_id: str | None, links: list[LinkRecord], source: dict[str, Any]) -> dict[str, Any]:
     """
     Append auth-required links into a global intake queue for operator follow-up.
     """
     queue_path = _dataroom_root() / ".deal-registry" / "link_intake_queue.json"
     queue_path.parent.mkdir(parents=True, exist_ok=True)
     payload = _load_json(queue_path)
-    items: List[Dict[str, Any]] = []
+    items: list[dict[str, Any]] = []
     if isinstance(payload, dict) and isinstance(payload.get("items"), list):
         items = [x for x in payload.get("items") if isinstance(x, dict)]
 
@@ -149,7 +153,7 @@ class EnrichMaterialsExecutor(ActionExecutor):
 
     action_type = "DEAL.ENRICH_MATERIALS"
 
-    def validate(self, payload: ActionPayload) -> tuple[bool, Optional[str]]:
+    def validate(self, payload: ActionPayload) -> tuple[bool, str | None]:
         inputs = payload.inputs or {}
         artifact_paths = inputs.get("artifact_paths")
         if not isinstance(artifact_paths, list) or not artifact_paths:
@@ -161,7 +165,7 @@ class EnrichMaterialsExecutor(ActionExecutor):
 
         inputs = payload.inputs or {}
         artifact_paths_raw = inputs.get("artifact_paths") or []
-        artifact_paths: List[Path] = []
+        artifact_paths: list[Path] = []
         for raw in artifact_paths_raw if isinstance(artifact_paths_raw, list) else []:
             if isinstance(raw, str) and raw.strip():
                 artifact_paths.append(Path(raw).expanduser().resolve())
@@ -169,7 +173,7 @@ class EnrichMaterialsExecutor(ActionExecutor):
         # Link extraction sources:
         # - explicit inputs.links
         # - any manifest/links json files included in artifact_paths
-        links: List[LinkRecord] = []
+        links: list[LinkRecord] = []
         links.extend(_extract_links_from_inputs(inputs))
         links.extend(_extract_links_from_artifacts(artifact_paths))
 
@@ -187,7 +191,7 @@ class EnrichMaterialsExecutor(ActionExecutor):
                     links.extend(_extract_links_from_artifacts([bundle_dir / name]))
 
         # Dedup links by url
-        deduped: List[LinkRecord] = []
+        deduped: list[LinkRecord] = []
         seen = set()
         for l in links:
             if not l.url or l.url in seen:
@@ -217,7 +221,7 @@ class EnrichMaterialsExecutor(ActionExecutor):
             pass
 
         # Optional: download public links (best-effort; disabled by default).
-        downloads: List[Dict[str, Any]] = []
+        downloads: list[dict[str, Any]] = []
         allow_downloads = (os.getenv("ZAKOPS_ENRICH_DOWNLOAD_PUBLIC_LINKS") or "").strip().lower() in {"1", "true", "yes", "on"}
         if allow_downloads:
             out_dir = resolve_action_artifact_dir(ctx) / "link_snapshots"

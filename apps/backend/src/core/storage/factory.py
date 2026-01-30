@@ -16,8 +16,6 @@ from __future__ import annotations
 
 import logging
 import os
-from functools import lru_cache
-from typing import Optional
 
 from .base import ArtifactStore, StorageBackend
 from .local import LocalFilesystemArtifactStore
@@ -25,11 +23,11 @@ from .local import LocalFilesystemArtifactStore
 logger = logging.getLogger(__name__)
 
 # Global singleton instance
-_default_store: Optional[ArtifactStore] = None
+_default_store: ArtifactStore | None = None
 
 
 def get_artifact_store(
-    backend: Optional[str] = None,
+    backend: str | None = None,
     *,
     force_new: bool = False,
     **kwargs,

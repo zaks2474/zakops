@@ -1,23 +1,23 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Any, Dict, Optional
+from typing import Any
 
 
 @dataclass
 class ActionCreationValidationError(Exception):
     code: str
     message: str
-    details: Optional[Dict[str, Any]] = None
+    details: dict[str, Any] | None = None
 
-    def to_dict(self) -> Dict[str, Any]:
-        payload: Dict[str, Any] = {"code": self.code, "message": self.message}
+    def to_dict(self) -> dict[str, Any]:
+        payload: dict[str, Any] = {"code": self.code, "message": self.message}
         if self.details:
             payload["details"] = self.details
         return payload
 
 
-def validate_action_creation(*, action_type: str, capability_id: Optional[str] = None) -> None:
+def validate_action_creation(*, action_type: str, capability_id: str | None = None) -> None:
     """
     Validate that an action can run *before* writing it to the Actions store.
 
@@ -64,8 +64,9 @@ def validate_action_creation(*, action_type: str, capability_id: Optional[str] =
     if not cap_id:
         return
 
-    from actions.capabilities.registry import get_registry as get_capability_registry
     from tools.registry import get_tool_registry
+
+    from actions.capabilities.registry import get_registry as get_capability_registry
 
     cap_reg = get_capability_registry()
     # Ensure tool capabilities are discoverable.

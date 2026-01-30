@@ -2,11 +2,12 @@ from __future__ import annotations
 
 import asyncio
 import threading
-from typing import Any, Dict, Optional
+from typing import Any
 
-from actions.engine.models import ActionError, ActionPayload
 from tools.gateway import ToolErrorCode, ToolInvocationContext, ToolResult, get_tool_gateway
 from tools.registry import get_tool_registry
+
+from actions.engine.models import ActionError, ActionPayload
 
 from .base import ActionExecutionError, ActionExecutor, ExecutionContext, ExecutionResult
 
@@ -23,8 +24,8 @@ def _run_coro_blocking(coro):
     except RuntimeError:
         return asyncio.run(coro)
 
-    result: Dict[str, Any] = {}
-    error: Dict[str, BaseException] = {}
+    result: dict[str, Any] = {}
+    error: dict[str, BaseException] = {}
 
     def _thread_main() -> None:
         try:
@@ -75,7 +76,7 @@ class ToolInvokeExecutor(ActionExecutor):
             return ""
         return at.split(".", 1)[1].strip()
 
-    def validate(self, payload: ActionPayload) -> tuple[bool, Optional[str]]:
+    def validate(self, payload: ActionPayload) -> tuple[bool, str | None]:
         tool_name = self._tool_name_from_action_type(payload.type)
         if not tool_name:
             return False, "Invalid tool action_type; expected TOOL.<tool_id>"

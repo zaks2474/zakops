@@ -4,11 +4,11 @@ Deal Workflow API
 Endpoints for managing deal stage transitions with idempotency support.
 """
 
-from typing import Optional, List
-from fastapi import APIRouter, HTTPException, Query, Header
+
+from fastapi import APIRouter, Header, HTTPException, Query
 from pydantic import BaseModel, Field
 
-from ....core.deals.workflow import get_workflow_engine, DealStage
+from ....core.deals.workflow import DealStage, get_workflow_engine
 
 router = APIRouter(prefix="/api/deals", tags=["workflow"])
 
@@ -16,8 +16,8 @@ router = APIRouter(prefix="/api/deals", tags=["workflow"])
 class TransitionRequest(BaseModel):
     """Request to transition deal stage."""
     new_stage: str
-    reason: Optional[str] = None
-    idempotency_key: Optional[str] = Field(
+    reason: str | None = None
+    idempotency_key: str | None = Field(
         None,
         description="Unique key for safe retries. Same key within 24h returns cached result.",
         max_length=64
@@ -37,8 +37,8 @@ class TransitionResponse(BaseModel):
 class ValidTransitionsResponse(BaseModel):
     """Response with valid transitions."""
     deal_id: str
-    current_stage: Optional[str] = None
-    valid_transitions: List[str]
+    current_stage: str | None = None
+    valid_transitions: list[str]
 
 
 @router.get("/{deal_id}/valid-transitions", response_model=ValidTransitionsResponse)
@@ -60,9 +60,9 @@ async def get_valid_transitions(deal_id: str):
 async def transition_deal_stage(
     deal_id: str,
     body: TransitionRequest,
-    transitioned_by: Optional[str] = Query(None, description="User performing the transition"),
-    x_idempotency_key: Optional[str] = Header(None, alias="X-Idempotency-Key"),
-    x_trace_id: Optional[str] = Header(None, alias="X-Trace-ID")
+    transitioned_by: str | None = Query(None, description="User performing the transition"),
+    x_idempotency_key: str | None = Header(None, alias="X-Idempotency-Key"),
+    x_trace_id: str | None = Header(None, alias="X-Trace-ID")
 ):
     """
     Transition a deal to a new stage.
@@ -108,7 +108,7 @@ async def get_stage_history(deal_id: str):
 
     try:
         # Verify deal exists first
-        valid_transitions = await engine.get_valid_transitions(deal_id)
+        await engine.get_valid_transitions(deal_id)
         history = await engine.get_stage_history(deal_id)
         return {"deal_id": deal_id, "history": history}
     except ValueError as e:

@@ -7,11 +7,11 @@ Phase 13: Production Hardening
 """
 
 import logging
-from datetime import datetime, timezone
-from typing import List, Optional, Dict, Any
-from uuid import UUID
 from dataclasses import dataclass
+from datetime import datetime
 from enum import Enum
+from typing import Any
+from uuid import UUID
 
 from ..database.adapter import get_database
 from .models import OutboxStatus
@@ -32,14 +32,14 @@ class DLQEntry:
     id: UUID
     correlation_id: str
     event_type: str
-    event_data: Dict[str, Any]
+    event_data: dict[str, Any]
     attempts: int
     max_attempts: int
-    last_error: Optional[str]
+    last_error: str | None
     created_at: datetime
     failed_at: datetime
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "id": str(self.id),
             "correlation_id": str(self.correlation_id),
@@ -68,8 +68,8 @@ class DLQManager:
         self,
         limit: int = 100,
         offset: int = 0,
-        correlation_id: Optional[str] = None
-    ) -> List[DLQEntry]:
+        correlation_id: str | None = None
+    ) -> list[DLQEntry]:
         """Get DLQ entries."""
         db = await get_database()
 
@@ -115,7 +115,7 @@ class DLQManager:
             for row in rows
         ]
 
-    async def get_count(self, correlation_id: Optional[str] = None) -> int:
+    async def get_count(self, correlation_id: str | None = None) -> int:
         """Get total DLQ entry count."""
         db = await get_database()
 
@@ -132,7 +132,7 @@ class DLQManager:
 
         return result["count"] if result else 0
 
-    async def retry_entry(self, entry_id: UUID, operator_id: Optional[str] = None) -> bool:
+    async def retry_entry(self, entry_id: UUID, operator_id: str | None = None) -> bool:
         """
         Retry a DLQ entry by resetting its status.
 
@@ -170,8 +170,8 @@ class DLQManager:
 
     async def retry_all(
         self,
-        correlation_id: Optional[str] = None,
-        operator_id: Optional[str] = None
+        correlation_id: str | None = None,
+        operator_id: str | None = None
     ) -> int:
         """Retry all DLQ entries (optionally filtered by correlation_id)."""
         db = await get_database()
@@ -204,7 +204,7 @@ class DLQManager:
 
         return count
 
-    async def purge_entry(self, entry_id: UUID, operator_id: Optional[str] = None) -> bool:
+    async def purge_entry(self, entry_id: UUID, operator_id: str | None = None) -> bool:
         """
         Permanently delete a DLQ entry.
 
@@ -230,27 +230,27 @@ class DLQManager:
 
         return success
 
-    async def purge_old(self, days: int = 30, operator_id: Optional[str] = None) -> int:
+    async def purge_old(self, days: int = 30, operator_id: str | None = None) -> int:
         """Purge DLQ entries older than specified days."""
         db = await get_database()
 
         # Get count first
         result = await db.fetchrow(
-            """
+            f"""
             SELECT COUNT(*) as count FROM zakops.outbox
             WHERE status = $1
-            AND created_at < NOW() - INTERVAL '%s days'
-            """ % days,
+            AND created_at < NOW() - INTERVAL '{days} days'
+            """,
             OutboxStatus.DEAD.value
         )
         count = result["count"] if result else 0
 
         await db.execute(
-            """
+            f"""
             DELETE FROM zakops.outbox
             WHERE status = $1
-            AND created_at < NOW() - INTERVAL '%s days'
-            """ % days,
+            AND created_at < NOW() - INTERVAL '{days} days'
+            """,
             OutboxStatus.DEAD.value
         )
 
@@ -258,7 +258,7 @@ class DLQManager:
 
         return count
 
-    async def get_stats(self) -> Dict[str, Any]:
+    async def get_stats(self) -> dict[str, Any]:
         """Get DLQ statistics."""
         db = await get_database()
 
@@ -293,7 +293,7 @@ class DLQManager:
             "oldest_entry": oldest["oldest"].isoformat() if oldest and oldest["oldest"] else None
         }
 
-    async def _log_action(self, entry_id: UUID, action: DLQAction, operator_id: Optional[str]):
+    async def _log_action(self, entry_id: UUID, action: DLQAction, operator_id: str | None):
         """Log DLQ action for audit."""
         # This could write to an audit table
         logger.info(f"DLQ action: {action.value} on {entry_id} by {operator_id}")

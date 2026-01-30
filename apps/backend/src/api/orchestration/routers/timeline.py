@@ -4,9 +4,9 @@ Activity Timeline API
 Provides unified activity view for deals.
 """
 
-from typing import Optional, List
 from datetime import datetime
-from fastapi import APIRouter, Query, HTTPException
+
+from fastapi import APIRouter, HTTPException, Query
 
 from ....core.database.adapter import get_database
 
@@ -17,8 +17,8 @@ router = APIRouter(prefix="/api/deals", tags=["activity"])
 async def get_deal_timeline(
     deal_id: str,
     limit: int = Query(50, ge=1, le=200),
-    before: Optional[datetime] = None,
-    activity_type: Optional[str] = Query(None, description="Filter by type: stage_change, action, agent_run, event")
+    before: datetime | None = None,
+    activity_type: str | None = Query(None, description="Filter by type: stage_change, action, agent_run, event")
 ):
     """
     Get unified activity timeline for a deal.

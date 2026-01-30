@@ -13,10 +13,10 @@ from __future__ import annotations
 import mimetypes
 import os
 import shutil
-from datetime import datetime, timezone
-from io import BytesIO
+from collections.abc import Iterator
+from datetime import UTC, datetime
 from pathlib import Path
-from typing import BinaryIO, Dict, Iterator, Optional, Union
+from typing import BinaryIO
 
 from .base import ArtifactMetadata, ArtifactStore, StorageBackend
 
@@ -47,7 +47,7 @@ class LocalFilesystemArtifactStore(ArtifactStore):
 
     def __init__(
         self,
-        base_path: Optional[Union[str, Path]] = None,
+        base_path: str | Path | None = None,
         *,
         create_dirs: bool = True,
     ):
@@ -109,11 +109,11 @@ class LocalFilesystemArtifactStore(ArtifactStore):
     def put(
         self,
         key: str,
-        data: Union[bytes, BinaryIO],
+        data: bytes | BinaryIO,
         *,
-        filename: Optional[str] = None,
+        filename: str | None = None,
         mime_type: str = "application/octet-stream",
-        metadata: Optional[Dict[str, str]] = None,
+        metadata: dict[str, str] | None = None,
     ) -> ArtifactMetadata:
         """Store an artifact on the local filesystem."""
         path = self._resolve_path(key)
@@ -158,8 +158,8 @@ class LocalFilesystemArtifactStore(ArtifactStore):
             mime_type=mime_type,
             size_bytes=stat.st_size,
             sha256=sha256,
-            created_at=datetime.fromtimestamp(stat.st_ctime, tz=timezone.utc),
-            modified_at=datetime.fromtimestamp(stat.st_mtime, tz=timezone.utc),
+            created_at=datetime.fromtimestamp(stat.st_ctime, tz=UTC),
+            modified_at=datetime.fromtimestamp(stat.st_mtime, tz=UTC),
             metadata=metadata or {},
         )
 
@@ -283,8 +283,8 @@ class LocalFilesystemArtifactStore(ArtifactStore):
             mime_type=mime_type,
             size_bytes=stat.st_size,
             sha256=None,  # Not computed for metadata-only calls
-            created_at=datetime.fromtimestamp(stat.st_ctime, tz=timezone.utc),
-            modified_at=datetime.fromtimestamp(stat.st_mtime, tz=timezone.utc),
+            created_at=datetime.fromtimestamp(stat.st_ctime, tz=UTC),
+            modified_at=datetime.fromtimestamp(stat.st_mtime, tz=UTC),
             metadata={},
         )
 
@@ -303,11 +303,11 @@ class LocalFilesystemArtifactStore(ArtifactStore):
 
     def copy_from_path(
         self,
-        source_path: Union[str, Path],
+        source_path: str | Path,
         key: str,
         *,
-        mime_type: Optional[str] = None,
-        metadata: Optional[Dict[str, str]] = None,
+        mime_type: str | None = None,
+        metadata: dict[str, str] | None = None,
     ) -> ArtifactMetadata:
         """
         Copy a file from the filesystem into storage.
@@ -344,18 +344,18 @@ class LocalFilesystemArtifactStore(ArtifactStore):
             mime_type=mime_type,
             size_bytes=stat.st_size,
             sha256=sha256,
-            created_at=datetime.fromtimestamp(stat.st_ctime, tz=timezone.utc),
-            modified_at=datetime.fromtimestamp(stat.st_mtime, tz=timezone.utc),
+            created_at=datetime.fromtimestamp(stat.st_ctime, tz=UTC),
+            modified_at=datetime.fromtimestamp(stat.st_mtime, tz=UTC),
             metadata=metadata or {},
         )
 
     def move_to_key(
         self,
-        source_path: Union[str, Path],
+        source_path: str | Path,
         key: str,
         *,
-        mime_type: Optional[str] = None,
-        metadata: Optional[Dict[str, str]] = None,
+        mime_type: str | None = None,
+        metadata: dict[str, str] | None = None,
     ) -> ArtifactMetadata:
         """
         Move a file from the filesystem into storage.

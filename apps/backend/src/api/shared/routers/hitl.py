@@ -14,21 +14,17 @@ Endpoints:
 - GET /api/hitl/actions/{action_id}/checkpoints/{name} - Get specific checkpoint
 """
 
-from typing import Optional, List
-from uuid import UUID
-from datetime import datetime
 
-from fastapi import APIRouter, Query, HTTPException
+from fastapi import APIRouter, HTTPException, Query
 from pydantic import BaseModel, Field
 
+from ....core.database.adapter import get_database
 from ....core.hitl import (
+    RiskLevel,
     assess_risk,
     get_approval_workflow,
     get_checkpoint_store,
-    RiskLevel,
 )
-from ....core.database.adapter import get_database
-
 
 router = APIRouter(prefix="/api/hitl", tags=["hitl"])
 
@@ -40,8 +36,8 @@ router = APIRouter(prefix="/api/hitl", tags=["hitl"])
 class RiskAssessmentRequest(BaseModel):
     """Request to assess risk for an action."""
     action_type: str = Field(..., description="Action type (e.g., 'send_email')")
-    action_data: Optional[dict] = Field(None, description="Action payload/inputs")
-    context: Optional[dict] = Field(None, description="Additional context")
+    action_data: dict | None = Field(None, description="Action payload/inputs")
+    context: dict | None = Field(None, description="Additional context")
 
 
 class RiskAssessmentResponse(BaseModel):
@@ -49,13 +45,13 @@ class RiskAssessmentResponse(BaseModel):
     level: str
     requires_approval: bool
     requires_quarantine: bool = False
-    reasons: List[str]
-    recommendations: List[str] = []
+    reasons: list[str]
+    recommendations: list[str] = []
 
 
 class ApprovalDecisionRequest(BaseModel):
     """Request to approve/reject/quarantine an action."""
-    reason: Optional[str] = Field(None, description="Reason for decision")
+    reason: str | None = Field(None, description="Reason for decision")
 
 
 class ActionQueueItem(BaseModel):
@@ -66,7 +62,7 @@ class ActionQueueItem(BaseModel):
     risk_level: str
     status: str
     created_at: str
-    deal_id: Optional[str] = None
+    deal_id: str | None = None
 
 
 class CheckpointItem(BaseModel):
@@ -117,11 +113,11 @@ async def assess_action_risk(request: RiskAssessmentRequest):
     )
 
 
-@router.get("/approval-queue", response_model=List[ActionQueueItem])
+@router.get("/approval-queue", response_model=list[ActionQueueItem])
 async def get_approval_queue(
-    status: Optional[str] = Query("PENDING_APPROVAL", description="Filter by status"),
-    risk_level: Optional[str] = Query(None, description="Filter by risk level"),
-    deal_id: Optional[str] = Query(None, description="Filter by deal ID"),
+    status: str | None = Query("PENDING_APPROVAL", description="Filter by status"),
+    risk_level: str | None = Query(None, description="Filter by risk level"),
+    deal_id: str | None = Query(None, description="Filter by deal ID"),
     limit: int = Query(50, ge=1, le=200, description="Max results"),
 ):
     """
@@ -134,7 +130,7 @@ async def get_approval_queue(
     db = await get_database()
 
     conditions = ["status = $1"]
-    params: List = [status]
+    params: list = [status]
     param_idx = 2
 
     if risk_level:
@@ -207,7 +203,7 @@ async def approve_action(
     operator_id = "system"
 
     workflow = await get_approval_workflow()
-    result = await workflow.approve(
+    await workflow.approve(
         action_id=action_id,
         approver_id=operator_id,
         reason=request.reason,
@@ -240,7 +236,7 @@ async def reject_action(
     operator_id = "system"
 
     workflow = await get_approval_workflow()
-    result = await workflow.reject(
+    await workflow.reject(
         action_id=action_id,
         rejector_id=operator_id,
         reason=request.reason,
@@ -273,7 +269,7 @@ async def quarantine_action(
     operator_id = "system"
 
     workflow = await get_approval_workflow()
-    result = await workflow.escalate(
+    await workflow.escalate(
         action_id=action_id,
         escalated_by=operator_id,
         escalate_to="admin",
@@ -288,7 +284,7 @@ async def quarantine_action(
     }
 
 
-@router.get("/actions/{action_id}/checkpoints", response_model=List[CheckpointItem])
+@router.get("/actions/{action_id}/checkpoints", response_model=list[CheckpointItem])
 async def get_action_checkpoints(
     action_id: str,
     include_resumed: bool = Query(False, description="Include resumed checkpoints"),

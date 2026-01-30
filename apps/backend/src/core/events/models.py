@@ -4,8 +4,8 @@ Event Models
 Pydantic models for event data structures with schema versioning.
 """
 
-from datetime import datetime, timezone
-from typing import Optional, Dict, Any
+from datetime import UTC, datetime
+from typing import Any
 from uuid import UUID, uuid4
 
 from pydantic import BaseModel, Field
@@ -13,7 +13,7 @@ from pydantic import BaseModel, Field
 
 def _utcnow() -> datetime:
     """Get current UTC datetime."""
-    return datetime.now(timezone.utc)
+    return datetime.now(UTC)
 
 
 class EventBase(BaseModel):
@@ -22,9 +22,9 @@ class EventBase(BaseModel):
     id: UUID = Field(default_factory=uuid4)
     correlation_id: UUID
     event_type: str
-    event_data: Dict[str, Any] = Field(default_factory=dict)
+    event_data: dict[str, Any] = Field(default_factory=dict)
     schema_version: int = 1
-    source: Optional[str] = None
+    source: str | None = None
     created_at: datetime = Field(default_factory=_utcnow)
 
     class Config:
@@ -37,17 +37,17 @@ class EventBase(BaseModel):
 class AgentEvent(EventBase):
     """Event from agent execution."""
 
-    run_id: Optional[UUID] = None
-    thread_id: Optional[str] = None
+    run_id: UUID | None = None
+    thread_id: str | None = None
 
     @classmethod
     def create(
         cls,
         correlation_id: UUID,
         event_type: str,
-        event_data: Dict[str, Any],
-        run_id: Optional[UUID] = None,
-        thread_id: Optional[str] = None,
+        event_data: dict[str, Any],
+        run_id: UUID | None = None,
+        thread_id: str | None = None,
         source: str = "agent"
     ) -> "AgentEvent":
         return cls(
@@ -70,7 +70,7 @@ class DealEvent(EventBase):
         cls,
         deal_id: UUID,
         event_type: str,
-        event_data: Dict[str, Any],
+        event_data: dict[str, Any],
         source: str = "deal_lifecycle"
     ) -> "DealEvent":
         # correlation_id = deal_id for deal events
@@ -87,7 +87,7 @@ class ActionEvent(EventBase):
     """Event related to action workflow."""
 
     action_id: UUID
-    deal_id: Optional[UUID] = None
+    deal_id: UUID | None = None
 
     @classmethod
     def create(
@@ -95,8 +95,8 @@ class ActionEvent(EventBase):
         action_id: UUID,
         correlation_id: UUID,
         event_type: str,
-        event_data: Dict[str, Any],
-        deal_id: Optional[UUID] = None,
+        event_data: dict[str, Any],
+        deal_id: UUID | None = None,
         source: str = "action_engine"
     ) -> "ActionEvent":
         return cls(
@@ -120,7 +120,7 @@ class WorkerEvent(EventBase):
         job_id: UUID,
         correlation_id: UUID,
         event_type: str,
-        event_data: Dict[str, Any],
+        event_data: dict[str, Any],
         source: str = "worker"
     ) -> "WorkerEvent":
         return cls(

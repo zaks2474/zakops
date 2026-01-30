@@ -8,10 +8,9 @@ Handles operator authentication and management.
 
 import hashlib
 import secrets
-from datetime import datetime, timezone
-from typing import Optional
-from uuid import UUID, uuid4
 from dataclasses import dataclass
+from datetime import UTC, datetime
+from uuid import UUID, uuid4
 
 from ..database import get_database
 
@@ -26,7 +25,7 @@ class Operator:
     role: str  # "admin", "analyst", "viewer"
     is_active: bool
     created_at: datetime
-    last_login_at: Optional[datetime] = None
+    last_login_at: datetime | None = None
 
     def to_dict(self) -> dict:
         """Convert operator to dictionary."""
@@ -41,7 +40,7 @@ class Operator:
         }
 
 
-def hash_password(password: str, salt: Optional[str] = None) -> tuple[str, str]:
+def hash_password(password: str, salt: str | None = None) -> tuple[str, str]:
     """
     Hash a password with salt using PBKDF2.
 
@@ -79,7 +78,7 @@ def verify_password(password: str, hashed: str, salt: str) -> bool:
     return secrets.compare_digest(check_hash, hashed)
 
 
-async def authenticate_operator(email: str, password: str) -> Optional[Operator]:
+async def authenticate_operator(email: str, password: str) -> Operator | None:
     """
     Authenticate an operator by email and password.
 
@@ -113,7 +112,7 @@ async def authenticate_operator(email: str, password: str) -> Optional[Operator]
         return None
 
     # Update last login
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     await db.execute(
         "UPDATE zakops.operators SET last_login_at = $1 WHERE id = $2",
         now,
@@ -131,7 +130,7 @@ async def authenticate_operator(email: str, password: str) -> Optional[Operator]
     )
 
 
-async def get_operator_by_id(operator_id: UUID) -> Optional[Operator]:
+async def get_operator_by_id(operator_id: UUID) -> Operator | None:
     """
     Get an operator by ID.
 
@@ -188,7 +187,7 @@ async def create_operator(
 
     operator_id = uuid4()
     password_hash, password_salt = hash_password(password)
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
 
     await db.execute(
         """

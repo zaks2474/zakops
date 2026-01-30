@@ -13,12 +13,9 @@ Usage:
 
 from __future__ import annotations
 
-import json
 import logging
 import os
-from dataclasses import dataclass, field
-from datetime import datetime, timezone
-from typing import Any, Dict, List, Literal, Optional
+from typing import Any, Literal
 
 from pydantic import BaseModel, Field, field_validator
 
@@ -36,8 +33,8 @@ class CapabilityInput(BaseModel):
     type: Literal["string", "number", "boolean", "array", "object"] = "string"
     description: str = ""
     required: bool = True
-    default: Optional[Any] = None
-    enum: Optional[List[str]] = None  # For string enums
+    default: Any | None = None
+    enum: list[str] | None = None  # For string enums
 
 
 class CapabilityDefinition(BaseModel):
@@ -58,7 +55,7 @@ class CapabilityDefinition(BaseModel):
     requires_approval: bool = True
 
     # Inputs schema
-    inputs: List[CapabilityInput] = Field(default_factory=list)
+    inputs: list[CapabilityInput] = Field(default_factory=list)
 
     # Safety constraints
     max_per_deal_per_day: int = Field(default=5, ge=1)
@@ -74,14 +71,14 @@ class ActionProposal(BaseModel):
     This is what CodeX sends when it wants to create an action.
     """
     capability_id: str = Field(min_length=1)
-    deal_id: Optional[str] = None
+    deal_id: str | None = None
     title: str = Field(min_length=1, max_length=200)
     summary: str = Field(default="", max_length=500)
-    inputs: Dict[str, Any] = Field(default_factory=dict)
+    inputs: dict[str, Any] = Field(default_factory=dict)
 
     # Optional overrides (subject to validation)
-    risk_level: Optional[Literal["low", "medium", "high"]] = None
-    requires_human_review: Optional[bool] = None
+    risk_level: Literal["low", "medium", "high"] | None = None
+    requires_human_review: bool | None = None
 
     # Metadata
     reasoning: str = Field(default="", max_length=1000, description="Why CodeX is proposing this action")
@@ -89,7 +86,7 @@ class ActionProposal(BaseModel):
 
     @field_validator("inputs", mode="before")
     @classmethod
-    def ensure_dict(cls, v: Any) -> Dict[str, Any]:
+    def ensure_dict(cls, v: Any) -> dict[str, Any]:
         if v is None:
             return {}
         if isinstance(v, dict):
@@ -102,16 +99,16 @@ class ActionProposal(BaseModel):
 class ProposalResult(BaseModel):
     """Result of proposing an action."""
     success: bool
-    action_id: Optional[str] = None
-    status: Optional[str] = None  # PENDING_APPROVAL, READY, etc.
+    action_id: str | None = None
+    status: str | None = None  # PENDING_APPROVAL, READY, etc.
     message: str = ""
-    warnings: List[str] = Field(default_factory=list)
+    warnings: list[str] = Field(default_factory=list)
 
     model_config = {"extra": "forbid"}
 
 
 # Built-in capability definitions
-_CAPABILITIES: Dict[str, CapabilityDefinition] = {}
+_CAPABILITIES: dict[str, CapabilityDefinition] = {}
 
 
 def _init_builtin_capabilities() -> None:
@@ -216,7 +213,7 @@ def _init_builtin_capabilities() -> None:
     )
 
 
-def list_capabilities(category: Optional[str] = None) -> List[CapabilityDefinition]:
+def list_capabilities(category: str | None = None) -> list[CapabilityDefinition]:
     """
     List available capabilities that CodeX can propose.
 
@@ -235,20 +232,20 @@ def list_capabilities(category: Optional[str] = None) -> List[CapabilityDefiniti
     return sorted(caps, key=lambda c: c.capability_id)
 
 
-def get_capability(capability_id: str) -> Optional[CapabilityDefinition]:
+def get_capability(capability_id: str) -> CapabilityDefinition | None:
     """Get a specific capability by ID."""
     _init_builtin_capabilities()
     return _CAPABILITIES.get(capability_id)
 
 
-def validate_proposal(proposal: ActionProposal) -> tuple[bool, List[str]]:
+def validate_proposal(proposal: ActionProposal) -> tuple[bool, list[str]]:
     """
     Validate a proposed action against capability constraints.
 
     Returns:
         (is_valid, list_of_errors)
     """
-    errors: List[str] = []
+    errors: list[str] = []
 
     # Get capability
     cap = get_capability(proposal.capability_id)
@@ -279,14 +276,14 @@ def validate_proposal(proposal: ActionProposal) -> tuple[bool, List[str]]:
 def apply_safety_constraints(
     proposal: ActionProposal,
     cap: CapabilityDefinition,
-) -> tuple[str, bool, List[str]]:
+) -> tuple[str, bool, list[str]]:
     """
     Apply safety constraints to determine final status and approval requirement.
 
     Returns:
         (status, requires_approval, warnings)
     """
-    warnings: List[str] = []
+    warnings: list[str] = []
 
     # Determine risk level
     risk = proposal.risk_level or cap.default_risk_level
@@ -463,7 +460,7 @@ CODEX_TOOL_DEFINITIONS = [
 ]
 
 
-def handle_codex_tool_call(tool_name: str, tool_input: Dict[str, Any]) -> Dict[str, Any]:
+def handle_codex_tool_call(tool_name: str, tool_input: dict[str, Any]) -> dict[str, Any]:
     """
     Handle a tool call from CodeX.
 

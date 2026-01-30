@@ -4,13 +4,18 @@ import asyncio
 import json
 import os
 import threading
-from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any
+
+from zakops_secret_scan import find_secrets_in_text
 
 from actions.engine.models import ActionError, ActionPayload, ArtifactMetadata, now_utc_iso
 from actions.executors._artifacts import resolve_action_artifact_dir
-from actions.executors.base import ActionExecutionError, ActionExecutor, ExecutionContext, ExecutionResult
-from zakops_secret_scan import find_secrets_in_text
+from actions.executors.base import (
+    ActionExecutionError,
+    ActionExecutor,
+    ExecutionContext,
+    ExecutionResult,
+)
 
 
 def _run_coro_blocking(coro):
@@ -25,8 +30,8 @@ def _run_coro_blocking(coro):
     except RuntimeError:
         return asyncio.run(coro)
 
-    result: Dict[str, Any] = {}
-    error: Dict[str, BaseException] = {}
+    result: dict[str, Any] = {}
+    error: dict[str, BaseException] = {}
 
     def _thread_main() -> None:
         try:
@@ -42,7 +47,7 @@ def _run_coro_blocking(coro):
     return result.get("value")
 
 
-def _extract_json(text: str) -> Dict[str, Any]:
+def _extract_json(text: str) -> dict[str, Any]:
     raw = (text or "").strip()
     if not raw:
         return {}
@@ -65,7 +70,7 @@ def _extract_json(text: str) -> Dict[str, Any]:
 class DraftEmailExecutor(ActionExecutor):
     action_type = "COMMUNICATION.DRAFT_EMAIL"
 
-    def validate(self, payload: ActionPayload) -> tuple[bool, Optional[str]]:
+    def validate(self, payload: ActionPayload) -> tuple[bool, str | None]:
         required = ["to", "subject", "context"]
         missing = [k for k in required if not str((payload.inputs or {}).get(k, "")).strip()]
         if missing:
@@ -259,7 +264,7 @@ class DraftEmailExecutor(ActionExecutor):
         except Exception:
             pass
 
-        outputs: Dict[str, Any] = {
+        outputs: dict[str, Any] = {
             "to": to,
             "subject": subject,
             "cc": cc,

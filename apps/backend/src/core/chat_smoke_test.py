@@ -17,7 +17,7 @@ import asyncio
 import json
 import sys
 import time
-from typing import Any, Dict, List
+from typing import Any
 
 import httpx
 
@@ -30,7 +30,7 @@ class ChatSmokeTest:
         self.api_url = api_url.rstrip("/")
         self.passed = 0
         self.failed = 0
-        self.results: List[Dict[str, Any]] = []
+        self.results: list[dict[str, Any]] = []
 
     def log_result(self, name: str, passed: bool, details: str = ""):
         status = "PASS" if passed else "FAIL"
@@ -85,7 +85,7 @@ class ChatSmokeTest:
                 if resp.status_code == 200:
                     data = resp.json()
                     has_content = bool(data.get("content"))
-                    has_evidence = data.get("evidence_summary") is not None
+                    data.get("evidence_summary") is not None
 
                     if has_content:
                         self.log_result(
@@ -128,11 +128,10 @@ class ChatSmokeTest:
 
                     events_received = 0
                     tokens_received = 0
-                    got_done = False
 
                     async for line in resp.aiter_lines():
                         if line.startswith("event: "):
-                            event_type = line[7:].strip()
+                            line[7:].strip()
                             events_received += 1
                         elif line.startswith("data: "):
                             try:
@@ -147,7 +146,7 @@ class ChatSmokeTest:
 
                         # Check for done event
                         if "done" in line:
-                            got_done = True
+                            pass
 
                 latency = int((time.time() - start) * 1000)
 

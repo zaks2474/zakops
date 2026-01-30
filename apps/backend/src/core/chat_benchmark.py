@@ -21,9 +21,8 @@ import statistics
 import sys
 import time
 from dataclasses import asdict, dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
-from typing import Any, Dict, List, Optional
 
 import httpx
 
@@ -40,8 +39,8 @@ class BenchmarkPrompt:
     category: str  # deterministic, rag, reasoning, deal_context
     query: str
     scope_type: str = "global"
-    deal_id: Optional[str] = None
-    expected_provider: Optional[str] = None  # deterministic, vllm, gemini-flash, etc.
+    deal_id: str | None = None
+    expected_provider: str | None = None  # deterministic, vllm, gemini-flash, etc.
 
 
 @dataclass
@@ -54,8 +53,8 @@ class BenchmarkResult:
     provider_used: str
     cache_hit: bool = False
     success: bool = True
-    error: Optional[str] = None
-    timing_breakdown: Dict[str, int] = field(default_factory=dict)
+    error: str | None = None
+    timing_breakdown: dict[str, int] = field(default_factory=dict)
 
 
 @dataclass
@@ -70,7 +69,7 @@ class CategoryStats:
     min_ms: int
     max_ms: int
     cache_hit_rate: float
-    provider_distribution: Dict[str, int] = field(default_factory=dict)
+    provider_distribution: dict[str, int] = field(default_factory=dict)
 
 
 # Benchmark prompts
@@ -187,7 +186,7 @@ async def run_single_benchmark(
         )
 
 
-def calculate_percentile(values: List[int], percentile: float) -> int:
+def calculate_percentile(values: list[int], percentile: float) -> int:
     """Calculate percentile from a list of values."""
     if not values:
         return 0
@@ -196,7 +195,7 @@ def calculate_percentile(values: List[int], percentile: float) -> int:
     return sorted_values[min(index, len(sorted_values) - 1)]
 
 
-def calculate_stats(results: List[BenchmarkResult], category: str) -> CategoryStats:
+def calculate_stats(results: list[BenchmarkResult], category: str) -> CategoryStats:
     """Calculate statistics for a category."""
     category_results = [r for r in results if r.category == category]
 
@@ -217,7 +216,7 @@ def calculate_stats(results: List[BenchmarkResult], category: str) -> CategorySt
     latencies = [r.latency_ms for r in successful]
 
     # Provider distribution
-    providers: Dict[str, int] = {}
+    providers: dict[str, int] = {}
     for r in successful:
         providers[r.provider_used] = providers.get(r.provider_used, 0) + 1
 
@@ -238,12 +237,12 @@ def calculate_stats(results: List[BenchmarkResult], category: str) -> CategorySt
 
 
 async def run_benchmark(
-    prompts: List[BenchmarkPrompt],
+    prompts: list[BenchmarkPrompt],
     iterations: int = DEFAULT_ITERATIONS,
     progress_callback=None
-) -> List[BenchmarkResult]:
+) -> list[BenchmarkResult]:
     """Run full benchmark suite."""
-    results: List[BenchmarkResult] = []
+    results: list[BenchmarkResult] = []
     total = len(prompts) * iterations
 
     async with httpx.AsyncClient() as client:
@@ -263,7 +262,7 @@ async def run_benchmark(
 
 
 def generate_markdown_report(
-    results: List[BenchmarkResult],
+    results: list[BenchmarkResult],
     run_timestamp: str
 ) -> str:
     """Generate markdown report from results."""
@@ -325,7 +324,7 @@ def generate_markdown_report(
         "",
     ])
 
-    all_providers: Dict[str, int] = {}
+    all_providers: dict[str, int] = {}
     for r in results:
         if r.success:
             all_providers[r.provider_used] = all_providers.get(r.provider_used, 0) + 1
@@ -356,7 +355,7 @@ def generate_markdown_report(
     return "\n".join(lines)
 
 
-def save_results(results: List[BenchmarkResult], timestamp: str):
+def save_results(results: list[BenchmarkResult], timestamp: str):
     """Save results to JSON file."""
     RESULTS_DIR.mkdir(parents=True, exist_ok=True)
     path = RESULTS_DIR / f"benchmark_{timestamp}.json"
@@ -370,7 +369,7 @@ def save_results(results: List[BenchmarkResult], timestamp: str):
     return path
 
 
-def load_latest_results() -> tuple[str, List[BenchmarkResult]]:
+def load_latest_results() -> tuple[str, list[BenchmarkResult]]:
     """Load most recent results."""
     if not RESULTS_DIR.exists():
         raise FileNotFoundError("No benchmark results found")
@@ -379,7 +378,7 @@ def load_latest_results() -> tuple[str, List[BenchmarkResult]]:
     if not files:
         raise FileNotFoundError("No benchmark results found")
 
-    with open(files[0], "r") as f:
+    with open(files[0]) as f:
         data = json.load(f)
 
     results = [BenchmarkResult(**r) for r in data["results"]]
@@ -407,7 +406,7 @@ async def main():
             progress_callback=progress
         )
 
-        timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
+        timestamp = datetime.now(UTC).strftime("%Y%m%d_%H%M%S")
         path = save_results(results, timestamp)
         print(f"\nResults saved to: {path}")
 

@@ -4,11 +4,11 @@ Tool Registry
 Manages available tools for agent execution.
 """
 
-from typing import Dict, Any, Callable, Optional, List
-from dataclasses import dataclass, field
-from uuid import UUID
 import asyncio
 import logging
+from collections.abc import Callable
+from dataclasses import dataclass
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -18,12 +18,12 @@ class ToolDefinition:
     """Definition of an available tool."""
     name: str
     description: str
-    parameters: Dict[str, Any]
+    parameters: dict[str, Any]
     handler: Callable
     risk_level: str = "low"  # low, medium, high, critical
     requires_approval: bool = False
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary for API/agent consumption."""
         return {
             "name": self.name,
@@ -38,7 +38,7 @@ class ToolRegistry:
     """Registry of available tools for agent execution."""
 
     def __init__(self):
-        self._tools: Dict[str, ToolDefinition] = {}
+        self._tools: dict[str, ToolDefinition] = {}
         self._register_default_tools()
 
     def _register_default_tools(self):
@@ -153,23 +153,23 @@ class ToolRegistry:
         self._tools[tool.name] = tool
         logger.info(f"Registered tool: {tool.name} (risk: {tool.risk_level})")
 
-    def get(self, name: str) -> Optional[ToolDefinition]:
+    def get(self, name: str) -> ToolDefinition | None:
         """Get a tool by name."""
         return self._tools.get(name)
 
-    def list_tools(self) -> List[ToolDefinition]:
+    def list_tools(self) -> list[ToolDefinition]:
         """List all registered tools."""
         return list(self._tools.values())
 
-    def get_tool_schemas(self) -> List[Dict[str, Any]]:
+    def get_tool_schemas(self) -> list[dict[str, Any]]:
         """Get tool schemas for agent consumption."""
         return [tool.to_dict() for tool in self._tools.values()]
 
     async def execute(
         self,
         tool_name: str,
-        tool_input: Dict[str, Any],
-        context: Dict[str, Any] = None
+        tool_input: dict[str, Any],
+        context: dict[str, Any] = None
     ) -> Any:
         """Execute a tool and return result."""
         tool = self.get(tool_name)
@@ -186,7 +186,7 @@ class ToolRegistry:
     # Tool Handlers (Mock implementations - replace with real logic)
     # =========================================================================
 
-    async def _analyze_document(self, input: Dict, context: Dict) -> Dict[str, Any]:
+    async def _analyze_document(self, input: dict, context: dict) -> dict[str, Any]:
         """Mock document analysis."""
         return {
             "document_id": input.get("document_id"),
@@ -197,7 +197,7 @@ class ToolRegistry:
             }
         }
 
-    async def _fetch_deal_info(self, input: Dict, context: Dict) -> Dict[str, Any]:
+    async def _fetch_deal_info(self, input: dict, context: dict) -> dict[str, Any]:
         """Fetch deal information."""
         from ..database.adapter import get_database
 
@@ -218,7 +218,7 @@ class ToolRegistry:
             logger.warning(f"Failed to fetch deal info: {e}")
             return {"error": str(e), "deal_id": input.get("deal_id")}
 
-    async def _list_documents(self, input: Dict, context: Dict) -> Dict[str, Any]:
+    async def _list_documents(self, input: dict, context: dict) -> dict[str, Any]:
         """List deal documents."""
         # Mock implementation - artifacts table may not exist yet
         return {
@@ -227,7 +227,7 @@ class ToolRegistry:
             "note": "Document listing not yet implemented"
         }
 
-    async def _create_task(self, input: Dict, context: Dict) -> Dict[str, Any]:
+    async def _create_task(self, input: dict, context: dict) -> dict[str, Any]:
         """Create a task action."""
         # This will be handled by action creation
         return {
@@ -239,7 +239,7 @@ class ToolRegistry:
             "status": "pending_creation"
         }
 
-    async def _suggest_stage_change(self, input: Dict, context: Dict) -> Dict[str, Any]:
+    async def _suggest_stage_change(self, input: dict, context: dict) -> dict[str, Any]:
         """Suggest a stage change."""
         return {
             "action_type": "stage_change",
@@ -249,7 +249,7 @@ class ToolRegistry:
             "status": "pending_approval"
         }
 
-    async def _draft_email(self, input: Dict, context: Dict) -> Dict[str, Any]:
+    async def _draft_email(self, input: dict, context: dict) -> dict[str, Any]:
         """Draft an email."""
         return {
             "action_type": "send_email",
@@ -262,7 +262,7 @@ class ToolRegistry:
 
 
 # Global registry instance
-_registry: Optional[ToolRegistry] = None
+_registry: ToolRegistry | None = None
 
 
 def get_tool_registry() -> ToolRegistry:

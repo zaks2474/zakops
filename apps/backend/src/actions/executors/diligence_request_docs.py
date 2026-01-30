@@ -20,11 +20,16 @@ import logging
 import os
 import re
 import threading
-from typing import Any, Dict, Optional
+from typing import Any
 
 from actions.engine.models import ActionError, ActionPayload, ArtifactMetadata, now_utc_iso
 from actions.executors._artifacts import resolve_action_artifact_dir
-from actions.executors.base import ActionExecutionError, ActionExecutor, ExecutionContext, ExecutionResult
+from actions.executors.base import (
+    ActionExecutionError,
+    ActionExecutor,
+    ExecutionContext,
+    ExecutionResult,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -93,7 +98,7 @@ async def _draft_email_with_gemini(
     doc_type: str,
     description: str,
     broker_name: str,
-) -> Optional[Dict[str, str]]:
+) -> dict[str, str] | None:
     """Use Gemini Flash to draft the email. Returns {subject, body} or None on failure."""
     try:
         # Import the provider module
@@ -169,8 +174,8 @@ def _run_coro_blocking(coro):
     except RuntimeError:
         return asyncio.run(coro)
 
-    result: Dict[str, Any] = {}
-    error: Dict[str, BaseException] = {}
+    result: dict[str, Any] = {}
+    error: dict[str, BaseException] = {}
 
     def _thread_main() -> None:
         try:
@@ -186,7 +191,7 @@ def _run_coro_blocking(coro):
     return result.get("value")
 
 
-def _create_fallback_draft(doc_type: str, description: str, broker_name: str, deal_name: str) -> Dict[str, str]:
+def _create_fallback_draft(doc_type: str, description: str, broker_name: str, deal_name: str) -> dict[str, str]:
     """Create a deterministic fallback email draft."""
     checklist = _get_deterministic_checklist(doc_type)
     checklist_str = "\n".join(checklist)
@@ -227,7 +232,7 @@ class RequestDocsExecutor(ActionExecutor):
 
     action_type = "DILIGENCE.REQUEST_DOCS"
 
-    def validate(self, payload: ActionPayload) -> tuple[bool, Optional[str]]:
+    def validate(self, payload: ActionPayload) -> tuple[bool, str | None]:
         inputs = payload.inputs or {}
         doc_type = str(inputs.get("doc_type", "")).strip()
         description = str(inputs.get("description", "")).strip()
@@ -352,7 +357,7 @@ _Draft-only. Review before sharing externally._
         )
 
         # Outputs
-        outputs: Dict[str, Any] = {
+        outputs: dict[str, Any] = {
             "doc_type": doc_type,
             "description": description,
             "broker_name": broker_name,

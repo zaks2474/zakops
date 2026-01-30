@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from actions.engine.models import ActionError, ActionPayload, ArtifactMetadata
 
@@ -16,8 +16,8 @@ class ExecutionContext:
     """
 
     action: ActionPayload
-    deal: Optional[Dict[str, Any]] = None
-    case_file: Optional[Dict[str, Any]] = None
+    deal: dict[str, Any] | None = None
+    case_file: dict[str, Any] | None = None
     tool_gateway: Any = None
     cloud_allowed: bool = False
     registry: Any = None
@@ -25,8 +25,8 @@ class ExecutionContext:
 
 @dataclass(frozen=True)
 class ExecutionResult:
-    outputs: Dict[str, Any] = field(default_factory=dict)
-    artifacts: List[ArtifactMetadata] = field(default_factory=list)
+    outputs: dict[str, Any] = field(default_factory=dict)
+    artifacts: list[ArtifactMetadata] = field(default_factory=list)
 
 
 class ActionExecutionError(RuntimeError):
@@ -42,7 +42,7 @@ class ActionExecutor:
 
     action_type: str = ""
 
-    def validate(self, payload: ActionPayload) -> tuple[bool, Optional[str]]:
+    def validate(self, payload: ActionPayload) -> tuple[bool, str | None]:
         return True, None
 
     def dry_run(self, payload: ActionPayload, ctx: ExecutionContext) -> ExecutionResult:
@@ -55,7 +55,7 @@ class ActionExecutor:
             )
         )
 
-    def estimate_cost(self, payload: ActionPayload, ctx: ExecutionContext) -> Dict[str, Any]:
+    def estimate_cost(self, payload: ActionPayload, ctx: ExecutionContext) -> dict[str, Any]:
         return {"estimated_cost_usd": 0.0}
 
     def execute(self, payload: ActionPayload, ctx: ExecutionContext) -> ExecutionResult:

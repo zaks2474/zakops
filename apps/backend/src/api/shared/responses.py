@@ -7,26 +7,25 @@ Spec Reference: Master Architecture Specification §4
 Provides consistent response shapes across all endpoints.
 """
 
-from datetime import datetime, timezone
-from typing import TypeVar, Generic, Optional, List, Dict, Any
+from datetime import UTC, datetime
+from typing import Generic, TypeVar
 from uuid import uuid4
 
 from pydantic import BaseModel, Field
-
 
 T = TypeVar('T')
 
 
 def _utcnow() -> datetime:
     """Get current UTC datetime."""
-    return datetime.now(timezone.utc)
+    return datetime.now(UTC)
 
 
 class ResponseMeta(BaseModel):
     """Metadata included in all responses."""
 
     trace_id: str = Field(default_factory=lambda: str(uuid4()))
-    correlation_id: Optional[str] = None
+    correlation_id: str | None = None
     timestamp: datetime = Field(default_factory=_utcnow)
 
     class Config:
@@ -57,8 +56,8 @@ class SuccessResponse(BaseModel, Generic[T]):
     def create(
         cls,
         data: T,
-        correlation_id: Optional[str] = None,
-        trace_id: Optional[str] = None
+        correlation_id: str | None = None,
+        trace_id: str | None = None
     ) -> "SuccessResponse[T]":
         meta = ResponseMeta(
             trace_id=trace_id or str(uuid4()),
@@ -98,18 +97,18 @@ class ListResponse(BaseModel, Generic[T]):
     }
     """
 
-    data: List[T]
+    data: list[T]
     meta: ListMeta
 
     @classmethod
     def create(
         cls,
-        data: List[T],
+        data: list[T],
         total: int,
         limit: int = 20,
         offset: int = 0,
-        correlation_id: Optional[str] = None,
-        trace_id: Optional[str] = None
+        correlation_id: str | None = None,
+        trace_id: str | None = None
     ) -> "ListResponse[T]":
         meta = ListMeta(
             trace_id=trace_id or str(uuid4()),
@@ -130,9 +129,9 @@ class ListResponse(BaseModel, Generic[T]):
 class ErrorDetail(BaseModel):
     """Detailed error information for validation errors."""
 
-    field: Optional[str] = None
+    field: str | None = None
     message: str
-    code: Optional[str] = None
+    code: str | None = None
 
 
 class ErrorBody(BaseModel):
@@ -140,7 +139,7 @@ class ErrorBody(BaseModel):
 
     code: str
     message: str
-    details: Optional[List[ErrorDetail]] = None
+    details: list[ErrorDetail] | None = None
     trace_id: str = Field(default_factory=lambda: str(uuid4()))
     timestamp: datetime = Field(default_factory=_utcnow)
 
@@ -148,8 +147,8 @@ class ErrorBody(BaseModel):
     def validation_error(
         cls,
         message: str,
-        details: Optional[List[ErrorDetail]] = None,
-        trace_id: Optional[str] = None
+        details: list[ErrorDetail] | None = None,
+        trace_id: str | None = None
     ) -> "ErrorBody":
         return cls(
             code="VALIDATION_ERROR",
@@ -162,8 +161,8 @@ class ErrorBody(BaseModel):
     def not_found(
         cls,
         resource: str,
-        resource_id: Optional[str] = None,
-        trace_id: Optional[str] = None
+        resource_id: str | None = None,
+        trace_id: str | None = None
     ) -> "ErrorBody":
         message = f"{resource} not found"
         if resource_id:
@@ -178,7 +177,7 @@ class ErrorBody(BaseModel):
     def internal_error(
         cls,
         message: str = "An internal error occurred",
-        trace_id: Optional[str] = None
+        trace_id: str | None = None
     ) -> "ErrorBody":
         return cls(
             code="INTERNAL_ERROR",
@@ -190,7 +189,7 @@ class ErrorBody(BaseModel):
     def unauthorized(
         cls,
         message: str = "Authentication required",
-        trace_id: Optional[str] = None
+        trace_id: str | None = None
     ) -> "ErrorBody":
         return cls(
             code="UNAUTHORIZED",
@@ -202,7 +201,7 @@ class ErrorBody(BaseModel):
     def forbidden(
         cls,
         message: str = "Permission denied",
-        trace_id: Optional[str] = None
+        trace_id: str | None = None
     ) -> "ErrorBody":
         return cls(
             code="FORBIDDEN",
@@ -239,8 +238,8 @@ class ErrorResponse(BaseModel):
         cls,
         code: str,
         message: str,
-        details: Optional[List[ErrorDetail]] = None,
-        trace_id: Optional[str] = None
+        details: list[ErrorDetail] | None = None,
+        trace_id: str | None = None
     ) -> "ErrorResponse":
         return cls(
             error=ErrorBody(

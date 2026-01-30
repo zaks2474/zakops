@@ -12,7 +12,7 @@ import time
 import uuid
 from contextlib import asynccontextmanager
 from dataclasses import asdict, dataclass, field
-from typing import Any, Dict, Optional
+from typing import Any
 
 
 @dataclass
@@ -26,7 +26,7 @@ class TimingTrace:
 
     # Evidence gathering breakdown
     evidence_ms: int = 0
-    evidence_breakdown: Dict[str, int] = field(default_factory=dict)
+    evidence_breakdown: dict[str, int] = field(default_factory=dict)
     # Keys: rag_ms, events_ms, casefile_ms, registry_ms, actions_ms
 
     # LLM generation time
@@ -37,7 +37,7 @@ class TimingTrace:
 
     # Cache status
     cache_hit: bool = False
-    cache_source: Optional[str] = None  # "global" | "deal" | "doc"
+    cache_source: str | None = None  # "global" | "deal" | "doc"
 
     # Provider info
     provider_used: str = ""  # deterministic | gemini-flash | gemini-pro | vllm | fallback
@@ -46,7 +46,7 @@ class TimingTrace:
 
     # Status flags
     degraded: bool = False  # True if operating in degraded mode
-    degraded_reason: Optional[str] = None
+    degraded_reason: str | None = None
 
     # Internal timestamps for calculation
     _start_time: float = field(default=0.0, repr=False)
@@ -81,7 +81,7 @@ class TimingTrace:
         self._phase_start = time.time()
         return duration_ms
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert to dict for JSON serialization, excluding internal fields."""
         d = asdict(self)
         # Remove internal fields
@@ -118,7 +118,7 @@ async def async_timing_context(timing: TimingTrace, phase_name: str):
         timing.evidence_breakdown[phase_name] = duration_ms
 
 
-def create_timing(request_id: Optional[str] = None) -> TimingTrace:
+def create_timing(request_id: str | None = None) -> TimingTrace:
     """Create a new timing trace and start the clock."""
     timing = TimingTrace(request_id=request_id or str(uuid.uuid4())[:8])
     timing.start()
@@ -126,7 +126,7 @@ def create_timing(request_id: Optional[str] = None) -> TimingTrace:
 
 
 # Convenience functions for SSE events
-def timing_to_progress_event(step: str, message: str) -> Dict[str, Any]:
+def timing_to_progress_event(step: str, message: str) -> dict[str, Any]:
     """Format a progress event for SSE."""
     return {
         "step": step,
@@ -135,7 +135,7 @@ def timing_to_progress_event(step: str, message: str) -> Dict[str, Any]:
     }
 
 
-def timing_to_done_event(timing: TimingTrace, **extra) -> Dict[str, Any]:
+def timing_to_done_event(timing: TimingTrace, **extra) -> dict[str, Any]:
     """Format timing for the 'done' SSE event."""
     result = timing.to_dict()
     result.update(extra)

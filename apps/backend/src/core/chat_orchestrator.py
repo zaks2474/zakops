@@ -17,32 +17,32 @@ Features:
 
 from __future__ import annotations
 
-import asyncio
 import json
 import os
 import re
 import time
 import uuid
-from pathlib import Path
+from collections.abc import AsyncGenerator
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
-from typing import Any, AsyncGenerator, Dict, List, Optional, Tuple
+from datetime import UTC, datetime
+from pathlib import Path
+from typing import Any
 
 import httpx
-
-from chat_evidence_builder import EvidenceBuilder, EvidenceBundle, scan_for_secrets, redact_secrets
-from chat_timing import (
-    TimingTrace, create_timing, ProgressStep, ProviderName,
-    async_timing_context, timing_to_done_event
-)
-from chat_cache import get_cache, EvidenceCache
-from chat_llm_router import ChatLLMRouter, get_router, RoutingDecision, estimate_complexity
-from chat_llm_provider import get_provider, get_all_health
 from chat_budget import get_budget_manager
+from chat_cache import get_cache
+from chat_evidence_builder import EvidenceBuilder, EvidenceBundle, scan_for_secrets
+from chat_llm_provider import get_all_health, get_provider
+from chat_llm_router import RoutingDecision, get_router
+from chat_timing import (
+    ProviderName,
+    async_timing_context,
+    create_timing,
+)
 
 # SQLite session persistence
 try:
-    from email_ingestion.chat_persistence import get_chat_session_store, ChatSessionStore
+    from email_ingestion.chat_persistence import ChatSessionStore, get_chat_session_store
     PERSISTENCE_ENABLED = os.getenv("CHAT_PERSISTENCE_ENABLED", "true").lower() == "true"
 except ImportError:
     PERSISTENCE_ENABLED = False
@@ -161,7 +161,7 @@ def _strip_wrapping_quotes(value: str) -> str:
     return v
 
 
-def canonicalize_proposal_type(raw: Any) -> Optional[str]:
+def canonicalize_proposal_type(raw: Any) -> str | None:
     if raw is None:
         return None
     text = str(raw).strip().lower()
@@ -199,27 +199,27 @@ class ChatMessage:
     """A chat message."""
     role: str  # user, assistant, system
     content: str
-    timestamp: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
-    citations: List[str] = field(default_factory=list)
-    proposals: List[Dict] = field(default_factory=list)
+    timestamp: str = field(default_factory=lambda: datetime.now(UTC).isoformat())
+    citations: list[str] = field(default_factory=list)
+    proposals: list[dict] = field(default_factory=list)
 
 
 @dataclass
 class ChatSession:
     """A chat session with history."""
     session_id: str
-    scope: Dict[str, Any]
-    messages: List[ChatMessage] = field(default_factory=list)
-    created_at: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
-    last_activity: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+    scope: dict[str, Any]
+    messages: list[ChatMessage] = field(default_factory=list)
+    created_at: str = field(default_factory=lambda: datetime.now(UTC).isoformat())
+    last_activity: str = field(default_factory=lambda: datetime.now(UTC).isoformat())
 
     def add_message(self, role: str, content: str, **kwargs) -> ChatMessage:
         msg = ChatMessage(role=role, content=content, **kwargs)
         self.messages.append(msg)
-        self.last_activity = datetime.now(timezone.utc).isoformat()
+        self.last_activity = datetime.now(UTC).isoformat()
         return msg
 
-    def get_history_for_llm(self, max_messages: int = 10) -> List[Dict[str, str]]:
+    def get_history_for_llm(self, max_messages: int = 10) -> list[dict[str, str]]:
         """Get message history in OpenAI format."""
         history = []
         for msg in self.messages[-max_messages:]:
@@ -232,20 +232,20 @@ class ChatSession:
 class ChatResponse:
     """A chat response."""
     content: str
-    citations: List[Dict] = field(default_factory=list)
-    proposals: List[Dict] = field(default_factory=list)
-    evidence_summary: Optional[Dict] = None
+    citations: list[dict] = field(default_factory=list)
+    proposals: list[dict] = field(default_factory=list)
+    evidence_summary: dict | None = None
     model_used: str = ""
     latency_ms: int = 0
-    warnings: List[str] = field(default_factory=list)
+    warnings: list[str] = field(default_factory=list)
 
 
 class ChatOrchestrator:
     """Orchestrates chat interactions with hybrid LLM routing."""
 
-    def __init__(self, allow_cloud: Optional[bool] = None):
+    def __init__(self, allow_cloud: bool | None = None):
         self.evidence_builder = EvidenceBuilder()
-        self.sessions: Dict[str, ChatSession] = {}
+        self.sessions: dict[str, ChatSession] = {}
         self.cache = get_cache() if CACHE_ENABLED else None
         self.router = get_router(allow_cloud=allow_cloud if allow_cloud is not None else ALLOW_CLOUD)
         self.budget = get_budget_manager()
@@ -276,7 +276,7 @@ class ChatOrchestrator:
                     return body
         return text
 
-    def _parse_email_draft_artifact(self, path: str) -> Optional[Dict[str, str]]:
+    def _parse_email_draft_artifact(self, path: str) -> dict[str, str] | None:
         try:
             p = Path(path).expanduser().resolve()
             if not p.exists() or not p.is_file():
@@ -303,14 +303,14 @@ class ChatOrchestrator:
         if not body:
             return None
 
-        out: Dict[str, str] = {"body": body, "body_artifact_path": str(p)}
+        out: dict[str, str] = {"body": body, "body_artifact_path": str(p)}
         if to:
             out["to"] = to
         if subject:
             out["subject"] = subject
         return out
 
-    def _find_latest_email_draft_for_send(self, *, deal_id: str, session: ChatSession) -> Optional[Dict[str, Any]]:
+    def _find_latest_email_draft_for_send(self, *, deal_id: str, session: ChatSession) -> dict[str, Any] | None:
         """
         Find the most recent email draft (artifact preferred) to use for a SEND_EMAIL action.
 
@@ -393,7 +393,7 @@ class ChatOrchestrator:
 
         return None
 
-    async def _try_send_email_flow(self, *, query: str, scope: Dict[str, Any], session: ChatSession) -> Optional[ChatResponse]:
+    async def _try_send_email_flow(self, *, query: str, scope: dict[str, Any], session: ChatSession) -> ChatResponse | None:
         """
         Deterministic bridge: if the user asks to "send" and we can locate a prior draft,
         propose a SEND_EMAIL action instead of re-drafting.
@@ -410,7 +410,7 @@ class ChatOrchestrator:
         if not draft:
             return None
 
-        inputs: Dict[str, Any] = {}
+        inputs: dict[str, Any] = {}
         if draft.get("body_artifact_path"):
             inputs["body_artifact_path"] = draft["body_artifact_path"]
         else:
@@ -444,8 +444,8 @@ class ChatOrchestrator:
 
     def get_or_create_session(
         self,
-        session_id: Optional[str],
-        scope: Dict[str, Any]
+        session_id: str | None,
+        scope: dict[str, Any]
     ) -> ChatSession:
         """Get existing session or create new one (with SQLite persistence)."""
         # Check in-memory cache first
@@ -499,10 +499,10 @@ class ChatOrchestrator:
         session_id: str,
         role: str,
         content: str,
-        citations: Optional[List] = None,
-        proposals: Optional[List] = None,
-        timings: Optional[Dict] = None,
-        provider_used: Optional[str] = None,
+        citations: list | None = None,
+        proposals: list | None = None,
+        timings: dict | None = None,
+        provider_used: str | None = None,
         cache_hit: bool = False
     ) -> None:
         """Persist a message to SQLite."""
@@ -518,7 +518,7 @@ class ChatOrchestrator:
                 cache_hit=cache_hit,
             )
 
-    def get_session(self, session_id: str) -> Optional[Dict[str, Any]]:
+    def get_session(self, session_id: str) -> dict[str, Any] | None:
         """
         Get a session by ID (for API access).
 
@@ -578,9 +578,9 @@ class ChatOrchestrator:
     def get_recent_sessions(
         self,
         limit: int = 50,
-        scope_type: Optional[str] = None,
-        deal_id: Optional[str] = None
-    ) -> List[Dict[str, Any]]:
+        scope_type: str | None = None,
+        deal_id: str | None = None
+    ) -> list[dict[str, Any]]:
         """Get recently active sessions for the dashboard."""
         if self.session_store:
             return self.session_store.get_recent_sessions(
@@ -590,7 +590,7 @@ class ChatOrchestrator:
             )
         return []
 
-    async def _try_simple_query(self, query: str, scope: Dict[str, Any]) -> Optional[ChatResponse]:
+    async def _try_simple_query(self, query: str, scope: dict[str, Any]) -> ChatResponse | None:
         """
         Try to answer simple queries without LLM for faster response.
 
@@ -604,7 +604,7 @@ class ChatOrchestrator:
         - What changed today
         """
         from collections import Counter
-        from datetime import datetime, timedelta
+        from datetime import datetime
 
         query_lower = query.lower().strip()
         API_BASE = "http://localhost:8091"
@@ -977,9 +977,9 @@ class ChatOrchestrator:
     async def chat(
         self,
         query: str,
-        scope: Dict[str, Any],
-        session_id: Optional[str] = None,
-        options: Optional[Dict[str, Any]] = None
+        scope: dict[str, Any],
+        session_id: str | None = None,
+        options: dict[str, Any] | None = None
     ) -> ChatResponse:
         """Process a chat query and return complete response."""
         options = options or {}
@@ -1036,8 +1036,8 @@ class ChatOrchestrator:
         # Call LangGraph brain first (optional), fallback to legacy local routing.
         response_text = ""
         model_used = ""
-        warnings: List[str] = []
-        brain_proposals: List[Dict[str, Any]] = []
+        warnings: list[str] = []
+        brain_proposals: list[dict[str, Any]] = []
 
         if _brain_enabled():
             brain_text, brain_props, brain_model, brain_warnings = await self._call_brain_complete(
@@ -1096,18 +1096,18 @@ class ChatOrchestrator:
         self,
         *,
         query: str,
-        scope: Dict[str, Any],
+        scope: dict[str, Any],
         session_id: str,
-        history: List[Dict[str, str]],
+        history: list[dict[str, str]],
         evidence_context: str,
-        options: Dict[str, Any],
-    ) -> Tuple[Optional[str], List[Dict[str, Any]], str, List[str]]:
+        options: dict[str, Any],
+    ) -> tuple[str | None, list[dict[str, Any]], str, list[str]]:
         """
         Call the internal LangGraph engine (zakops-api :8080) in non-streaming mode.
 
         Returns: (final_text | None, proposals, model_used, warnings)
         """
-        warnings: List[str] = []
+        warnings: list[str] = []
         if not _brain_enabled():
             return None, [], "", warnings
 
@@ -1159,7 +1159,7 @@ class ChatOrchestrator:
 
         return final_text, list(proposals), model_used, warnings
 
-    def _chunk_text(self, text: str, *, chunk_size: int = 80) -> List[str]:
+    def _chunk_text(self, text: str, *, chunk_size: int = 80) -> list[str]:
         """Split text into chunks for SSE token events (proxying non-streaming backends)."""
         if not text:
             return []
@@ -1169,9 +1169,9 @@ class ChatOrchestrator:
     async def chat_stream(
         self,
         query: str,
-        scope: Dict[str, Any],
-        session_id: Optional[str] = None,
-        options: Optional[Dict[str, Any]] = None
+        scope: dict[str, Any],
+        session_id: str | None = None,
+        options: dict[str, Any] | None = None
     ) -> AsyncGenerator[str, None]:
         """
         Process a chat query and stream response via SSE.
@@ -1373,7 +1373,7 @@ class ChatOrchestrator:
                 })
 
                 full_response = ""
-                stream_warnings: List[str] = []
+                stream_warnings: list[str] = []
                 timing.start_phase()
 
                 if brain_text:
@@ -1564,9 +1564,9 @@ class ChatOrchestrator:
 
     async def _call_llm(
         self,
-        messages: List[Dict[str, str]],
+        messages: list[dict[str, str]],
         stream: bool = False
-    ) -> Tuple[str, str, List[str]]:
+    ) -> tuple[str, str, list[str]]:
         """Call LLM and return (response, model_used, warnings)."""
         warnings = []
 
@@ -1596,13 +1596,13 @@ class ChatOrchestrator:
             warnings.append(f"vLLM unavailable: {str(e)}")
 
         # Fallback to cloud if allowed
-        if ALLOW_CLOUD and GEMINI_API_KEY:
+        if ALLOW_CLOUD and os.getenv("GEMINI_API_KEY"):
             # Security gate: scan for secrets before cloud send
             combined_text = " ".join(m["content"] for m in messages)
             has_secrets, matches = scan_for_secrets(combined_text)
 
             if has_secrets:
-                warnings.append(f"BLOCKED: Secret patterns detected, cloud call prevented")
+                warnings.append("BLOCKED: Secret patterns detected, cloud call prevented")
                 return "I cannot process this request as it may contain sensitive data.", "none", warnings
 
             try:
@@ -1617,8 +1617,8 @@ class ChatOrchestrator:
 
     async def _stream_llm(
         self,
-        messages: List[Dict[str, str]]
-    ) -> AsyncGenerator[Dict[str, Any], None]:
+        messages: list[dict[str, str]]
+    ) -> AsyncGenerator[dict[str, Any], None]:
         """Stream LLM response."""
         try:
             async with httpx.AsyncClient(timeout=VLLM_TIMEOUT) as client:
@@ -1660,7 +1660,7 @@ class ChatOrchestrator:
         self,
         text: str,
         bundle: EvidenceBundle
-    ) -> List[Dict]:
+    ) -> list[dict]:
         """Extract citation references from response text."""
         # Find all [cite-N] patterns
         pattern = r'\[cite-(\d+)\]'
@@ -1677,12 +1677,12 @@ class ChatOrchestrator:
 
         return citations
 
-    def _normalize_proposals_for_scope(self, proposals: List[Dict], scope: Dict[str, Any]) -> List[Dict]:
+    def _normalize_proposals_for_scope(self, proposals: list[dict], scope: dict[str, Any]) -> list[dict]:
         """Normalize proposals for consistent execution and UI rendering."""
         scope_type = (scope or {}).get("type") or "global"
         scope_deal_id = (scope or {}).get("deal_id") if scope_type == "deal" else None
 
-        normalized: List[Dict[str, Any]] = []
+        normalized: list[dict[str, Any]] = []
         for p in proposals or []:
             if not isinstance(p, dict):
                 continue
@@ -1714,7 +1714,7 @@ class ChatOrchestrator:
 
         return normalized
 
-    def _extract_proposals(self, text: str) -> List[Dict]:
+    def _extract_proposals(self, text: str) -> list[dict]:
         """Extract proposal blocks from response text."""
         proposals = []
 
@@ -1726,8 +1726,8 @@ class ChatOrchestrator:
             try:
                 raw_block = match.strip()
 
-                proposal: Dict[str, Any] = {}
-                params: Dict[str, Any] = {}
+                proposal: dict[str, Any] = {}
+                params: dict[str, Any] = {}
 
                 # Prefer strict JSON if the block looks like JSON.
                 if raw_block.startswith("{") and raw_block.endswith("}"):
@@ -1738,9 +1738,9 @@ class ChatOrchestrator:
                 else:
                     # Parse a small YAML-like subset (top-level keys + indented params).
                     in_params = False
-                    multiline_key: Optional[str] = None
-                    multiline_quote: Optional[str] = None
-                    multiline_buf: List[str] = []
+                    multiline_key: str | None = None
+                    multiline_quote: str | None = None
+                    multiline_buf: list[str] = []
                     for raw_line in raw_block.splitlines():
                         if multiline_key:
                             # End multiline if we see the closing triple quote marker.
@@ -1869,8 +1869,8 @@ class ChatOrchestrator:
         approved_by: str,
         session_id: str,
         action: str = "approve",
-        reject_reason: Optional[str] = None,
-    ) -> Dict[str, Any]:
+        reject_reason: str | None = None,
+    ) -> dict[str, Any]:
         """
         Execute (approve) or reject a proposal.
 
@@ -1925,12 +1925,10 @@ class ChatOrchestrator:
 
         # Find the proposal in message history
         proposal = None
-        proposal_message = None
         for msg in reversed(session.messages):
             for p in (msg.proposals or []):
                 if p.get("proposal_id") == proposal_id:
                     proposal = p
-                    proposal_message = msg
                     break
             if proposal:
                 break
@@ -1962,7 +1960,7 @@ class ChatOrchestrator:
 
             proposal["status"] = "rejected"
             proposal["rejected_by"] = approved_by
-            proposal["rejected_at"] = datetime.now(timezone.utc).isoformat()
+            proposal["rejected_at"] = datetime.now(UTC).isoformat()
             if reject_reason:
                 proposal["reject_reason"] = str(reject_reason)[:500]
 
@@ -2167,7 +2165,10 @@ class ChatOrchestrator:
                     }
 
                 try:
-                    from actions.engine.validation import ActionCreationValidationError, validate_action_creation
+                    from actions.engine.validation import (
+                        ActionCreationValidationError,
+                        validate_action_creation,
+                    )
 
                     validate_action_creation(action_type=action_type, capability_id=capability_id)
                 except ActionCreationValidationError as e:
@@ -2353,9 +2354,9 @@ class ChatOrchestrator:
 
                 # Bridge: also create a Kinetic Action record so the request is visible/executable in Actions UI.
                 try:
-                    from actions.engine.validation import validate_action_creation
                     from actions.engine.models import ActionPayload, compute_idempotency_key
                     from actions.engine.store import ActionStore
+                    from actions.engine.validation import validate_action_creation
 
                     store = ActionStore()
                     idem = compute_idempotency_key("request_docs", proposal_id)
@@ -2426,7 +2427,7 @@ class ChatOrchestrator:
                 "proposal_type": proposal_type,
             }
 
-    def _persist_proposal_update(self, session_id: str, proposal_id: str, proposal: Dict[str, Any]) -> None:
+    def _persist_proposal_update(self, session_id: str, proposal_id: str, proposal: dict[str, Any]) -> None:
         """Persist proposal status/result updates (best-effort)."""
         if not self.session_store:
             return
@@ -2441,7 +2442,7 @@ class ChatOrchestrator:
             # Never crash execution due to persistence failures.
             return
 
-    def _execute_stage_transition(self, *, deal_id: str, to_stage: str, reason: str, approved_by: str) -> Dict[str, Any]:
+    def _execute_stage_transition(self, *, deal_id: str, to_stage: str, reason: str, approved_by: str) -> dict[str, Any]:
         """Execute a stage transition using the local control plane (no HTTP self-calls)."""
         from deal_events import DealEventStore
         from deal_registry import DealRegistry
@@ -2490,7 +2491,7 @@ class ChatOrchestrator:
             "approval_required": result.approval_required,
         }
 
-    def _execute_add_note(self, *, deal_id: str, content: str, category: str) -> Dict[str, Any]:
+    def _execute_add_note(self, *, deal_id: str, content: str, category: str) -> dict[str, Any]:
         """Add a note event to a deal (local control plane)."""
         from deal_events import DealEventStore
         from deal_registry import DealRegistry
@@ -2519,7 +2520,7 @@ class ChatOrchestrator:
         approved_by: str,
         proposal_id: str,
         session_id: str,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Record a document request as a note + a follow-up task."""
         from deferred_actions import DeferredActionQueue
 
@@ -2559,7 +2560,7 @@ class ChatOrchestrator:
         context: str,
         *,
         allow_cloud_override: bool = False,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Generate broker email content.
 
@@ -2632,7 +2633,7 @@ context: {context}
                             }
                     except json.JSONDecodeError:
                         pass  # Fall through to local fallback
-            except Exception as e:
+            except Exception:
                 # Log but continue to fallback
                 pass
 
@@ -2666,7 +2667,7 @@ context: {context}
                         }
                 except json.JSONDecodeError:
                     pass
-        except Exception as e:
+        except Exception:
             pass
 
         # Both providers failed - return error
@@ -2679,7 +2680,7 @@ context: {context}
         }
 
 
-    async def get_health_status(self) -> Dict[str, Any]:
+    async def get_health_status(self) -> dict[str, Any]:
         """Get comprehensive health status for all providers."""
         provider_health = await get_all_health()
 
@@ -2754,10 +2755,10 @@ context: {context}
 
 
 # Singleton instance
-_orchestrator: Optional[ChatOrchestrator] = None
+_orchestrator: ChatOrchestrator | None = None
 
 
-def get_orchestrator(allow_cloud: Optional[bool] = None) -> ChatOrchestrator:
+def get_orchestrator(allow_cloud: bool | None = None) -> ChatOrchestrator:
     """Get or create the chat orchestrator singleton."""
     global _orchestrator
     if _orchestrator is None:

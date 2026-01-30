@@ -17,12 +17,11 @@ Environment Variables:
     LOG_LEVEL: Logging level (default: INFO)
 """
 
-import os
-import sys
-import signal
 import asyncio
 import logging
-from typing import Optional
+import os
+import signal
+import sys
 
 from .processor import OutboxProcessor
 
@@ -43,7 +42,7 @@ class OutboxRunner:
     """
 
     def __init__(self):
-        self.processor: Optional[OutboxProcessor] = None
+        self.processor: OutboxProcessor | None = None
         self._shutdown_event = asyncio.Event()
         self._shutdown_requested = False
 

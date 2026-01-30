@@ -2,13 +2,11 @@ from __future__ import annotations
 
 import json
 import os
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Literal
 
 from pydantic import BaseModel, Field
-from typing_extensions import Literal
-
 
 PlanStatus = Literal["OK", "NEEDS_TOOL", "BLOCKED"]
 SafetyClass = Literal["reversible", "gated", "irreversible"]
@@ -16,10 +14,10 @@ SafetyClass = Literal["reversible", "gated", "irreversible"]
 
 class ArtifactTypeSpec(BaseModel):
     kind: str = Field(min_length=1, description="Logical artifact type, e.g. md, docx, pdf, xlsx, pptx")
-    extension: Optional[str] = Field(default=None, description="File extension including dot, e.g. .docx")
-    mime_type: Optional[str] = Field(default=None)
+    extension: str | None = Field(default=None, description="File extension including dot, e.g. .docx")
+    mime_type: str | None = Field(default=None)
     required: bool = True
-    description: Optional[str] = None
+    description: str | None = None
 
     model_config = {"extra": "forbid"}
 
@@ -53,10 +51,10 @@ class PlanStep(BaseModel):
     title: str = Field(min_length=1)
     summary: str = Field(default="", description="1-2 line summary")
 
-    inputs: Dict[str, Any] = Field(default_factory=dict)
+    inputs: dict[str, Any] = Field(default_factory=dict)
 
-    depends_on: List[str] = Field(default_factory=list)
-    expected_artifacts: List[ArtifactTypeSpec] = Field(default_factory=list)
+    depends_on: list[str] = Field(default_factory=list)
+    expected_artifacts: list[ArtifactTypeSpec] = Field(default_factory=list)
 
     safety: StepSafety = Field(default_factory=StepSafety)
 
@@ -74,18 +72,18 @@ class MissingCapabilitySpec(BaseModel):
     description: str = Field(min_length=1)
     action_type: str = Field(min_length=1)
 
-    tool_name: Optional[str] = Field(default=None, description="Underlying tool id/name if applicable")
+    tool_name: str | None = Field(default=None, description="Underlying tool id/name if applicable")
 
-    input_schema: Dict[str, Any] = Field(default_factory=dict)
-    output_artifacts: List[ArtifactTypeSpec] = Field(default_factory=list)
+    input_schema: dict[str, Any] = Field(default_factory=dict)
+    output_artifacts: list[ArtifactTypeSpec] = Field(default_factory=list)
 
     risk_level: Literal["low", "medium", "high"] = "medium"
     safety_class: SafetyClass = "reversible"
     irreversible: bool = False
     requires_approval: bool = True
 
-    examples: List[Dict[str, Any]] = Field(default_factory=list)
-    constraints: List[str] = Field(default_factory=list)
+    examples: list[dict[str, Any]] = Field(default_factory=list)
+    constraints: list[str] = Field(default_factory=list)
 
     model_config = {"extra": "forbid"}
 
@@ -101,30 +99,30 @@ class PlanSpec(BaseModel):
     status: PlanStatus = "OK"
 
     plan_id: str = Field(min_length=1)
-    created_at: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+    created_at: str = Field(default_factory=lambda: datetime.now(UTC).isoformat())
     created_by: str = Field(default="tool_rag_planner")
 
     goal: str = Field(min_length=1)
-    deal_id: Optional[str] = None
+    deal_id: str | None = None
 
-    steps: List[PlanStep] = Field(default_factory=list)
+    steps: list[PlanStep] = Field(default_factory=list)
 
     # Global plan safety constraints (executor MUST enforce).
-    safety_constraints: List[str] = Field(
+    safety_constraints: list[str] = Field(
         default_factory=lambda: ["no_langsmith_tracing", "no_silent_drops"],
     )
 
     # Error / gating payloads (only set when status != OK)
-    blocked_reason: Optional[str] = None
-    missing_capability: Optional[MissingCapabilitySpec] = None
+    blocked_reason: str | None = None
+    missing_capability: MissingCapabilitySpec | None = None
 
     # Debug info for ops (not user-facing).
-    debug: Dict[str, Any] = Field(default_factory=dict)
+    debug: dict[str, Any] = Field(default_factory=dict)
 
     model_config = {"extra": "forbid"}
 
 
-PlannerOutput = Union[PlanSpec]
+PlannerOutput = PlanSpec
 
 
 def write_plan_spec_schema(out_path: Path) -> None:

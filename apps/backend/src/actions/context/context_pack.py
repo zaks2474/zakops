@@ -16,9 +16,9 @@ import json
 import logging
 import os
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 import httpx
 
@@ -34,11 +34,11 @@ EVENTS_DIR = DATAROOM_ROOT / ".deal-registry" / "events"
 @dataclass
 class BrokerContext:
     """Broker information for the deal."""
-    name: Optional[str] = None
-    email: Optional[str] = None
-    firm: Optional[str] = None
-    phone: Optional[str] = None
-    domain: Optional[str] = None
+    name: str | None = None
+    email: str | None = None
+    firm: str | None = None
+    phone: str | None = None
+    domain: str | None = None
 
 
 @dataclass
@@ -49,7 +49,7 @@ class EventContext:
     timestamp: str
     actor: str
     summary: str
-    details: Dict[str, Any] = field(default_factory=dict)
+    details: dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass
@@ -58,16 +58,16 @@ class RAGChunk:
     content: str
     source: str
     score: float
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    metadata: dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass
 class MaterialLink:
     """An extracted material link from enrichment."""
     url: str
-    title: Optional[str] = None
+    title: str | None = None
     link_type: str = "unknown"  # cim, nda, teaser, etc.
-    extracted_at: Optional[str] = None
+    extracted_at: str | None = None
 
 
 @dataclass
@@ -80,42 +80,42 @@ class ContextPack:
     """
     # Core deal info
     deal_id: str
-    deal_record: Dict[str, Any] = field(default_factory=dict)
-    canonical_name: Optional[str] = None
-    display_name: Optional[str] = None
+    deal_record: dict[str, Any] = field(default_factory=dict)
+    canonical_name: str | None = None
+    display_name: str | None = None
 
     # Deal state
-    stage: Optional[str] = None
-    status: Optional[str] = None
+    stage: str | None = None
+    status: str | None = None
 
     # Broker info
-    broker: Optional[BrokerContext] = None
+    broker: BrokerContext | None = None
 
     # Financial highlights
-    asking_price: Optional[float] = None
-    revenue: Optional[float] = None
-    ebitda: Optional[float] = None
+    asking_price: float | None = None
+    revenue: float | None = None
+    ebitda: float | None = None
 
     # Evidence
-    recent_events: List[EventContext] = field(default_factory=list)
-    case_summary: Optional[str] = None
-    key_facts: List[str] = field(default_factory=list)
+    recent_events: list[EventContext] = field(default_factory=list)
+    case_summary: str | None = None
+    key_facts: list[str] = field(default_factory=list)
 
     # RAG evidence (query-specific)
-    rag_evidence: List[RAGChunk] = field(default_factory=list)
+    rag_evidence: list[RAGChunk] = field(default_factory=list)
 
     # Materials
-    extracted_links: List[MaterialLink] = field(default_factory=list)
+    extracted_links: list[MaterialLink] = field(default_factory=list)
 
     # Memory hook (CodeX future)
-    prior_actions_summary: Optional[str] = None
+    prior_actions_summary: str | None = None
 
     # Metadata
-    built_at: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"))
-    sources_queried: List[str] = field(default_factory=list)
-    errors: List[str] = field(default_factory=list)
+    built_at: str = field(default_factory=lambda: datetime.now(UTC).isoformat().replace("+00:00", "Z"))
+    sources_queried: list[str] = field(default_factory=list)
+    errors: list[str] = field(default_factory=list)
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary for serialization."""
         return {
             "deal_id": self.deal_id,
@@ -210,35 +210,35 @@ class ContextPack:
         return "\n".join(parts)
 
 
-def _load_deal_registry() -> Dict[str, Any]:
+def _load_deal_registry() -> dict[str, Any]:
     """Load the deal registry JSON."""
     if not DEAL_REGISTRY_PATH.exists():
         logger.warning(f"Deal registry not found: {DEAL_REGISTRY_PATH}")
         return {}
     try:
-        with open(DEAL_REGISTRY_PATH, "r", encoding="utf-8") as f:
+        with open(DEAL_REGISTRY_PATH, encoding="utf-8") as f:
             return json.load(f)
     except Exception as e:
         logger.error(f"Failed to load deal registry: {e}")
         return {}
 
 
-def _get_deal_from_registry(deal_id: str) -> Optional[Dict[str, Any]]:
+def _get_deal_from_registry(deal_id: str) -> dict[str, Any] | None:
     """Get a deal from the registry by ID."""
     registry = _load_deal_registry()
     deals = registry.get("deals", {})
     return deals.get(deal_id)
 
 
-def _load_deal_events(deal_id: str, max_events: int = 20) -> List[EventContext]:
+def _load_deal_events(deal_id: str, max_events: int = 20) -> list[EventContext]:
     """Load events for a deal from the events directory."""
     events_file = EVENTS_DIR / f"{deal_id}.jsonl"
     if not events_file.exists():
         return []
 
-    events: List[EventContext] = []
+    events: list[EventContext] = []
     try:
-        with open(events_file, "r", encoding="utf-8") as f:
+        with open(events_file, encoding="utf-8") as f:
             for line in f:
                 if not line.strip():
                     continue
@@ -264,7 +264,7 @@ def _load_deal_events(deal_id: str, max_events: int = 20) -> List[EventContext]:
     return events[:max_events]
 
 
-def _load_case_file(deal_id: str, deal_path: Optional[Path] = None) -> tuple[Optional[str], List[str]]:
+def _load_case_file(deal_id: str, deal_path: Path | None = None) -> tuple[str | None, list[str]]:
     """Load case summary and key facts from case file."""
     # Try to find case file in deal folder
     if deal_path and deal_path.exists():
@@ -311,7 +311,7 @@ def _load_case_file(deal_id: str, deal_path: Optional[Path] = None) -> tuple[Opt
     return None, []
 
 
-def _query_rag(query: str, deal_id: Optional[str] = None, top_k: int = 5) -> List[RAGChunk]:
+def _query_rag(query: str, deal_id: str | None = None, top_k: int = 5) -> list[RAGChunk]:
     """Query RAG for relevant evidence."""
     try:
         params = {"query": query, "top_k": top_k}
@@ -344,7 +344,7 @@ def _query_rag(query: str, deal_id: Optional[str] = None, top_k: int = 5) -> Lis
         return []
 
 
-def _extract_material_links(deal_record: Dict[str, Any]) -> List[MaterialLink]:
+def _extract_material_links(deal_record: dict[str, Any]) -> list[MaterialLink]:
     """Extract material links from deal record enrichment data."""
     links = []
 
@@ -366,7 +366,7 @@ def _extract_material_links(deal_record: Dict[str, Any]) -> List[MaterialLink]:
     return links
 
 
-def _find_deal_path(deal_id: str, canonical_name: Optional[str] = None) -> Optional[Path]:
+def _find_deal_path(deal_id: str, canonical_name: str | None = None) -> Path | None:
     """Find the DataRoom path for a deal."""
     pipeline_root = DATAROOM_ROOT / "00-PIPELINE"
 
@@ -392,8 +392,8 @@ def _find_deal_path(deal_id: str, canonical_name: Optional[str] = None) -> Optio
 def build_context_pack(
     deal_id: str,
     *,
-    action_type: Optional[str] = None,
-    rag_query: Optional[str] = None,
+    action_type: str | None = None,
+    rag_query: str | None = None,
     include_rag: bool = True,
     include_events: bool = True,
     max_events: int = 10,
@@ -489,7 +489,7 @@ def build_context_pack(
 
 
 # Convenience function for quick context in prompts
-def get_deal_context_for_prompt(deal_id: str, action_type: Optional[str] = None) -> str:
+def get_deal_context_for_prompt(deal_id: str, action_type: str | None = None) -> str:
     """Get formatted context string for LLM prompts."""
     pack = build_context_pack(deal_id, action_type=action_type)
     return pack.to_prompt_context()

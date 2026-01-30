@@ -316,7 +316,7 @@ async def approve_action(
             existing = db.exec(
                 select(ToolExecution).where(
                     ToolExecution.idempotency_key == idempotency_key,
-                    ToolExecution.success == True
+                    ToolExecution.success.is_(True)
                 )
             ).first()
 

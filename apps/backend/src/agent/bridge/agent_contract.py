@@ -14,9 +14,8 @@ from __future__ import annotations
 
 import json
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import Enum
-from typing import Optional
 
 # =============================================================================
 # Tool Risk Levels
@@ -42,7 +41,7 @@ class ToolDefinition:
     risk_level: ToolRiskLevel
     requires_approval: bool
     allowed_deal_stages: list[str] = field(default_factory=list)  # Empty = all stages
-    rate_limit_per_minute: Optional[int] = None
+    rate_limit_per_minute: int | None = None
     parameters: dict = field(default_factory=dict)
 
 
@@ -578,8 +577,8 @@ class ToolCallContext:
     tool_input: dict
     thread_id: str
     run_id: str
-    deal_id: Optional[str] = None
-    user_id: Optional[str] = None
+    deal_id: str | None = None
+    user_id: str | None = None
 
 
 @dataclass
@@ -588,8 +587,8 @@ class ToolGatewayResult:
     allowed: bool
     requires_approval: bool
     risk_level: ToolRiskLevel
-    reason: Optional[str] = None
-    modified_input: Optional[dict] = None
+    reason: str | None = None
+    modified_input: dict | None = None
 
 
 class ToolGateway:
@@ -653,7 +652,7 @@ class ToolGateway:
 
     def _check_rate_limit(self, tool_name: str, limit: int) -> bool:
         """Check if tool call is within rate limit."""
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         calls = self._call_counts.get(tool_name, [])
 
         # Remove calls older than 1 minute
@@ -664,12 +663,12 @@ class ToolGateway:
 
     def _record_call(self, tool_name: str):
         """Record a tool call for rate limiting."""
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         if tool_name not in self._call_counts:
             self._call_counts[tool_name] = []
         self._call_counts[tool_name].append(now)
 
-    def get_tool_definition(self, tool_name: str) -> Optional[ToolDefinition]:
+    def get_tool_definition(self, tool_name: str) -> ToolDefinition | None:
         """Get tool definition by name."""
         return self.manifest.get(tool_name)
 

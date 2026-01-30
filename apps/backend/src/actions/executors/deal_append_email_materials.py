@@ -4,12 +4,17 @@ import json
 import os
 import re
 import shutil
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 from actions.engine.models import ActionError, ActionPayload, ArtifactMetadata, now_utc_iso
-from actions.executors.base import ActionExecutionError, ActionExecutor, ExecutionContext, ExecutionResult
+from actions.executors.base import (
+    ActionExecutionError,
+    ActionExecutor,
+    ExecutionContext,
+    ExecutionResult,
+)
 
 
 def _dataroom_root() -> Path:
@@ -91,7 +96,7 @@ def _classify_link_category(url: str) -> str:
 
 
 def _utc_timestamp() -> str:
-    return datetime.now(timezone.utc).strftime("%Y%m%d-%H%M%S")
+    return datetime.now(UTC).strftime("%Y%m%d-%H%M%S")
 
 
 def _read_json(path: Path) -> Any:
@@ -120,7 +125,7 @@ def _enforce_under_dataroom(path: Path, *, code: str = "path_outside_dataroom") 
         )
 
 
-def _find_existing_bundle(correspondence_dir: Path, message_id: str) -> Optional[Path]:
+def _find_existing_bundle(correspondence_dir: Path, message_id: str) -> Path | None:
     suffix = _clean_component(message_id)[-12:]
     if not suffix:
         return None
@@ -138,10 +143,10 @@ def _find_existing_bundle(correspondence_dir: Path, message_id: str) -> Optional
     return None
 
 
-def _copy_quarantine_payload(*, quarantine_dir: Path, dest_dir: Path) -> Tuple[int, int, List[str]]:
+def _copy_quarantine_payload(*, quarantine_dir: Path, dest_dir: Path) -> tuple[int, int, list[str]]:
     copied = 0
     skipped = 0
-    copied_paths: List[str] = []
+    copied_paths: list[str] = []
 
     if not quarantine_dir.exists() or not quarantine_dir.is_dir():
         return (0, 0, [])
@@ -175,7 +180,7 @@ class AppendEmailMaterialsExecutor(ActionExecutor):
 
     action_type = "DEAL.APPEND_EMAIL_MATERIALS"
 
-    def validate(self, payload: ActionPayload) -> tuple[bool, Optional[str]]:
+    def validate(self, payload: ActionPayload) -> tuple[bool, str | None]:
         inputs = payload.inputs or {}
         deal_id = str(inputs.get("deal_id") or payload.deal_id or "").strip()
         message_id = str(inputs.get("message_id") or "").strip()
@@ -278,7 +283,7 @@ class AppendEmailMaterialsExecutor(ActionExecutor):
         # Materialize bundle files only on first creation (append-only).
         copied = 0
         skipped = 0
-        copied_paths: List[str] = []
+        copied_paths: list[str] = []
         if not deduped:
             md = "\n".join(
                 [
@@ -311,7 +316,7 @@ class AppendEmailMaterialsExecutor(ActionExecutor):
             _write_json(email_json_path, email_json)
 
             links_in = inputs.get("links") or []
-            links: List[Dict[str, Any]] = []
+            links: list[dict[str, Any]] = []
             for l in links_in if isinstance(links_in, list) else []:
                 if not isinstance(l, dict):
                     continue
@@ -328,7 +333,7 @@ class AppendEmailMaterialsExecutor(ActionExecutor):
                 )
 
             attachments_in = inputs.get("attachments") or []
-            attachments_meta: List[Dict[str, Any]] = []
+            attachments_meta: list[dict[str, Any]] = []
             for a in attachments_in if isinstance(attachments_in, list) else []:
                 if not isinstance(a, dict):
                     continue
@@ -340,7 +345,7 @@ class AppendEmailMaterialsExecutor(ActionExecutor):
                     }
                 )
 
-            manifest: Dict[str, Any] = {
+            manifest: dict[str, Any] = {
                 "deal_id": deal_id,
                 "message_id": message_id,
                 "thread_id": thread_id,
@@ -370,7 +375,7 @@ class AppendEmailMaterialsExecutor(ActionExecutor):
         # Now includes classification for UI grouping (tracking, unsubscribe, social, material)
         agg_path = correspondence_dir / "links.json"
         agg_payload = _read_json(agg_path)
-        agg_links: List[Dict[str, Any]] = []
+        agg_links: list[dict[str, Any]] = []
         if isinstance(agg_payload, dict) and isinstance(agg_payload.get("links"), list):
             agg_links = [l for l in agg_payload.get("links") if isinstance(l, dict)]
         seen_urls = {str(l.get("url") or "") for l in agg_links if str(l.get("url") or "").strip()}
@@ -426,7 +431,7 @@ class AppendEmailMaterialsExecutor(ActionExecutor):
         _write_json(agg_path, agg_output)
 
         # Build next_actions for Phase 6 chaining.
-        artifact_paths: List[str] = [str(email_md_path)]
+        artifact_paths: list[str] = [str(email_md_path)]
         if attachments_dir.exists():
             for p in sorted(attachments_dir.iterdir()):
                 if p.is_file():
@@ -467,7 +472,7 @@ class AppendEmailMaterialsExecutor(ActionExecutor):
             },
         ]
 
-        outputs: Dict[str, Any] = {
+        outputs: dict[str, Any] = {
             "deal_id": deal_id,
             "deal_path": str(deal_path),
             "message_id": message_id,

@@ -11,11 +11,12 @@ reliable delivery (Phase 3).
 import functools
 import logging
 import os
-from typing import Callable, Any
+from collections.abc import Callable
+from typing import Any
 from uuid import UUID
 
-from .publisher import publish_deal_event, publish_action_event
-from .taxonomy import DealEventType, ActionEventType
+from .publisher import publish_action_event, publish_deal_event
+from .taxonomy import ActionEventType, DealEventType
 
 logger = logging.getLogger(__name__)
 
@@ -200,8 +201,8 @@ async def emit_via_outbox(
                 aggregate_id=aggregate_id or str(correlation_id)
             )
     else:
-        from .publisher import publish_event
         from .models import EventBase
+        from .publisher import publish_event
         event = EventBase(
             correlation_id=correlation_id,
             event_type=event_type,

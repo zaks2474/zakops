@@ -7,13 +7,13 @@ Writes events to the outbox table within the same transaction
 as your business logic for guaranteed delivery.
 """
 
-import os
 import json
 import logging
-from typing import Optional, Dict, Any, List
-from uuid import UUID, uuid4
-from datetime import datetime, timezone
+import os
 from contextlib import asynccontextmanager
+from datetime import UTC, datetime
+from typing import Any
+from uuid import UUID
 
 from ..database.adapter import DatabaseAdapter, get_database
 from ..events import publish_event
@@ -43,7 +43,7 @@ class OutboxWriter:
         # Transaction commits, outbox entry is persisted
     """
 
-    def __init__(self, db: Optional[DatabaseAdapter] = None):
+    def __init__(self, db: DatabaseAdapter | None = None):
         self._db = db
         self._enabled = is_outbox_enabled()
 
@@ -56,10 +56,10 @@ class OutboxWriter:
         self,
         correlation_id: UUID,
         event_type: str,
-        event_data: Dict[str, Any],
+        event_data: dict[str, Any],
         aggregate_type: str = "event",
-        aggregate_id: Optional[str] = None,
-        idempotency_key: Optional[str] = None
+        aggregate_id: str | None = None,
+        idempotency_key: str | None = None
     ) -> OutboxEntry:
         """
         Write an event to the outbox.
@@ -94,7 +94,7 @@ class OutboxWriter:
                 aggregate_type=aggregate_type,
                 aggregate_id=aggregate_id or str(correlation_id),
                 status=OutboxStatus.DELIVERED,
-                delivered_at=datetime.now(timezone.utc)
+                delivered_at=datetime.now(UTC)
             )
 
         entry = OutboxEntry(
@@ -135,8 +135,8 @@ class OutboxWriter:
 
     async def write_batch(
         self,
-        entries: List[tuple]  # List of (correlation_id, event_type, event_data) tuples
-    ) -> List[OutboxEntry]:
+        entries: list[tuple]  # List of (correlation_id, event_type, event_data) tuples
+    ) -> list[OutboxEntry]:
         """
         Write multiple events to the outbox in a single transaction.
 
@@ -154,7 +154,7 @@ class OutboxWriter:
 
 
 # Global writer instance
-_writer: Optional[OutboxWriter] = None
+_writer: OutboxWriter | None = None
 
 
 @asynccontextmanager

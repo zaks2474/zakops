@@ -1,17 +1,21 @@
 from __future__ import annotations
 
-from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any
 
 from actions.engine.models import ActionError, ActionPayload, ArtifactMetadata, now_utc_iso
 from actions.executors._artifacts import resolve_action_artifact_dir
-from actions.executors.base import ActionExecutionError, ActionExecutor, ExecutionContext, ExecutionResult
+from actions.executors.base import (
+    ActionExecutionError,
+    ActionExecutor,
+    ExecutionContext,
+    ExecutionResult,
+)
 
 
 class GeneratePitchDeckExecutor(ActionExecutor):
     action_type = "PRESENTATION.GENERATE_PITCH_DECK"
 
-    def validate(self, payload: ActionPayload) -> tuple[bool, Optional[str]]:
+    def validate(self, payload: ActionPayload) -> tuple[bool, str | None]:
         return True, None
 
     def execute(self, payload: ActionPayload, ctx: ExecutionContext) -> ExecutionResult:
@@ -65,6 +69,6 @@ class GeneratePitchDeckExecutor(ActionExecutor):
             )
         ]
 
-        outputs: Dict[str, Any] = {"deck_title": deck_title, "include_financials": include_financials}
+        outputs: dict[str, Any] = {"deck_title": deck_title, "include_financials": include_financials}
         return ExecutionResult(outputs=outputs, artifacts=artifacts)
 

@@ -132,7 +132,7 @@ def analyze_endpoint_rbac(app) -> RBACCoverageReport:
 
             # Check function signature for dependencies
             sig = inspect.signature(endpoint_func)
-            for param_name, param in sig.parameters.items():
+            for _param_name, param in sig.parameters.items():
                 if param.default is not inspect.Parameter.empty:
                     default = param.default
                     # Check if it's a Depends() call

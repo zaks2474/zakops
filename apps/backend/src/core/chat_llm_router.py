@@ -21,19 +21,16 @@ from __future__ import annotations
 
 import os
 import re
+from collections.abc import AsyncIterator
 from dataclasses import dataclass
 from enum import Enum
-from typing import Any, AsyncIterator, Dict, List, Optional, Tuple
 
+from chat_budget import get_budget_manager
 from chat_llm_provider import (
     ChatLLMProvider,
-    GeminiFlashProvider,
-    GeminiProProvider,
     ProviderResponse,
-    VLLMProvider,
     get_provider,
 )
-from chat_budget import get_budget_manager
 
 # Configuration
 CLOUD_ENABLED = os.getenv("ALLOW_CLOUD_DEFAULT", "false").lower() == "true"
@@ -61,8 +58,8 @@ class RouteResult:
     """Result of routing decision."""
     decision: RoutingDecision
     reason: str
-    provider: Optional[ChatLLMProvider] = None
-    fallback_chain: List[str] = None
+    provider: ChatLLMProvider | None = None
+    fallback_chain: list[str] = None
 
     def __post_init__(self):
         if self.fallback_chain is None:
@@ -134,7 +131,7 @@ class ChatLLMRouter:
     Implements fallback chain for resilience.
     """
 
-    def __init__(self, allow_cloud: Optional[bool] = None):
+    def __init__(self, allow_cloud: bool | None = None):
         """
         Initialize router.
 
@@ -149,7 +146,7 @@ class ChatLLMRouter:
         query: str,
         evidence_size: int = 0,
         is_deterministic: bool = False,
-        allow_cloud_override: Optional[bool] = None
+        allow_cloud_override: bool | None = None
     ) -> RouteResult:
         """
         Decide which provider to use for a query.
@@ -217,7 +214,7 @@ class ChatLLMRouter:
 
     async def invoke(
         self,
-        messages: List[Dict[str, str]],
+        messages: list[dict[str, str]],
         route: RouteResult,
         temperature: float = 0.7,
         max_tokens: int = 1024,
@@ -257,11 +254,11 @@ class ChatLLMRouter:
 
     async def invoke_with_fallback(
         self,
-        messages: List[Dict[str, str]],
+        messages: list[dict[str, str]],
         route: RouteResult,
         temperature: float = 0.7,
         max_tokens: int = 1024,
-    ) -> Tuple[ProviderResponse, bool]:
+    ) -> tuple[ProviderResponse, bool]:
         """
         Invoke with automatic fallback on failure.
 
@@ -329,11 +326,11 @@ class ChatLLMRouter:
 
     async def stream_with_fallback(
         self,
-        messages: List[Dict[str, str]],
+        messages: list[dict[str, str]],
         route: RouteResult,
         temperature: float = 0.7,
         max_tokens: int = 1024,
-    ) -> AsyncIterator[Tuple[str, str]]:
+    ) -> AsyncIterator[tuple[str, str]]:
         """
         Stream with automatic fallback on failure.
 
@@ -371,10 +368,10 @@ class ChatLLMRouter:
 
 
 # Singleton
-_router_instance: Optional[ChatLLMRouter] = None
+_router_instance: ChatLLMRouter | None = None
 
 
-def get_router(allow_cloud: Optional[bool] = None) -> ChatLLMRouter:
+def get_router(allow_cloud: bool | None = None) -> ChatLLMRouter:
     """Get or create the singleton router."""
     global _router_instance
     if _router_instance is None:

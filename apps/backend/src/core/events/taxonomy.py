@@ -9,7 +9,6 @@ Event naming convention: {domain}.{action}
 """
 
 from enum import Enum
-from typing import Dict, Any
 
 
 class EventDomain(str, Enum):
@@ -72,7 +71,7 @@ class SystemEventType(str, Enum):
 
 
 # Combined lookup for all event types
-ALL_EVENT_TYPES: Dict[str, str] = {
+ALL_EVENT_TYPES: dict[str, str] = {
     **{e.value: e.name for e in DealEventType},
     **{e.value: e.name for e in ActionEventType},
     **{e.value: e.name for e in AgentEventType},

@@ -1,14 +1,11 @@
 from __future__ import annotations
 
-from typing import Dict, List, Optional
-
 from .base import ActionExecutor
 from .tool_invoke import ToolInvokeExecutor
 
-
-_EXECUTORS: Dict[str, ActionExecutor] = {}
+_EXECUTORS: dict[str, ActionExecutor] = {}
 _BUILTINS_LOADED = False
-_TOOL_EXECUTOR: Optional[ToolInvokeExecutor] = None
+_TOOL_EXECUTOR: ToolInvokeExecutor | None = None
 
 
 def register_executor(executor: ActionExecutor) -> None:
@@ -34,11 +31,11 @@ def load_builtin_executors() -> None:
     from .communication_draft_email import DraftEmailExecutor
     from .communication_send_email import SendEmailExecutor
     from .deal_append_email_materials import AppendEmailMaterialsExecutor
+    from .deal_backfill_sender_history import DealBackfillSenderHistoryExecutor
     from .deal_create_from_email import CreateDealFromEmailExecutor
     from .deal_dedupe_and_place_materials import DedupeAndPlaceMaterialsExecutor
     from .deal_enrich_materials import EnrichMaterialsExecutor
     from .deal_extract_email_artifacts import ExtractEmailArtifactsExecutor
-    from .deal_backfill_sender_history import DealBackfillSenderHistoryExecutor
     from .diligence_request_docs import RequestDocsExecutor
     from .document_generate_loi import GenerateLoiExecutor
     from .email_triage_reject_email import EmailTriageRejectEmailExecutor
@@ -65,7 +62,7 @@ def load_builtin_executors() -> None:
     _BUILTINS_LOADED = True
 
 
-def get_executor(action_type: str) -> Optional[ActionExecutor]:
+def get_executor(action_type: str) -> ActionExecutor | None:
     if not _BUILTINS_LOADED:
         load_builtin_executors()
     at = (action_type or "").strip()
@@ -80,7 +77,7 @@ def get_executor(action_type: str) -> Optional[ActionExecutor]:
     return None
 
 
-def list_executors() -> List[str]:
+def list_executors() -> list[str]:
     if not _BUILTINS_LOADED:
         load_builtin_executors()
     return sorted(_EXECUTORS.keys())

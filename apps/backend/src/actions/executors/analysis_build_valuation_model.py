@@ -1,16 +1,21 @@
 from __future__ import annotations
 
-from typing import Any, Dict, Optional
+from typing import Any
 
 from actions.engine.models import ActionError, ActionPayload, ArtifactMetadata, now_utc_iso
 from actions.executors._artifacts import resolve_action_artifact_dir
-from actions.executors.base import ActionExecutionError, ActionExecutor, ExecutionContext, ExecutionResult
+from actions.executors.base import (
+    ActionExecutionError,
+    ActionExecutor,
+    ExecutionContext,
+    ExecutionResult,
+)
 
 
 class BuildValuationModelExecutor(ActionExecutor):
     action_type = "ANALYSIS.BUILD_VALUATION_MODEL"
 
-    def validate(self, payload: ActionPayload) -> tuple[bool, Optional[str]]:
+    def validate(self, payload: ActionPayload) -> tuple[bool, str | None]:
         return True, None
 
     def execute(self, payload: ActionPayload, ctx: ExecutionContext) -> ExecutionResult:
@@ -59,6 +64,6 @@ class BuildValuationModelExecutor(ActionExecutor):
                 created_at=now_utc_iso(),
             )
         ]
-        outputs: Dict[str, Any] = {"multiple": multiple}
+        outputs: dict[str, Any] = {"multiple": multiple}
         return ExecutionResult(outputs=outputs, artifacts=artifacts)
 

@@ -8,11 +8,9 @@ Adds trace_id and correlation_id to all requests for observability.
 
 import contextvars
 from uuid import uuid4
-from typing import Optional
 
 from fastapi import Request
 from starlette.middleware.base import BaseHTTPMiddleware
-
 
 # Context variables for request-scoped values
 trace_id_var: contextvars.ContextVar[str] = contextvars.ContextVar("trace_id", default="")
@@ -29,7 +27,7 @@ def get_trace_id() -> str:
     return trace_id_var.get() or str(uuid4())
 
 
-def get_correlation_id() -> Optional[str]:
+def get_correlation_id() -> str | None:
     """
     Get the current correlation ID.
 

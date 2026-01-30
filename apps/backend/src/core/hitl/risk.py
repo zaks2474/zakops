@@ -22,7 +22,7 @@ import os
 import re
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any, Dict, List, Optional, Set
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -38,11 +38,11 @@ class RiskLevel(str, Enum):
         """Whether this risk level requires human approval by default."""
         return self in (RiskLevel.HIGH, RiskLevel.CRITICAL)
 
-    def __lt__(self, other: "RiskLevel") -> bool:
+    def __lt__(self, other: RiskLevel) -> bool:
         order = [RiskLevel.LOW, RiskLevel.MEDIUM, RiskLevel.HIGH, RiskLevel.CRITICAL]
         return order.index(self) < order.index(other)
 
-    def __le__(self, other: "RiskLevel") -> bool:
+    def __le__(self, other: RiskLevel) -> bool:
         return self == other or self < other
 
 
@@ -51,11 +51,11 @@ class RiskAssessment:
     """Result of a risk assessment."""
     risk_level: RiskLevel
     requires_approval: bool
-    reasons: List[str] = field(default_factory=list)
-    recommendations: List[str] = field(default_factory=list)
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    reasons: list[str] = field(default_factory=list)
+    recommendations: list[str] = field(default_factory=list)
+    metadata: dict[str, Any] = field(default_factory=dict)
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "risk_level": self.risk_level.value,
             "requires_approval": self.requires_approval,
@@ -74,15 +74,15 @@ class RiskRule:
     requires_approval: bool = True
 
     # Matching criteria
-    action_types: Set[str] = field(default_factory=set)  # Empty = match all
-    action_type_patterns: List[str] = field(default_factory=list)  # Regex patterns
-    input_patterns: Dict[str, str] = field(default_factory=dict)  # Key: regex pattern for value
+    action_types: set[str] = field(default_factory=set)  # Empty = match all
+    action_type_patterns: list[str] = field(default_factory=list)  # Regex patterns
+    input_patterns: dict[str, str] = field(default_factory=dict)  # Key: regex pattern for value
 
     # Conditions
-    min_amount: Optional[float] = None  # If inputs have 'amount' field
+    min_amount: float | None = None  # If inputs have 'amount' field
     external_communication: bool = False  # If action sends external comms
 
-    def matches(self, action_type: str, inputs: Dict[str, Any]) -> bool:
+    def matches(self, action_type: str, inputs: dict[str, Any]) -> bool:
         """Check if this rule matches the given action."""
         action_type_upper = action_type.upper()
         action_types_upper = {t.upper() for t in self.action_types}
@@ -146,7 +146,7 @@ class RiskAssessor:
     """
 
     # Default risk rules
-    DEFAULT_RULES: List[RiskRule] = [
+    DEFAULT_RULES: list[RiskRule] = [
         # Critical: External communication
         RiskRule(
             name="external_email",
@@ -203,7 +203,7 @@ class RiskAssessor:
 
     def __init__(
         self,
-        rules: Optional[List[RiskRule]] = None,
+        rules: list[RiskRule] | None = None,
         default_risk_level: RiskLevel = RiskLevel.MEDIUM,
         default_requires_approval: bool = True,
     ):
@@ -222,7 +222,7 @@ class RiskAssessor:
         # Load config from environment
         self._load_env_config()
 
-    def _load_rules(self) -> List[RiskRule]:
+    def _load_rules(self) -> list[RiskRule]:
         """Load rules from configuration or use defaults."""
         # Future: Load from database or config file
         return list(self.DEFAULT_RULES)
@@ -249,8 +249,8 @@ class RiskAssessor:
     def assess(
         self,
         action_type: str,
-        inputs: Optional[Dict[str, Any]] = None,
-        context: Optional[Dict[str, Any]] = None,
+        inputs: dict[str, Any] | None = None,
+        context: dict[str, Any] | None = None,
     ) -> RiskAssessment:
         """
         Assess the risk level of an action.
@@ -266,9 +266,9 @@ class RiskAssessor:
         inputs = inputs or {}
         context = context or {}
 
-        reasons: List[str] = []
-        recommendations: List[str] = []
-        matched_rules: List[RiskRule] = []
+        reasons: list[str] = []
+        recommendations: list[str] = []
+        matched_rules: list[RiskRule] = []
 
         # Find matching rules
         for rule in self.rules:
@@ -316,8 +316,8 @@ class RiskAssessor:
     def get_approval_requirements(
         self,
         action_type: str,
-        inputs: Optional[Dict[str, Any]] = None,
-    ) -> Dict[str, Any]:
+        inputs: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
         """
         Get approval requirements for an action.
 
@@ -365,7 +365,7 @@ class RiskAssessor:
 
 
 # Global assessor instance
-_assessor: Optional[RiskAssessor] = None
+_assessor: RiskAssessor | None = None
 
 
 def get_risk_assessor() -> RiskAssessor:
@@ -378,8 +378,8 @@ def get_risk_assessor() -> RiskAssessor:
 
 def assess_risk(
     action_type: str,
-    inputs: Optional[Dict[str, Any]] = None,
-    context: Optional[Dict[str, Any]] = None,
+    inputs: dict[str, Any] | None = None,
+    context: dict[str, Any] | None = None,
 ) -> RiskAssessment:
     """Convenience function to assess risk using global assessor."""
     return get_risk_assessor().assess(action_type, inputs, context)

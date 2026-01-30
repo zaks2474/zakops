@@ -6,8 +6,9 @@ Data models for agent invocation and execution.
 
 from datetime import datetime
 from enum import Enum
-from typing import Optional, Dict, Any, List
+from typing import Any
 from uuid import UUID, uuid4
+
 from pydantic import BaseModel, Field
 
 
@@ -24,7 +25,7 @@ class ToolCall(BaseModel):
     """A tool call made by the agent."""
     id: UUID = Field(default_factory=uuid4)
     tool_name: str
-    tool_input: Dict[str, Any]
+    tool_input: dict[str, Any]
     timestamp: datetime = Field(default_factory=datetime.utcnow)
 
 
@@ -33,7 +34,7 @@ class ToolResult(BaseModel):
     tool_call_id: UUID
     tool_name: str
     output: Any
-    error: Optional[str] = None
+    error: str | None = None
     duration_ms: int = 0
     timestamp: datetime = Field(default_factory=datetime.utcnow)
 
@@ -42,8 +43,8 @@ class AgentRunRequest(BaseModel):
     """Request to invoke an agent."""
     deal_id: UUID
     task: str
-    context: Optional[Dict[str, Any]] = None
-    trace_id: Optional[str] = None
+    context: dict[str, Any] | None = None
+    trace_id: str | None = None
 
     class Config:
         json_schema_extra = {
@@ -62,11 +63,11 @@ class AgentRunResponse(BaseModel):
     status: AgentRunStatus
     trace_id: str
     started_at: datetime
-    completed_at: Optional[datetime] = None
-    tool_calls: List[ToolCall] = []
-    actions_created: List[UUID] = []
-    result: Optional[Dict[str, Any]] = None
-    error: Optional[str] = None
+    completed_at: datetime | None = None
+    tool_calls: list[ToolCall] = []
+    actions_created: list[UUID] = []
+    result: dict[str, Any] | None = None
+    error: str | None = None
 
     class Config:
         json_schema_extra = {
@@ -91,16 +92,16 @@ class AgentRun(BaseModel):
     trace_id: str
     status: AgentRunStatus = AgentRunStatus.PENDING
     task: str
-    context: Optional[Dict[str, Any]] = None
-    result: Optional[Dict[str, Any]] = None
-    error: Optional[str] = None
+    context: dict[str, Any] | None = None
+    result: dict[str, Any] | None = None
+    error: str | None = None
     tool_calls_count: int = 0
     actions_created_count: int = 0
     started_at: datetime = Field(default_factory=datetime.utcnow)
-    completed_at: Optional[datetime] = None
-    duration_ms: Optional[int] = None
+    completed_at: datetime | None = None
+    duration_ms: int | None = None
 
-    def to_response(self, tool_calls: List[ToolCall] = None, actions: List[UUID] = None) -> AgentRunResponse:
+    def to_response(self, tool_calls: list[ToolCall] = None, actions: list[UUID] = None) -> AgentRunResponse:
         """Convert to API response."""
         return AgentRunResponse(
             run_id=self.id,

@@ -7,18 +7,17 @@ Background worker that polls the outbox and delivers events
 with retry logic and exponential backoff.
 """
 
-import os
 import asyncio
 import json
 import logging
-from datetime import datetime, timedelta, timezone
-from typing import Optional, List, Dict, Any
+from datetime import UTC, datetime, timedelta
+from typing import Any
 from uuid import UUID, uuid4
 
-from ..database.adapter import get_database, DatabaseAdapter
+from ..database.adapter import DatabaseAdapter, get_database
 from ..events import publish_event
 from ..events.models import EventBase
-from .models import OutboxEntry, OutboxStatus
+from .models import OutboxStatus
 
 logger = logging.getLogger(__name__)
 
@@ -30,7 +29,7 @@ def calculate_next_attempt(attempts: int) -> datetime:
     """Calculate next attempt time with exponential backoff."""
     interval_idx = min(attempts, len(RETRY_INTERVALS) - 1)
     interval = RETRY_INTERVALS[interval_idx]
-    return datetime.now(timezone.utc) + timedelta(seconds=interval)
+    return datetime.now(UTC) + timedelta(seconds=interval)
 
 
 class OutboxProcessor:
@@ -49,14 +48,14 @@ class OutboxProcessor:
         poll_interval: float = 1.0,
         batch_size: int = 100,
         max_attempts: int = 5,
-        db: Optional[DatabaseAdapter] = None
+        db: DatabaseAdapter | None = None
     ):
         self.poll_interval = poll_interval
         self.batch_size = batch_size
         self.max_attempts = max_attempts
         self._db = db
         self._running = False
-        self._task: Optional[asyncio.Task] = None
+        self._task: asyncio.Task | None = None
 
     async def _get_db(self) -> DatabaseAdapter:
         if self._db is None:
@@ -100,7 +99,7 @@ class OutboxProcessor:
     async def _process_batch(self) -> int:
         """Process a batch of outbox entries."""
         db = await self._get_db()
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
 
         # Fetch pending entries that are ready for processing
         # Uses SELECT FOR UPDATE SKIP LOCKED to prevent duplicate processing
@@ -131,11 +130,11 @@ class OutboxProcessor:
 
         return len(entries)
 
-    async def _deliver_entry(self, db: DatabaseAdapter, entry: Dict[str, Any]):
+    async def _deliver_entry(self, db: DatabaseAdapter, entry: dict[str, Any]):
         """Deliver a single outbox entry."""
         entry_id = entry["id"]
         attempts = entry["attempts"] + 1
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
 
         # Mark as processing
         await db.execute(
@@ -176,7 +175,7 @@ class OutboxProcessor:
                 WHERE id = $3
                 """,
                 OutboxStatus.DELIVERED.value,
-                datetime.now(timezone.utc),
+                datetime.now(UTC),
                 entry_id
             )
 
@@ -216,7 +215,7 @@ class OutboxProcessor:
                 entry_id
             )
 
-    async def get_stats(self) -> Dict[str, int]:
+    async def get_stats(self) -> dict[str, int]:
         """Get outbox statistics."""
         db = await self._get_db()
 
@@ -234,7 +233,7 @@ class OutboxProcessor:
 
         return stats
 
-    async def get_dead_letters(self, limit: int = 100) -> List[Dict[str, Any]]:
+    async def get_dead_letters(self, limit: int = 100) -> list[dict[str, Any]]:
         """Get entries that have exceeded max attempts."""
         db = await self._get_db()
 
@@ -253,7 +252,7 @@ class OutboxProcessor:
         """Reset a dead letter entry for retry."""
         db = await self._get_db()
 
-        result = await db.execute(
+        await db.execute(
             """
             UPDATE zakops.outbox
             SET status = $1, attempts = 0, next_attempt_at = NULL, error_message = NULL
@@ -269,7 +268,7 @@ class OutboxProcessor:
 
 
 # Global processor instance
-_processor: Optional[OutboxProcessor] = None
+_processor: OutboxProcessor | None = None
 
 
 async def start_outbox_processor(
@@ -297,6 +296,6 @@ async def stop_outbox_processor():
         _processor = None
 
 
-async def get_outbox_processor() -> Optional[OutboxProcessor]:
+async def get_outbox_processor() -> OutboxProcessor | None:
     """Get the global outbox processor instance."""
     return _processor

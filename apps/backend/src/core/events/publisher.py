@@ -12,15 +12,13 @@ Supports:
 - Batch publishing
 """
 
-from datetime import datetime
-from typing import List, Optional
-from uuid import UUID
 import json
 import logging
+from uuid import UUID
 
-from ..database.adapter import get_database, DatabaseAdapter
-from .models import EventBase, AgentEvent, DealEvent, ActionEvent, WorkerEvent
-from .taxonomy import validate_event_type, get_domain
+from ..database.adapter import DatabaseAdapter, get_database
+from .models import ActionEvent, AgentEvent, DealEvent, EventBase
+from .taxonomy import get_domain, validate_event_type
 
 logger = logging.getLogger(__name__)
 
@@ -50,7 +48,7 @@ class EventPublisher:
         await publisher.publish_batch([event1, event2, event3])
     """
 
-    def __init__(self, db: Optional[DatabaseAdapter] = None):
+    def __init__(self, db: DatabaseAdapter | None = None):
         self._db = db
 
     async def _get_db(self) -> DatabaseAdapter:
@@ -205,7 +203,7 @@ class EventPublisher:
             return "custom"
         return mapped
 
-    async def publish_batch(self, events: List[EventBase]) -> List[UUID]:
+    async def publish_batch(self, events: list[EventBase]) -> list[UUID]:
         """
         Publish multiple events in a batch.
 
@@ -239,7 +237,7 @@ class EventPublisher:
         correlation_id: UUID,
         event_type: str,
         event_data: dict,
-        deal_id: Optional[UUID] = None,
+        deal_id: UUID | None = None,
         source: str = "action_engine"
     ) -> UUID:
         """Convenience method for action events."""
@@ -258,8 +256,8 @@ class EventPublisher:
         correlation_id: UUID,
         event_type: str,
         event_data: dict,
-        run_id: Optional[UUID] = None,
-        thread_id: Optional[str] = None,
+        run_id: UUID | None = None,
+        thread_id: str | None = None,
         source: str = "agent"
     ) -> UUID:
         """Convenience method for agent events."""
@@ -275,7 +273,7 @@ class EventPublisher:
 
 
 # Global publisher instance
-_publisher: Optional[EventPublisher] = None
+_publisher: EventPublisher | None = None
 
 
 async def get_publisher() -> EventPublisher:
@@ -311,7 +309,7 @@ async def publish_action_event(
     correlation_id: UUID,
     event_type: str,
     event_data: dict,
-    deal_id: Optional[UUID] = None,
+    deal_id: UUID | None = None,
     source: str = "action_engine"
 ) -> UUID:
     """Publish an action event."""
@@ -325,8 +323,8 @@ async def publish_agent_event(
     correlation_id: UUID,
     event_type: str,
     event_data: dict,
-    run_id: Optional[UUID] = None,
-    thread_id: Optional[str] = None,
+    run_id: UUID | None = None,
+    thread_id: str | None = None,
     source: str = "agent"
 ) -> UUID:
     """Publish an agent event."""
@@ -338,9 +336,9 @@ async def publish_agent_event(
 
 async def get_events_after(
     last_sequence: int,
-    deal_id: Optional[str] = None,
+    deal_id: str | None = None,
     limit: int = 100
-) -> List[dict]:
+) -> list[dict]:
     """
     Get events after a given sequence number.
 

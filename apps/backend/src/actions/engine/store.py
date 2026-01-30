@@ -2,11 +2,10 @@ from __future__ import annotations
 
 import os
 import sqlite3
-import time
 from contextlib import contextmanager
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timedelta
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 from .models import (
     ActionError,
@@ -28,7 +27,7 @@ def _default_state_db_path() -> Path:
     return Path(os.getenv("ZAKOPS_STATE_DB", "/home/zaks/DataRoom/.deal-registry/ingest_state.db"))
 
 
-def _parse_iso(value: Optional[str]) -> Optional[datetime]:
+def _parse_iso(value: str | None) -> datetime | None:
     if not value:
         return None
     v = value.strip()
@@ -141,7 +140,7 @@ CREATE INDEX IF NOT EXISTS idx_steps_status ON action_steps(status);
 
 
 class ActionStore:
-    def __init__(self, db_path: Optional[Path] = None):
+    def __init__(self, db_path: Path | None = None):
         self.db_path = Path(db_path or _default_state_db_path())
         self.db_path.parent.mkdir(parents=True, exist_ok=True)
         self._init_db()
@@ -229,12 +228,12 @@ class ActionStore:
         action.quarantine_hidden_reason = row["quarantine_hidden_reason"]
         return action
 
-    def _load_audit(self, conn: sqlite3.Connection, action_id: str) -> List[AuditEvent]:
+    def _load_audit(self, conn: sqlite3.Connection, action_id: str) -> list[AuditEvent]:
         rows = conn.execute(
             "SELECT audit_id, timestamp, event, actor, details FROM action_audit_events WHERE action_id=? ORDER BY timestamp ASC",
             (action_id,),
         ).fetchall()
-        out: List[AuditEvent] = []
+        out: list[AuditEvent] = []
         for r in rows:
             details = {}
             raw = r["details"]
@@ -254,12 +253,12 @@ class ActionStore:
             )
         return out
 
-    def _load_artifacts(self, conn: sqlite3.Connection, action_id: str) -> List[ArtifactMetadata]:
+    def _load_artifacts(self, conn: sqlite3.Connection, action_id: str) -> list[ArtifactMetadata]:
         rows = conn.execute(
             "SELECT artifact_id, filename, mime_type, path, size_bytes, sha256, created_at FROM action_artifacts WHERE action_id=? ORDER BY created_at ASC",
             (action_id,),
         ).fetchall()
-        out: List[ArtifactMetadata] = []
+        out: list[ArtifactMetadata] = []
         for r in rows:
             out.append(
                 ArtifactMetadata(
@@ -275,14 +274,14 @@ class ActionStore:
             )
         return out
 
-    def _load_steps(self, conn: sqlite3.Connection, action_id: str) -> List[ActionStep]:
+    def _load_steps(self, conn: sqlite3.Connection, action_id: str) -> list[ActionStep]:
         rows = conn.execute(
             """SELECT step_id, action_id, step_index, name, status, started_at, ended_at,
                       output_ref, error, requires_approval, approved_by, approved_at, metadata
                FROM action_steps WHERE action_id=? ORDER BY step_index ASC""",
             (action_id,),
         ).fetchall()
-        out: List[ActionStep] = []
+        out: list[ActionStep] = []
         for r in rows:
             error = None
             if r["error"]:
@@ -315,7 +314,7 @@ class ActionStore:
             )
         return out
 
-    def get_artifact(self, *, action_id: str, artifact_id: str) -> Optional[ArtifactMetadata]:
+    def get_artifact(self, *, action_id: str, artifact_id: str) -> ArtifactMetadata | None:
         with self._connect() as conn:
             row = conn.execute(
                 "SELECT artifact_id, filename, mime_type, path, size_bytes, sha256, created_at FROM action_artifacts WHERE action_id=? AND artifact_id=?",
@@ -334,7 +333,7 @@ class ActionStore:
                 download_url=None,
             )
 
-    def create_action(self, action: ActionPayload) -> Tuple[ActionPayload, bool]:
+    def create_action(self, action: ActionPayload) -> tuple[ActionPayload, bool]:
         """
         Create action with idempotency.
 
@@ -399,7 +398,7 @@ class ActionStore:
             action.artifacts = self._load_artifacts(conn, action.action_id)
             return action, created
 
-    def get_action(self, action_id: str) -> Optional[ActionPayload]:
+    def get_action(self, action_id: str) -> ActionPayload | None:
         with self._connect() as conn:
             row = conn.execute("SELECT * FROM actions WHERE action_id=?", (action_id,)).fetchone()
             if not row:
@@ -413,17 +412,17 @@ class ActionStore:
     def list_actions(
         self,
         *,
-        deal_id: Optional[str] = None,
-        status: Optional[str] = None,
-        action_type: Optional[str] = None,
-        created_after: Optional[str] = None,
-        created_before: Optional[str] = None,
+        deal_id: str | None = None,
+        status: str | None = None,
+        action_type: str | None = None,
+        created_after: str | None = None,
+        created_before: str | None = None,
         limit: int = 50,
         offset: int = 0,
         exclude_hidden: bool = True,
-    ) -> List[ActionPayload]:
-        where: List[str] = []
-        params: List[Any] = []
+    ) -> list[ActionPayload]:
+        where: list[str] = []
+        params: list[Any] = []
         if deal_id:
             where.append("deal_id = ?")
             params.append(deal_id)
@@ -450,7 +449,7 @@ class ActionStore:
 
         with self._connect() as conn:
             rows = conn.execute(sql, params).fetchall()
-            out: List[ActionPayload] = []
+            out: list[ActionPayload] = []
             for row in rows:
                 action = self._row_to_action(row)
                 # Lightweight list response: no audit/artifacts to keep it fast.
@@ -464,7 +463,7 @@ class ActionStore:
         *,
         event: str,
         actor: str,
-        details: Optional[Dict[str, Any]] = None,
+        details: dict[str, Any] | None = None,
     ) -> None:
         audit = AuditEvent(event=event, actor=actor, details=details or {})
         conn.execute(
@@ -490,14 +489,14 @@ class ActionStore:
             ),
         )
 
-    def add_artifacts(self, *, action_id: str, artifacts: List[ArtifactMetadata]) -> None:
+    def add_artifacts(self, *, action_id: str, artifacts: list[ArtifactMetadata]) -> None:
         if not artifacts:
             return
         with self._tx() as conn:
             for artifact in artifacts:
                 self.record_artifact(conn, action_id, artifact)
 
-    def update_action_inputs(self, action_id: str, inputs: Dict[str, Any], *, actor: str) -> ActionPayload:
+    def update_action_inputs(self, action_id: str, inputs: dict[str, Any], *, actor: str) -> ActionPayload:
         with self._tx() as conn:
             row = conn.execute("SELECT * FROM actions WHERE action_id=?", (action_id,)).fetchone()
             if not row:
@@ -598,7 +597,7 @@ class ActionStore:
             raise KeyError("action_not_found")
         return action
 
-    def hide_quarantine_item(self, action_id: str, *, actor: str, reason: Optional[str] = None) -> bool:
+    def hide_quarantine_item(self, action_id: str, *, actor: str, reason: str | None = None) -> bool:
         with self._tx() as conn:
             row = conn.execute("SELECT hidden_from_quarantine FROM actions WHERE action_id=?", (action_id,)).fetchone()
             if not row:
@@ -635,10 +634,10 @@ class ActionStore:
         self,
         *,
         runner_name: str = "kinetic_actions",
-        owner_id: Optional[str] = None,
+        owner_id: str | None = None,
         lease_seconds: int = 30,
-        pid: Optional[int] = None,
-        host: Optional[str] = None,
+        pid: int | None = None,
+        host: str | None = None,
     ) -> bool:
         owner_id = owner_id or default_runner_owner_id()
         pid = pid if pid is not None else os.getpid()
@@ -677,8 +676,8 @@ class ActionStore:
         runner_name: str,
         owner_id: str,
         lease_seconds: int = 30,
-        pid: Optional[int] = None,
-        host: Optional[str] = None,
+        pid: int | None = None,
+        host: str | None = None,
     ) -> bool:
         pid = pid if pid is not None else os.getpid()
         host = host or os.uname().nodename
@@ -704,7 +703,7 @@ class ActionStore:
                 (now_utc_iso(), runner_name, owner_id),
             )
 
-    def get_runner_lease(self, *, runner_name: str) -> Optional[RunnerLease]:
+    def get_runner_lease(self, *, runner_name: str) -> RunnerLease | None:
         with self._connect() as conn:
             row = conn.execute("SELECT * FROM action_runner_leases WHERE runner_name=?", (runner_name,)).fetchone()
             if not row:
@@ -771,7 +770,7 @@ class ActionStore:
                 (action_id, owner_id),
             )
 
-    def get_next_due_processing_action_id(self) -> Optional[str]:
+    def get_next_due_processing_action_id(self) -> str | None:
         """
         Return an action_id that is PROCESSING and claimable (lock expired / not held).
 
@@ -793,7 +792,7 @@ class ActionStore:
             ).fetchone()
             return row["action_id"] if row else None
 
-    def get_next_due_action_id(self) -> Optional[str]:
+    def get_next_due_action_id(self) -> str | None:
         """
         Return the next action_id that is due for execution.
 
@@ -912,7 +911,7 @@ class ActionStore:
 
             return False
 
-    def list_stuck_processing_action_ids(self, *, older_than_seconds: int = 300, limit: int = 100) -> List[str]:
+    def list_stuck_processing_action_ids(self, *, older_than_seconds: int = 300, limit: int = 100) -> list[str]:
         """
         Return PROCESSING action_ids that appear stuck (lock held, heartbeat stale).
 
@@ -976,8 +975,8 @@ class ActionStore:
         *,
         action_id: str,
         actor: str,
-        outputs: Dict[str, Any],
-        error: Optional[ActionError] = None,
+        outputs: dict[str, Any],
+        error: ActionError | None = None,
     ) -> ActionPayload:
         now = now_utc()
         now_iso = now.isoformat().replace("+00:00", "Z")
@@ -1079,7 +1078,7 @@ class ActionStore:
         now = now_utc()
         cutoff = (now - timedelta(seconds=max(1, int(older_than_seconds)))).isoformat().replace("+00:00", "Z")
         now_iso = now.isoformat().replace("+00:00", "Z")
-        to_fail: List[str] = []
+        to_fail: list[str] = []
         with self._connect() as conn:
             rows = conn.execute(
                 """
@@ -1167,7 +1166,7 @@ class ActionStore:
             raise KeyError("action_not_found")
         return updated
 
-    def action_metrics(self, *, window_hours: int = 24) -> Dict[str, Any]:
+    def action_metrics(self, *, window_hours: int = 24) -> dict[str, Any]:
         now = now_utc()
         cutoff = (now - timedelta(hours=max(1, int(window_hours)))).isoformat().replace("+00:00", "Z")
         now_iso = now.isoformat().replace("+00:00", "Z")
@@ -1223,7 +1222,7 @@ class ActionStore:
         name: str,
         step_index: int,
         requires_approval: bool = False,
-        metadata: Optional[Dict[str, Any]] = None,
+        metadata: dict[str, Any] | None = None,
     ) -> ActionStep:
         """
         Create a new step for an action.
@@ -1259,8 +1258,8 @@ class ActionStore:
     def create_steps_for_action(
         self,
         action_id: str,
-        step_definitions: List[Dict[str, Any]],
-    ) -> List[ActionStep]:
+        step_definitions: list[dict[str, Any]],
+    ) -> list[ActionStep]:
         """
         Bulk create steps for an action.
 
@@ -1282,8 +1281,8 @@ class ActionStore:
         self,
         step_id: str,
         status: StepStatus,
-        output_ref: Optional[str] = None,
-        error: Optional[ActionError] = None,
+        output_ref: str | None = None,
+        error: ActionError | None = None,
     ) -> ActionStep:
         """
         Update a step's status, output_ref, and/or error.
@@ -1297,7 +1296,7 @@ class ActionStore:
                 raise KeyError(f"step_not_found:{step_id}")
 
             updates = ["status=?"]
-            params: List[Any] = [status]
+            params: list[Any] = [status]
 
             if status == "IN_PROGRESS" and row["started_at"] is None:
                 updates.append("started_at=?")
@@ -1390,7 +1389,7 @@ class ActionStore:
 
         return self.get_step(step_id)  # type: ignore
 
-    def get_step(self, step_id: str) -> Optional[ActionStep]:
+    def get_step(self, step_id: str) -> ActionStep | None:
         """Get a single step by ID."""
         with self._connect() as conn:
             row = conn.execute(
@@ -1422,7 +1421,7 @@ class ActionStore:
                 metadata=json_loads(row["metadata"]) or {},
             )
 
-    def get_next_pending_step(self, action_id: str) -> Optional[ActionStep]:
+    def get_next_pending_step(self, action_id: str) -> ActionStep | None:
         """
         Get the next PENDING step for an action that is ready to execute.
         Returns None if no steps are pending or if next step requires approval but isn't approved.
@@ -1464,7 +1463,7 @@ class ActionStore:
                 metadata=json_loads(row["metadata"]) or {},
             )
 
-    def get_step_awaiting_approval(self, action_id: str) -> Optional[ActionStep]:
+    def get_step_awaiting_approval(self, action_id: str) -> ActionStep | None:
         """
         Get a step that is PENDING and requires_approval but not yet approved.
         Returns None if no such step exists.

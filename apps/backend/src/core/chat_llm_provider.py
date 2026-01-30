@@ -20,9 +20,11 @@ import json
 import os
 import time
 from abc import ABC, abstractmethod
+from collections.abc import AsyncIterator
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, AsyncIterator, Dict, List, Optional
+from typing import Any
+
 import httpx
 
 # Configuration - centralized vLLM settings
@@ -40,7 +42,7 @@ GEMINI_MODEL_PRO = os.getenv("GEMINI_MODEL_PRO", "gemini-2.5-pro")
 GEMINI_TIMEOUT_MS = int(os.getenv("GEMINI_TIMEOUT_MS", "30000"))
 
 
-def _load_gemini_api_key() -> Optional[str]:
+def _load_gemini_api_key() -> str | None:
     """Load Gemini API key from file or environment."""
     # Try environment first
     key = os.getenv("GEMINI_API_KEY")
@@ -62,10 +64,10 @@ class ProviderResponse:
     provider: str
     model: str
     finish_reason: str = "stop"
-    usage: Optional[Dict[str, int]] = None
+    usage: dict[str, int] | None = None
     latency_ms: int = 0
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "content": self.content,
             "provider": self.provider,
@@ -84,9 +86,9 @@ class HealthStatus:
     model: str
     endpoint: str
     latency_ms: int = 0
-    error: Optional[str] = None
+    error: str | None = None
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "status": "healthy" if self.healthy else "unhealthy",
             "provider": self.provider,
@@ -115,7 +117,7 @@ class ChatLLMProvider(ABC):
     @abstractmethod
     async def generate(
         self,
-        messages: List[Dict[str, str]],
+        messages: list[dict[str, str]],
         temperature: float = 0.7,
         max_tokens: int = 1024,
         **kwargs
@@ -126,7 +128,7 @@ class ChatLLMProvider(ABC):
     @abstractmethod
     async def stream(
         self,
-        messages: List[Dict[str, str]],
+        messages: list[dict[str, str]],
         temperature: float = 0.7,
         max_tokens: int = 1024,
         **kwargs
@@ -158,7 +160,7 @@ class VLLMProvider(ChatLLMProvider):
 
     async def generate(
         self,
-        messages: List[Dict[str, str]],
+        messages: list[dict[str, str]],
         temperature: float = 0.7,
         max_tokens: int = 1024,
         **kwargs
@@ -193,7 +195,7 @@ class VLLMProvider(ChatLLMProvider):
 
     async def stream(
         self,
-        messages: List[Dict[str, str]],
+        messages: list[dict[str, str]],
         temperature: float = 0.7,
         max_tokens: int = 1024,
         **kwargs
@@ -299,7 +301,7 @@ class GeminiProvider(ChatLLMProvider):
         """Check if API key is available."""
         return self._api_key is not None
 
-    def _convert_messages(self, messages: List[Dict[str, str]]) -> Dict[str, Any]:
+    def _convert_messages(self, messages: list[dict[str, str]]) -> dict[str, Any]:
         """Convert OpenAI-style messages to Gemini format."""
         contents = []
         system_instruction = None
@@ -323,7 +325,7 @@ class GeminiProvider(ChatLLMProvider):
 
     async def generate(
         self,
-        messages: List[Dict[str, str]],
+        messages: list[dict[str, str]],
         temperature: float = 0.7,
         max_tokens: int = 1024,
         **kwargs
@@ -390,7 +392,7 @@ class GeminiProvider(ChatLLMProvider):
 
     async def stream(
         self,
-        messages: List[Dict[str, str]],
+        messages: list[dict[str, str]],
         temperature: float = 0.7,
         max_tokens: int = 1024,
         **kwargs
@@ -482,7 +484,7 @@ class GeminiProProvider(GeminiProvider):
 
 
 # Provider registry
-_providers: Dict[str, ChatLLMProvider] = {}
+_providers: dict[str, ChatLLMProvider] = {}
 
 
 def get_provider(name: str) -> ChatLLMProvider:
@@ -502,7 +504,7 @@ def get_provider(name: str) -> ChatLLMProvider:
     return _providers[name]
 
 
-async def get_all_health() -> Dict[str, HealthStatus]:
+async def get_all_health() -> dict[str, HealthStatus]:
     """Get health status for all providers."""
     providers = ["vllm", "gemini-flash", "gemini-pro"]
     results = await asyncio.gather(*[

@@ -14,9 +14,9 @@ from __future__ import annotations
 
 import mimetypes
 import os
-from datetime import datetime, timezone
-from io import BytesIO
-from typing import TYPE_CHECKING, BinaryIO, Dict, Iterator, Optional, Union
+from collections.abc import Iterator
+from datetime import UTC, datetime
+from typing import TYPE_CHECKING, BinaryIO
 
 from .base import ArtifactMetadata, ArtifactStore, StorageBackend
 
@@ -49,12 +49,12 @@ class S3ArtifactStore(ArtifactStore):
 
     def __init__(
         self,
-        bucket: Optional[str] = None,
+        bucket: str | None = None,
         *,
         prefix: str = "",
-        endpoint_url: Optional[str] = None,
-        region: Optional[str] = None,
-        client: Optional["S3Client"] = None,
+        endpoint_url: str | None = None,
+        region: str | None = None,
+        client: S3Client | None = None,
     ):
         """
         Initialize S3 storage.
@@ -85,7 +85,7 @@ class S3ArtifactStore(ArtifactStore):
         else:
             self._client = self._create_client()
 
-    def _create_client(self) -> "S3Client":
+    def _create_client(self) -> S3Client:
         """Create a boto3 S3 client."""
         try:
             import boto3
@@ -130,11 +130,11 @@ class S3ArtifactStore(ArtifactStore):
     def put(
         self,
         key: str,
-        data: Union[bytes, BinaryIO],
+        data: bytes | BinaryIO,
         *,
-        filename: Optional[str] = None,
+        filename: str | None = None,
         mime_type: str = "application/octet-stream",
-        metadata: Optional[Dict[str, str]] = None,
+        metadata: dict[str, str] | None = None,
     ) -> ArtifactMetadata:
         """Store an artifact in S3."""
         s3_key = self._resolve_key(key)
@@ -176,7 +176,7 @@ class S3ArtifactStore(ArtifactStore):
             Metadata=s3_metadata,
         )
 
-        now = datetime.now(tz=timezone.utc)
+        now = datetime.now(tz=UTC)
 
         return ArtifactMetadata(
             storage_key=self.normalize_key(key),

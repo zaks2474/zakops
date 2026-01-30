@@ -7,6 +7,7 @@ Usage:
     from src.core.agent import AgentInvoker, invoke_agent
 """
 
+from .callbacks import AgentCallbackHandler
 from .invoker import AgentInvoker, invoke_agent
 from .models import (
     AgentRunRequest,
@@ -16,7 +17,6 @@ from .models import (
     ToolResult,
 )
 from .tools import ToolRegistry, get_tool_registry
-from .callbacks import AgentCallbackHandler
 
 __all__ = [
     # Invoker

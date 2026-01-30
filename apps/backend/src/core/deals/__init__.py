@@ -5,10 +5,10 @@ Deal workflow engine for stage transitions and lifecycle management.
 """
 
 from .workflow import (
-    DealStage,
     STAGE_TRANSITIONS,
-    StageTransition,
+    DealStage,
     DealWorkflowEngine,
+    StageTransition,
     get_workflow_engine,
 )
 

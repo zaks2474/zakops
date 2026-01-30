@@ -25,13 +25,12 @@ import json
 import logging
 import os
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
 import httpx
 from fastmcp import FastMCP
-from fastmcp.server.dependencies import get_http_headers
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.responses import JSONResponse
 
@@ -70,7 +69,7 @@ class JSONLogHandler(logging.Handler):
     def emit(self, record: logging.LogRecord):
         try:
             log_entry = {
-                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "timestamp": datetime.now(UTC).isoformat(),
                 "level": record.levelname,
                 "message": record.getMessage(),
                 "logger": record.name,
@@ -114,7 +113,7 @@ def log_tool_call(tool_name: str, params: dict, correlation_id: str = None):
     logger.handle(record)
 
 
-def log_error(error: str, details: Optional[dict] = None, correlation_id: str = None):
+def log_error(error: str, details: dict | None = None, correlation_id: str = None):
     """Log an error."""
     correlation_id = correlation_id or str(uuid.uuid4())[:8]
     record = logging.LogRecord(
@@ -189,7 +188,7 @@ class HTTPAccessLogMiddleware(BaseHTTPMiddleware):
 
     async def dispatch(self, request, call_next):
         # Capture request details
-        timestamp = datetime.now(timezone.utc).isoformat()
+        timestamp = datetime.now(UTC).isoformat()
         client_ip = request.client.host if request.client else "unknown"
         method = request.method
         path = str(request.url.path)
@@ -285,7 +284,7 @@ def atomic_json_write(filepath: Path, data: dict[str, Any], verify_field: str = 
 
     # Add timestamp if not present
     if verify_field not in data:
-        data[verify_field] = datetime.now(timezone.utc).isoformat()
+        data[verify_field] = datetime.now(UTC).isoformat()
 
     # Write to temp file
     temp_path = filepath.parent / f".{filepath.name}.{uuid.uuid4().hex[:8]}.tmp"
@@ -298,7 +297,7 @@ def atomic_json_write(filepath: Path, data: dict[str, Any], verify_field: str = 
         temp_path.rename(filepath)
 
         # Verify
-        with open(filepath, "r", encoding="utf-8") as f:
+        with open(filepath, encoding="utf-8") as f:
             verified = json.load(f)
 
         if verified.get(verify_field) != data.get(verify_field):
@@ -339,8 +338,8 @@ mcp = FastMCP(
 
 @mcp.tool()
 def zakops_list_deals(
-    status: Optional[str] = None,
-    stage: Optional[str] = None,
+    status: str | None = None,
+    stage: str | None = None,
     limit: int = 50,
 ) -> dict:
     """
@@ -418,7 +417,7 @@ def zakops_get_deal(deal_id: str) -> dict:
         profile_path = deal_folder / "deal_profile.json"
         if profile_path.exists():
             try:
-                with open(profile_path, "r", encoding="utf-8") as f:
+                with open(profile_path, encoding="utf-8") as f:
                     deal["deal_profile"] = json.load(f)
             except Exception as e:
                 deal["deal_profile"] = {"_error": str(e)}
@@ -427,7 +426,7 @@ def zakops_get_deal(deal_id: str) -> dict:
         classified_path = deal_folder / "07-Correspondence" / "classified_links.json"
         if classified_path.exists():
             try:
-                with open(classified_path, "r", encoding="utf-8") as f:
+                with open(classified_path, encoding="utf-8") as f:
                     deal["classified_links"] = json.load(f)
             except Exception as e:
                 deal["classified_links"] = {"_error": str(e)}
@@ -440,13 +439,13 @@ def zakops_get_deal(deal_id: str) -> dict:
                     manifest_path = bundle_dir / "manifest.json"
                     if manifest_path.exists():
                         try:
-                            with open(manifest_path, "r", encoding="utf-8") as f:
+                            with open(manifest_path, encoding="utf-8") as f:
                                 manifest = json.load(f)
                             quarantine_dir = manifest.get("quarantine_dir")
                             if quarantine_dir:
                                 triage_path = Path(quarantine_dir) / "triage_summary.json"
                                 if triage_path.exists():
-                                    with open(triage_path, "r", encoding="utf-8") as f:
+                                    with open(triage_path, encoding="utf-8") as f:
                                         deal["triage_summary_source"] = json.load(f)
                                     break
                         except Exception:
@@ -483,16 +482,16 @@ def zakops_update_deal_profile(deal_id: str, profile_patch: dict) -> dict:
     # Load existing profile or create new
     if profile_path.exists():
         try:
-            with open(profile_path, "r", encoding="utf-8") as f:
+            with open(profile_path, encoding="utf-8") as f:
                 profile = json.load(f)
         except Exception:
             profile = {}
     else:
-        profile = {"deal_id": deal_id, "created_at": datetime.now(timezone.utc).isoformat()}
+        profile = {"deal_id": deal_id, "created_at": datetime.now(UTC).isoformat()}
 
     # Apply patch
     profile.update(profile_patch)
-    profile["updated_at"] = datetime.now(timezone.utc).isoformat()
+    profile["updated_at"] = datetime.now(UTC).isoformat()
     profile["updated_by"] = "langsmith_bridge"
 
     # Atomic write with verification
@@ -556,7 +555,7 @@ def zakops_write_deal_artifact(
         temp_path.rename(target_path)
 
         # Verify
-        with open(target_path, "r", encoding="utf-8") as f:
+        with open(target_path, encoding="utf-8") as f:
             written = f.read()
 
         if written != content:
@@ -605,7 +604,7 @@ def zakops_list_deal_artifacts(deal_id: str) -> dict:
                     "path": rel_path,
                     "size_bytes": item.stat().st_size,
                     "modified_at": datetime.fromtimestamp(
-                        item.stat().st_mtime, tz=timezone.utc
+                        item.stat().st_mtime, tz=UTC
                     ).isoformat(),
                 })
             elif item.is_dir() and not item.name.startswith("."):
@@ -657,8 +656,8 @@ def zakops_list_quarantine(limit: int = 20) -> dict:
 def zakops_create_action(
     action_type: str,
     title: str,
-    inputs: Optional[dict] = None,
-    deal_id: Optional[str] = None,
+    inputs: dict | None = None,
+    deal_id: str | None = None,
     requires_approval: bool = True,
 ) -> dict:
     """
@@ -741,9 +740,9 @@ def zakops_get_action(action_id: str) -> dict:
 
 @mcp.tool()
 def zakops_list_actions(
-    status: Optional[str] = None,
-    action_type: Optional[str] = None,
-    deal_id: Optional[str] = None,
+    status: str | None = None,
+    action_type: str | None = None,
+    deal_id: str | None = None,
     limit: int = 20,
 ) -> dict:
     """
@@ -817,7 +816,7 @@ def zakops_approve_quarantine(action_id: str) -> dict:
 @mcp.tool()
 def rag_query_local(
     query: str,
-    deal_id: Optional[str] = None,
+    deal_id: str | None = None,
     top_k: int = 5,
 ) -> dict:
     """
@@ -860,7 +859,7 @@ def rag_query_local(
 
 
 @mcp.tool()
-def rag_reindex_deal(deal_id: str, artifact_paths: Optional[list] = None) -> dict:
+def rag_reindex_deal(deal_id: str, artifact_paths: list | None = None) -> dict:
     """
     Trigger reindexing of deal documents in RAG database.
 
@@ -949,7 +948,7 @@ async def health_check(request):
 
     return JSONResponse({
         "status": overall,
-        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "timestamp": datetime.now(UTC).isoformat(),
         "checks": checks,
         "mcp_version": "fastmcp",
         "transport": "sse",
@@ -981,7 +980,7 @@ if __name__ == "__main__":
     print("=" * 60)
     print("ZakOps Agent Bridge - MCP Server (FastMCP)")
     print("=" * 60)
-    print(f"Transport: SSE")
+    print("Transport: SSE")
     print(f"Endpoint: http://{BRIDGE_HOST}:{BRIDGE_PORT}/sse")
     print(f"Health: http://{BRIDGE_HOST}:{BRIDGE_PORT}/health")
     print(f"Deal API: {DEAL_API_URL}")

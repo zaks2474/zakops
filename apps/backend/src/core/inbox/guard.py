@@ -8,11 +8,10 @@ via the inbox deduplication table.
 """
 
 import logging
-from datetime import datetime, timezone
-from typing import Optional
+from datetime import UTC, datetime
 from uuid import UUID
 
-from ..database.adapter import get_database, DatabaseAdapter
+from ..database.adapter import DatabaseAdapter, get_database
 
 logger = logging.getLogger(__name__)
 
@@ -39,7 +38,7 @@ class InboxGuard:
         self.event_id = event_id
         self.consumer_id = consumer_id
         self.should_process = False
-        self._db: Optional[DatabaseAdapter] = None
+        self._db: DatabaseAdapter | None = None
 
     async def __aenter__(self):
         self._db = await get_database()
@@ -53,13 +52,13 @@ class InboxGuard:
                 """,
                 self.event_id,
                 self.consumer_id,
-                datetime.now(timezone.utc)
+                datetime.now(UTC)
             )
             self.should_process = True
             logger.debug(
                 f"InboxGuard: event {self.event_id} marked for processing by {self.consumer_id}"
             )
-        except Exception as e:
+        except Exception:
             # Already processed (unique constraint violation)
             self.should_process = False
             logger.debug(
@@ -136,7 +135,7 @@ async def mark_processed(event_id: UUID, consumer_id: str) -> bool:
             """,
             event_id,
             consumer_id,
-            datetime.now(timezone.utc)
+            datetime.now(UTC)
         )
         return True
     except Exception:

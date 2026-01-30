@@ -5,20 +5,20 @@ Provides read access to events for UI, debugging, and analytics.
 Queries from both zakops.agent_events and zakops.deal_events tables.
 """
 
-from datetime import datetime, timedelta, timezone
-from typing import List, Optional, Dict, Any
-from uuid import UUID
 import json
 import logging
+from datetime import UTC, datetime, timedelta
+from typing import Any
+from uuid import UUID
 
-from ..database.adapter import get_database, DatabaseAdapter
+from ..database.adapter import DatabaseAdapter, get_database
 
 logger = logging.getLogger(__name__)
 
 
 def _utcnow() -> datetime:
     """Get current UTC datetime."""
-    return datetime.now(timezone.utc)
+    return datetime.now(UTC)
 
 
 class EventQueryService:
@@ -35,7 +35,7 @@ class EventQueryService:
         events = await service.get_recent(limit=50)
     """
 
-    def __init__(self, db: Optional[DatabaseAdapter] = None):
+    def __init__(self, db: DatabaseAdapter | None = None):
         self._db = db
 
     async def _get_db(self) -> DatabaseAdapter:
@@ -43,7 +43,7 @@ class EventQueryService:
             self._db = await get_database()
         return self._db
 
-    def _parse_agent_event(self, row: Dict[str, Any]) -> Dict[str, Any]:
+    def _parse_agent_event(self, row: dict[str, Any]) -> dict[str, Any]:
         """Parse agent_events row into unified event dict."""
         event = dict(row)
 
@@ -67,7 +67,7 @@ class EventQueryService:
             "created_at": event.get("created_at"),
         }
 
-    def _parse_deal_event(self, row: Dict[str, Any]) -> Dict[str, Any]:
+    def _parse_deal_event(self, row: dict[str, Any]) -> dict[str, Any]:
         """Parse deal_events row into unified event dict."""
         event = dict(row)
 
@@ -95,7 +95,7 @@ class EventQueryService:
             "created_at": event.get("created_at"),
         }
 
-    async def get_by_id(self, event_id: UUID) -> Optional[Dict[str, Any]]:
+    async def get_by_id(self, event_id: UUID) -> dict[str, Any] | None:
         """Get a single event by ID."""
         db = await self._get_db()
 
@@ -122,7 +122,7 @@ class EventQueryService:
         correlation_id: UUID,
         limit: int = 100,
         offset: int = 0
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """Get all events for a correlation ID (e.g., deal_id)."""
         db = await self._get_db()
 
@@ -159,8 +159,8 @@ class EventQueryService:
         self,
         event_type: str,
         limit: int = 100,
-        since: Optional[datetime] = None
-    ) -> List[Dict[str, Any]]:
+        since: datetime | None = None
+    ) -> list[dict[str, Any]]:
         """Get events by type from both tables."""
         db = await self._get_db()
 
@@ -219,8 +219,8 @@ class EventQueryService:
     async def get_recent(
         self,
         limit: int = 50,
-        event_types: Optional[List[str]] = None
-    ) -> List[Dict[str, Any]]:
+        event_types: list[str] | None = None
+    ) -> list[dict[str, Any]]:
         """Get recent events from both tables, optionally filtered by type."""
         db = await self._get_db()
 
@@ -280,7 +280,7 @@ class EventQueryService:
         self,
         run_id: UUID,
         limit: int = 100
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """Get all events for an agent run (agent_events only)."""
         db = await self._get_db()
         rows = await db.fetch(
@@ -296,8 +296,8 @@ class EventQueryService:
 
     async def get_stats(
         self,
-        since: Optional[datetime] = None
-    ) -> Dict[str, Any]:
+        since: datetime | None = None
+    ) -> dict[str, Any]:
         """Get event statistics from both tables."""
         db = await self._get_db()
 
@@ -327,7 +327,7 @@ class EventQueryService:
         )
 
         # Combine counts
-        by_type: Dict[str, int] = {}
+        by_type: dict[str, int] = {}
         for row in agent_counts:
             by_type[row["event_type"]] = row["count"]
         for row in deal_counts:
@@ -347,7 +347,7 @@ class EventQueryService:
 
 
 # Global query service instance
-_query_service: Optional[EventQueryService] = None
+_query_service: EventQueryService | None = None
 
 
 async def get_query_service() -> EventQueryService:

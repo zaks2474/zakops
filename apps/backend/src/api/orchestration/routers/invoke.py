@@ -5,15 +5,12 @@ Endpoints for invoking and managing agent runs.
 """
 
 import json
-from typing import Optional, List
 from uuid import UUID
-from fastapi import APIRouter, Request, HTTPException, Query, Depends
+
+from fastapi import APIRouter, HTTPException, Query, Request
 from pydantic import BaseModel
 
-from ....core.agent import (
-    invoke_agent, AgentRunRequest, AgentRunResponse,
-    get_tool_registry
-)
+from ....core.agent import AgentRunRequest, AgentRunResponse, get_tool_registry, invoke_agent
 from ....core.database.adapter import get_database
 from ...shared.middleware import get_trace_id
 
@@ -24,7 +21,7 @@ class InvokeRequest(BaseModel):
     """Request to invoke agent."""
     deal_id: UUID
     task: str
-    context: Optional[dict] = None
+    context: dict | None = None
 
 
 class ToolSchema(BaseModel):
@@ -67,9 +64,9 @@ async def invoke_agent_endpoint(request: Request, body: InvokeRequest):
         raise HTTPException(status_code=500, detail=f"Agent invocation failed: {str(e)}")
 
 
-@router.get("/runs", response_model=List[dict])
+@router.get("/runs", response_model=list[dict])
 async def list_agent_runs(
-    deal_id: Optional[UUID] = Query(None, description="Filter by deal ID"),
+    deal_id: UUID | None = Query(None, description="Filter by deal ID"),
     limit: int = Query(20, ge=1, le=100),
     offset: int = Query(0, ge=0)
 ):
@@ -102,7 +99,7 @@ async def list_agent_runs(
             )
 
         return [dict(r) for r in runs]
-    except Exception as e:
+    except Exception:
         # Table might not exist yet
         return []
 
@@ -131,11 +128,11 @@ async def get_agent_run(run_id: str):
         return result
     except HTTPException:
         raise
-    except Exception as e:
+    except Exception:
         raise HTTPException(status_code=404, detail="Agent run not found")
 
 
-@router.get("/tools", response_model=List[ToolSchema])
+@router.get("/tools", response_model=list[ToolSchema])
 async def list_available_tools():
     """List all available tools for agent execution."""
     registry = get_tool_registry()

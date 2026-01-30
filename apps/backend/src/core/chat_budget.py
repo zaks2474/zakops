@@ -18,9 +18,9 @@ import json
 import os
 import time
 from dataclasses import asdict, dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 # Configuration
 ALLOW_CLOUD_DEFAULT = os.getenv("ALLOW_CLOUD_DEFAULT", "false").lower() == "true"
@@ -53,10 +53,10 @@ class BudgetState:
     date: str  # YYYY-MM-DD
     spent_usd: float = 0.0
     request_count: int = 0
-    records: List[UsageRecord] = field(default_factory=list)
-    request_timestamps: List[float] = field(default_factory=list)  # For RPM tracking
+    records: list[UsageRecord] = field(default_factory=list)
+    request_timestamps: list[float] = field(default_factory=list)  # For RPM tracking
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "date": self.date,
             "spent_usd": round(self.spent_usd, 6),
@@ -66,7 +66,7 @@ class BudgetState:
         }
 
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> "BudgetState":
+    def from_dict(cls, data: dict[str, Any]) -> BudgetState:
         records = [UsageRecord(**r) for r in data.get("records", [])]
         return cls(
             date=data["date"],
@@ -90,16 +90,16 @@ class BudgetManager:
 
     def __init__(self, state_file: str = BUDGET_STATE_FILE):
         self._state_file = Path(state_file)
-        self._state: Optional[BudgetState] = None
+        self._state: BudgetState | None = None
         self._load_state()
 
     def _load_state(self):
         """Load or initialize budget state."""
-        today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+        today = datetime.now(UTC).strftime("%Y-%m-%d")
 
         if self._state_file.exists():
             try:
-                with open(self._state_file, "r") as f:
+                with open(self._state_file) as f:
                     data = json.load(f)
                     self._state = BudgetState.from_dict(data)
 
@@ -138,7 +138,7 @@ class BudgetManager:
     def can_use_cloud(
         self,
         provider: str = "gemini-flash",
-        allow_cloud_override: Optional[bool] = None
+        allow_cloud_override: bool | None = None
     ) -> tuple[bool, str]:
         """
         Check if cloud provider can be used.
@@ -179,7 +179,7 @@ class BudgetManager:
         cost = self._calculate_cost(model, input_tokens, output_tokens)
 
         record = UsageRecord(
-            timestamp=datetime.now(timezone.utc).isoformat(),
+            timestamp=datetime.now(UTC).isoformat(),
             provider=provider,
             model=model,
             input_tokens=input_tokens,
@@ -194,7 +194,7 @@ class BudgetManager:
 
         self._save_state()
 
-    def get_status(self) -> Dict[str, Any]:
+    def get_status(self) -> dict[str, Any]:
         """Get current budget status."""
         self._clean_old_timestamps()
         remaining = max(0, GEMINI_DAILY_BUDGET - self._state.spent_usd)
@@ -212,13 +212,13 @@ class BudgetManager:
 
     def reset_daily(self):
         """Manually reset daily budget (for testing)."""
-        today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+        today = datetime.now(UTC).strftime("%Y-%m-%d")
         self._state = BudgetState(date=today)
         self._save_state()
 
 
 # Singleton instance
-_budget_instance: Optional[BudgetManager] = None
+_budget_instance: BudgetManager | None = None
 
 
 def get_budget_manager() -> BudgetManager:

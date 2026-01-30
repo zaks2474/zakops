@@ -7,30 +7,30 @@ Provides application metrics collection.
 """
 
 import logging
-from typing import Optional, Dict, Any
+from typing import Any
 
 from opentelemetry import metrics
+from opentelemetry.exporter.otlp.proto.grpc.metric_exporter import OTLPMetricExporter
 from opentelemetry.sdk.metrics import MeterProvider
 from opentelemetry.sdk.metrics.export import (
     ConsoleMetricExporter,
     PeriodicExportingMetricReader,
 )
-from opentelemetry.exporter.otlp.proto.grpc.metric_exporter import OTLPMetricExporter
-from opentelemetry.sdk.resources import Resource, SERVICE_NAME
+from opentelemetry.sdk.resources import SERVICE_NAME, Resource
 
 logger = logging.getLogger(__name__)
 
 # Global meter
-_meter: Optional[metrics.Meter] = None
+_meter: metrics.Meter | None = None
 
 # Metric instruments
-_counters: Dict[str, metrics.Counter] = {}
-_histograms: Dict[str, metrics.Histogram] = {}
+_counters: dict[str, metrics.Counter] = {}
+_histograms: dict[str, metrics.Histogram] = {}
 
 
 def init_metrics(
     service_name: str = "zakops-backend",
-    otlp_endpoint: Optional[str] = None,
+    otlp_endpoint: str | None = None,
     console_export: bool = False,
     export_interval_ms: int = 60000
 ) -> metrics.Meter:
@@ -166,7 +166,7 @@ def get_meter() -> metrics.Meter:
 def record_counter(
     name: str,
     value: int = 1,
-    attributes: Dict[str, Any] = None
+    attributes: dict[str, Any] = None
 ):
     """Record a counter metric."""
     if name in _counters:
@@ -176,7 +176,7 @@ def record_counter(
 def record_histogram(
     name: str,
     value: float,
-    attributes: Dict[str, Any] = None
+    attributes: dict[str, Any] = None
 ):
     """Record a histogram metric."""
     if name in _histograms:

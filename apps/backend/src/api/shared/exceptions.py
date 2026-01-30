@@ -6,7 +6,6 @@ Phase 5: API Stabilization
 Custom exceptions that map to standard error responses.
 """
 
-from typing import Optional, List
 
 from .error_codes import ErrorCode, get_status_code
 from .responses import ErrorDetail
@@ -25,8 +24,8 @@ class APIException(Exception):
         self,
         code: ErrorCode,
         message: str,
-        details: Optional[List[ErrorDetail]] = None,
-        trace_id: Optional[str] = None
+        details: list[ErrorDetail] | None = None,
+        trace_id: str | None = None
     ):
         self.code = code
         self.message = message
@@ -46,8 +45,8 @@ class ValidationError(APIException):
     def __init__(
         self,
         message: str,
-        details: Optional[List[ErrorDetail]] = None,
-        trace_id: Optional[str] = None
+        details: list[ErrorDetail] | None = None,
+        trace_id: str | None = None
     ):
         super().__init__(
             code=ErrorCode.VALIDATION_ERROR,
@@ -67,8 +66,8 @@ class NotFoundError(APIException):
     def __init__(
         self,
         resource: str,
-        resource_id: Optional[str] = None,
-        trace_id: Optional[str] = None
+        resource_id: str | None = None,
+        trace_id: str | None = None
     ):
         message = f"{resource} not found"
         if resource_id:
@@ -100,7 +99,7 @@ class ConflictError(APIException):
         self,
         message: str,
         code: ErrorCode = ErrorCode.CONFLICT,
-        trace_id: Optional[str] = None
+        trace_id: str | None = None
     ):
         super().__init__(code=code, message=message, trace_id=trace_id)
 
@@ -115,7 +114,7 @@ class UnauthorizedError(APIException):
     def __init__(
         self,
         message: str = "Authentication required",
-        trace_id: Optional[str] = None
+        trace_id: str | None = None
     ):
         super().__init__(
             code=ErrorCode.UNAUTHORIZED,
@@ -134,7 +133,7 @@ class ForbiddenError(APIException):
     def __init__(
         self,
         message: str = "Permission denied",
-        trace_id: Optional[str] = None
+        trace_id: str | None = None
     ):
         super().__init__(
             code=ErrorCode.FORBIDDEN,
@@ -156,8 +155,8 @@ class BusinessLogicError(APIException):
         self,
         code: ErrorCode,
         message: str,
-        details: Optional[List[ErrorDetail]] = None,
-        trace_id: Optional[str] = None
+        details: list[ErrorDetail] | None = None,
+        trace_id: str | None = None
     ):
         super().__init__(
             code=code,
@@ -177,7 +176,7 @@ class DatabaseError(APIException):
     def __init__(
         self,
         message: str = "A database error occurred",
-        trace_id: Optional[str] = None
+        trace_id: str | None = None
     ):
         super().__init__(
             code=ErrorCode.DATABASE_ERROR,
@@ -196,8 +195,8 @@ class ExternalServiceError(APIException):
     def __init__(
         self,
         service: str,
-        message: Optional[str] = None,
-        trace_id: Optional[str] = None
+        message: str | None = None,
+        trace_id: str | None = None
     ):
         msg = message or f"External service '{service}' is unavailable"
         super().__init__(
@@ -219,7 +218,7 @@ class AgentError(APIException):
         self,
         message: str,
         code: ErrorCode = ErrorCode.AGENT_ERROR,
-        trace_id: Optional[str] = None
+        trace_id: str | None = None
     ):
         super().__init__(
             code=code,

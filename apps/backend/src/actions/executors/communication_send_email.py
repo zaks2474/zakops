@@ -6,15 +6,15 @@ import os
 import re
 import threading
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 
-from actions.engine.models import ActionError, ActionPayload, ArtifactMetadata, now_utc_iso
-from actions.executors._artifacts import resolve_action_artifact_dir
 from tools.gateway import ToolErrorCode, ToolInvocationContext, ToolResult, get_tool_gateway
 from zakops_secret_scan import find_secrets_in_text
 
-from .base import ActionExecutionError, ActionExecutor, ExecutionContext, ExecutionResult
+from actions.engine.models import ActionError, ActionPayload, ArtifactMetadata, now_utc_iso
+from actions.executors._artifacts import resolve_action_artifact_dir
 
+from .base import ActionExecutionError, ActionExecutor, ExecutionContext, ExecutionResult
 
 EMAIL_RE = re.compile(r"[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}")
 
@@ -35,8 +35,8 @@ def _run_coro_blocking(coro):
     except RuntimeError:
         return asyncio.run(coro)
 
-    result: Dict[str, Any] = {}
-    error: Dict[str, BaseException] = {}
+    result: dict[str, Any] = {}
+    error: dict[str, BaseException] = {}
 
     def _thread_main() -> None:
         try:
@@ -52,8 +52,8 @@ def _run_coro_blocking(coro):
     return result.get("value")
 
 
-def _normalize_recipients(raw: Any) -> List[str]:
-    candidates: List[str] = []
+def _normalize_recipients(raw: Any) -> list[str]:
+    candidates: list[str] = []
     if isinstance(raw, list):
         candidates = [str(x or "").strip() for x in raw if str(x or "").strip()]
     else:
@@ -61,13 +61,13 @@ def _normalize_recipients(raw: Any) -> List[str]:
         if text:
             candidates = [p.strip() for p in re.split(r"[;,]+", text) if p.strip()]
 
-    emails: List[str] = []
+    emails: list[str] = []
     for c in candidates:
         emails.extend(EMAIL_RE.findall(c))
 
     # Deduplicate while preserving order.
     seen: set[str] = set()
-    out: List[str] = []
+    out: list[str] = []
     for e in emails:
         if e in seen:
             continue
@@ -136,7 +136,7 @@ class SendEmailExecutor(ActionExecutor):
 
     action_type = "COMMUNICATION.SEND_EMAIL"
 
-    def validate(self, payload: ActionPayload) -> tuple[bool, Optional[str]]:
+    def validate(self, payload: ActionPayload) -> tuple[bool, str | None]:
         inputs = payload.inputs or {}
         to = inputs.get("to")
         subject = str(inputs.get("subject", "")).strip()

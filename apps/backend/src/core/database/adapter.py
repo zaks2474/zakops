@@ -13,15 +13,15 @@ Features:
 
 from __future__ import annotations
 
+import logging
 import os
 import re
-import logging
-from contextlib import asynccontextmanager
-from enum import Enum
-from typing import Any, Dict, List, Optional, Union
 
 # SQLite support
 import sqlite3
+from contextlib import asynccontextmanager
+from enum import Enum
+from typing import Any
 
 # Async SQLite (optional but recommended)
 try:
@@ -100,10 +100,10 @@ class DatabaseAdapter:
         converted to ? for SQLite.
     """
 
-    def __init__(self, config: Optional[DatabaseConfig] = None):
+    def __init__(self, config: DatabaseConfig | None = None):
         self.config = config or DatabaseConfig()
-        self._pg_pool: Optional[asyncpg.Pool] = None
-        self._sqlite_conn: Optional[Union[sqlite3.Connection, aiosqlite.Connection]] = None
+        self._pg_pool: asyncpg.Pool | None = None
+        self._sqlite_conn: sqlite3.Connection | aiosqlite.Connection | None = None
         self._connected = False
 
     async def connect(self) -> None:
@@ -164,7 +164,7 @@ class DatabaseAdapter:
 
         self._connected = False
 
-    async def fetch(self, query: str, *args) -> List[Dict[str, Any]]:
+    async def fetch(self, query: str, *args) -> list[dict[str, Any]]:
         """
         Fetch multiple rows.
 
@@ -190,7 +190,7 @@ class DatabaseAdapter:
 
         return await self._sqlite_fetch(query, *args)
 
-    async def fetchrow(self, query: str, *args) -> Optional[Dict[str, Any]]:
+    async def fetchrow(self, query: str, *args) -> dict[str, Any] | None:
         """Fetch a single row."""
         rows = await self.fetch(query, *args)
         return rows[0] if rows else None
@@ -240,7 +240,7 @@ class DatabaseAdapter:
 
         return result
 
-    async def executemany(self, query: str, args_list: List[tuple]) -> str:
+    async def executemany(self, query: str, args_list: list[tuple]) -> str:
         """Execute a query multiple times with different parameters."""
         if not self._connected:
             await self.connect()
@@ -289,7 +289,7 @@ class DatabaseAdapter:
                 raise
 
     # PostgreSQL implementations
-    async def _pg_fetch(self, query: str, *args) -> List[Dict[str, Any]]:
+    async def _pg_fetch(self, query: str, *args) -> list[dict[str, Any]]:
         """Fetch rows from PostgreSQL."""
         async with self._pg_pool.acquire() as conn:
             rows = await conn.fetch(query, *args)
@@ -301,7 +301,7 @@ class DatabaseAdapter:
             return await conn.execute(query, *args)
 
     # SQLite implementations
-    async def _sqlite_fetch(self, query: str, *args) -> List[Dict[str, Any]]:
+    async def _sqlite_fetch(self, query: str, *args) -> list[dict[str, Any]]:
         """Fetch rows from SQLite."""
         sqlite_query = self._convert_to_sqlite(query)
 
@@ -334,7 +334,7 @@ class DatabaseAdapter:
 
 
 # Global instance management
-_db: Optional[DatabaseAdapter] = None
+_db: DatabaseAdapter | None = None
 
 
 async def get_database() -> DatabaseAdapter:

@@ -6,27 +6,27 @@ Endpoints for system administration and operator tooling.
 Phase 13: Production Hardening
 """
 
-from typing import Optional
 from uuid import UUID
-from fastapi import APIRouter, Request, Query, HTTPException
+
+from fastapi import APIRouter, HTTPException, Query, Request
 from pydantic import BaseModel
 
-from ...shared.middleware.auth import require_auth
-from ....core.outbox.dlq import get_dlq_manager, DLQAction
 from ....core.database.adapter import get_database
+from ....core.outbox.dlq import get_dlq_manager
+from ...shared.middleware.auth import require_auth
 
 router = APIRouter(prefix="/api/admin", tags=["admin"])
 
 
 class RetryRequest(BaseModel):
     """Request to retry DLQ entry."""
-    reason: Optional[str] = None
+    reason: str | None = None
 
 
 class PurgeRequest(BaseModel):
     """Request to purge DLQ entries."""
     days: int = 30
-    reason: Optional[str] = None
+    reason: str | None = None
 
 
 # DLQ Management Endpoints
@@ -36,10 +36,10 @@ async def list_dlq_entries(
     request: Request,
     limit: int = Query(100, ge=1, le=1000),
     offset: int = Query(0, ge=0),
-    correlation_id: Optional[str] = None,
+    correlation_id: str | None = None,
 ):
     """List Dead Letter Queue entries."""
-    operator = require_auth(request)
+    require_auth(request)
 
     manager = await get_dlq_manager()
 
@@ -62,7 +62,7 @@ async def list_dlq_entries(
 @router.get("/dlq/stats")
 async def dlq_stats(request: Request):
     """Get DLQ statistics."""
-    operator = require_auth(request)
+    require_auth(request)
 
     manager = await get_dlq_manager()
     return await manager.get_stats()
@@ -93,7 +93,7 @@ async def retry_dlq_entry(
 @router.post("/dlq/retry-all")
 async def retry_all_dlq(
     request: Request,
-    correlation_id: Optional[str] = None,
+    correlation_id: str | None = None,
 ):
     """Retry all DLQ entries."""
     operator = require_auth(request)
@@ -156,7 +156,7 @@ async def purge_old_dlq(
 @router.get("/outbox/stats")
 async def outbox_stats(request: Request):
     """Get outbox queue statistics."""
-    operator = require_auth(request)
+    require_auth(request)
 
     db = await get_database()
 
@@ -189,7 +189,7 @@ async def outbox_stats(request: Request):
 @router.get("/sse/stats")
 async def sse_stats(request: Request):
     """Get SSE connection statistics."""
-    operator = require_auth(request)
+    require_auth(request)
 
     from ...shared.sse import get_sse_manager
 
@@ -209,10 +209,10 @@ async def sse_stats(request: Request):
 @router.get("/system/health")
 async def system_health(request: Request):
     """Get comprehensive system health status."""
-    operator = require_auth(request)
+    require_auth(request)
 
-    from ...shared.sse import get_sse_manager
     from ....core.outbox.processor import get_outbox_processor
+    from ...shared.sse import get_sse_manager
 
     db = await get_database()
 

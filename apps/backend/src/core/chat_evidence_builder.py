@@ -27,11 +27,11 @@ import hashlib
 import json
 import os
 import re
-import time
 from dataclasses import dataclass, field
-from datetime import datetime, timezone, timedelta
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
+
 import httpx
 
 # Configuration
@@ -60,17 +60,17 @@ class Citation:
     """A citation reference for grounding responses."""
     id: str
     source: str  # rag, event, case_file, registry, action
-    url: Optional[str] = None
-    chunk: Optional[int] = None
-    similarity: Optional[float] = None
+    url: str | None = None
+    chunk: int | None = None
+    similarity: float | None = None
     snippet: str = ""
-    event_id: Optional[str] = None
-    event_type: Optional[str] = None
-    timestamp: Optional[str] = None
-    field: Optional[str] = None
-    value: Optional[Any] = None
+    event_id: str | None = None
+    event_type: str | None = None
+    timestamp: str | None = None
+    field: str | None = None
+    value: Any | None = None
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         d = {"id": self.id, "source": self.source, "snippet": self.snippet}
         if self.url:
             d["url"] = self.url
@@ -94,16 +94,16 @@ class Citation:
 @dataclass
 class EvidenceBundle:
     """Collection of evidence for a chat response."""
-    citations: List[Citation] = field(default_factory=list)
-    rag_results: List[Dict] = field(default_factory=list)
-    events: List[Dict] = field(default_factory=list)
-    case_file: Optional[Dict] = None
-    registry: Optional[Dict] = None
-    actions: List[Dict] = field(default_factory=list)
-    warnings: List[str] = field(default_factory=list)
+    citations: list[Citation] = field(default_factory=list)
+    rag_results: list[dict] = field(default_factory=list)
+    events: list[dict] = field(default_factory=list)
+    case_file: dict | None = None
+    registry: dict | None = None
+    actions: list[dict] = field(default_factory=list)
+    warnings: list[str] = field(default_factory=list)
 
     # Summary fields
-    sources_queried: List[str] = field(default_factory=list)
+    sources_queried: list[str] = field(default_factory=list)
     rag_query: str = ""
     rag_results_count: int = 0
     events_window: str = "last_30_days"
@@ -113,7 +113,7 @@ class EvidenceBundle:
     actions_count: int = 0
     total_evidence_size: int = 0
 
-    def get_evidence_summary(self) -> Dict[str, Any]:
+    def get_evidence_summary(self) -> dict[str, Any]:
         return {
             "sources_queried": self.sources_queried,
             "rag": {
@@ -168,7 +168,7 @@ class EvidenceBundle:
                 url = r.get("url", "unknown")
                 sim = r.get("similarity", 0)
                 rag_parts.append(f"[Doc {i+1}] (similarity: {sim:.2f}) {url}\n{content}")
-            parts.append(f"## Document Excerpts (RAG)\n" + "\n\n".join(rag_parts))
+            parts.append("## Document Excerpts (RAG)\n" + "\n\n".join(rag_parts))
 
         if self.actions:
             actions_str = "\n".join([
@@ -194,7 +194,7 @@ def _simple_text_hash(text: str) -> str:
     return hashlib.md5(normalized[:200].encode()).hexdigest()
 
 
-def _dedupe_rag_chunks(results: List[Dict], threshold: float = RETRIEVAL_DEDUPE_THRESHOLD) -> List[Dict]:
+def _dedupe_rag_chunks(results: list[dict], threshold: float = RETRIEVAL_DEDUPE_THRESHOLD) -> list[dict]:
     """
     Remove near-duplicate RAG chunks based on content similarity.
 
@@ -211,7 +211,7 @@ def _dedupe_rag_chunks(results: List[Dict], threshold: float = RETRIEVAL_DEDUPE_
     if not results:
         return results
 
-    seen_hashes: Dict[str, Dict] = {}  # hash -> best result
+    seen_hashes: dict[str, dict] = {}  # hash -> best result
 
     for result in results:
         content = result.get("content", result.get("text", ""))
@@ -267,8 +267,8 @@ class EvidenceBuilder:
     async def build(
         self,
         query: str,
-        scope: Dict[str, Any],
-        options: Optional[Dict[str, Any]] = None
+        scope: dict[str, Any],
+        options: dict[str, Any] | None = None
     ) -> EvidenceBundle:
         """Build evidence bundle for a chat query."""
         options = options or {}
@@ -313,9 +313,9 @@ class EvidenceBuilder:
         self,
         bundle: EvidenceBundle,
         query: str,
-        options: Dict[str, Any],
-        deal_id: Optional[str] = None,
-        doc_url: Optional[str] = None
+        options: dict[str, Any],
+        deal_id: str | None = None,
+        doc_url: str | None = None
     ):
         """Fetch from RAG endpoint with retrieval caps."""
         try:
@@ -371,7 +371,7 @@ class EvidenceBuilder:
             events_file = self.events_dir / f"{deal_id}.jsonl"
             if events_file.exists():
                 events = []
-                with open(events_file, "r") as f:
+                with open(events_file) as f:
                     for line in f:
                         if line.strip():
                             try:
@@ -380,7 +380,7 @@ class EvidenceBuilder:
                                 continue
 
                 # Get last 30 days
-                cutoff = datetime.now(timezone.utc) - timedelta(days=30)
+                cutoff = datetime.now(UTC) - timedelta(days=30)
                 filtered = []
                 for e in events:
                     ts_str = e.get("timestamp", "")
@@ -404,7 +404,7 @@ class EvidenceBuilder:
         try:
             cf_path = self.case_files_dir / f"{deal_id}.json"
             if cf_path.exists():
-                with open(cf_path, "r") as f:
+                with open(cf_path) as f:
                     bundle.case_file = json.load(f)
                     bundle.case_file_loaded = True
         except Exception as e:
@@ -414,7 +414,7 @@ class EvidenceBuilder:
         """Fetch deal from registry."""
         try:
             if self.registry_path.exists():
-                with open(self.registry_path, "r") as f:
+                with open(self.registry_path) as f:
                     registry = json.load(f)
                     deal = registry.get("deals", {}).get(deal_id)
                     if deal:
@@ -435,7 +435,7 @@ class EvidenceBuilder:
         """Fetch deferred actions for deal."""
         try:
             if self.actions_path.exists():
-                with open(self.actions_path, "r") as f:
+                with open(self.actions_path) as f:
                     data = json.load(f)
                     actions = []
                     for aid, action in data.get("actions", {}).items():
@@ -517,7 +517,7 @@ SECRET_PATTERNS = [
     r"Bearer\s+[A-Za-z0-9\-._~+/]+=*",                # Bearer tokens
 ]
 
-def scan_for_secrets(text: str) -> Tuple[bool, List[str]]:
+def scan_for_secrets(text: str) -> tuple[bool, list[str]]:
     """Scan text for secret patterns. Returns (blocked, matches)."""
     matches = []
     for pattern in SECRET_PATTERNS:

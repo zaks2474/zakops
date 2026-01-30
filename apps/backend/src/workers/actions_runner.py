@@ -16,26 +16,33 @@ Notes:
 from __future__ import annotations
 
 import argparse
-from dataclasses import asdict
 import hashlib
 import json
 import logging
 import os
-import time
 import threading
-from datetime import datetime, timedelta, timezone
+import time
+from dataclasses import asdict
+from datetime import timedelta
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any
 
-from actions.engine.models import ActionError, ActionPayload, compute_idempotency_key, default_runner_owner_id, now_utc, now_utc_iso
-from actions.engine.store import ActionStore
-from actions.executors.base import ActionExecutionError, ExecutionContext
-from actions.executors.registry import get_executor, load_builtin_executors
 from deal_events import DealEventStore
 from deal_registry import DealRegistry
 
+from actions.engine.models import (
+    ActionError,
+    ActionPayload,
+    compute_idempotency_key,
+    default_runner_owner_id,
+    now_utc,
+)
+from actions.engine.store import ActionStore
+from actions.executors.base import ActionExecutionError, ExecutionContext
+from actions.executors.registry import get_executor, load_builtin_executors
+
 try:
-    from email_ingestion.run_ledger import run_context, generate_run_id
+    from email_ingestion.run_ledger import generate_run_id, run_context
 except Exception:  # pragma: no cover
     run_context = None  # type: ignore
     generate_run_id = None  # type: ignore
@@ -48,7 +55,7 @@ REGISTRY_PATH = str(DATAROOM_ROOT / ".deal-registry" / "deal_registry.json")
 CASE_FILES_DIR = DATAROOM_ROOT / ".deal-registry" / "case_files"
 
 
-def _load_case_file(deal_id: str) -> Optional[Dict[str, Any]]:
+def _load_case_file(deal_id: str) -> dict[str, Any] | None:
     path = CASE_FILES_DIR / f"{deal_id}.json"
     if not path.exists():
         return None
@@ -75,7 +82,7 @@ def _next_backoff_seconds(*, retry_count: int, base_seconds: int = 5, max_second
     return int(min(max_seconds, delay))
 
 
-def _emit_deal_event(event_store: DealEventStore, *, deal_id: Optional[str], event_type: str, actor: str, data: Dict[str, Any]) -> None:
+def _emit_deal_event(event_store: DealEventStore, *, deal_id: str | None, event_type: str, actor: str, data: dict[str, Any]) -> None:
     if not deal_id:
         return
     try:
@@ -90,7 +97,7 @@ def _enqueue_follow_on_actions(
     registry: DealRegistry,
     event_store: DealEventStore,
     parent_action: ActionPayload,
-    outputs: Dict[str, Any],
+    outputs: dict[str, Any],
     max_actions: int = 5,
     max_depth: int = 3,
 ) -> None:
@@ -283,7 +290,7 @@ def process_one_action(
 
         def _execute() -> None:
             # Timing diagnostics
-            timings: Dict[str, float] = {}
+            timings: dict[str, float] = {}
             exec_start = time.time()
 
             # Step 1: Get executor
@@ -446,9 +453,10 @@ def process_one_action(
 
             # Memory (best-effort): store compact summary for retrieval-based planning.
             try:
+                from tools.manifest.registry import get_unified_manifest_registry
+
                 from actions.contracts.plan_spec import PlanSpec
                 from actions.memory.store import ActionMemoryStore, build_summary_from_action
-                from tools.manifest.registry import get_unified_manifest_registry
 
                 refreshed = store.get_action(action.action_id)
                 if refreshed and refreshed.status in {"COMPLETED", "FAILED"}:

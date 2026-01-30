@@ -3,9 +3,9 @@ from __future__ import annotations
 import hashlib
 import json
 import os
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any
 
 
 def _dataroom_root() -> Path:
@@ -17,7 +17,7 @@ def _feedback_path() -> Path:
 
 
 def _now_iso() -> str:
-    return datetime.now(timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z")
+    return datetime.now(UTC).replace(microsecond=0).isoformat().replace("+00:00", "Z")
 
 
 def _sha256(text: str) -> str:
@@ -28,17 +28,17 @@ def build_feedback_entry(
     *,
     decision: str,
     message_id: str,
-    thread_id: Optional[str],
+    thread_id: str | None,
     sender: str,
     subject: str,
-    classification: Optional[str],
-    confidence: Optional[float],
+    classification: str | None,
+    confidence: float | None,
     actor: str,
     action_id: str,
     action_type: str,
-    deal_id: Optional[str],
-    extra: Optional[Dict[str, Any]] = None,
-) -> Dict[str, Any]:
+    deal_id: str | None,
+    extra: dict[str, Any] | None = None,
+) -> dict[str, Any]:
     sender_l = (sender or "").strip()
     subject_l = (subject or "").strip()
     return {
@@ -60,7 +60,7 @@ def build_feedback_entry(
     }
 
 
-def append_feedback(entry: Dict[str, Any]) -> None:
+def append_feedback(entry: dict[str, Any]) -> None:
     """
     Append a single feedback entry to triage_feedback.jsonl.
 

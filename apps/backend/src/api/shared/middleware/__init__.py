@@ -13,24 +13,24 @@ Provides cross-cutting concerns for all API endpoints:
 - Authentication and session management
 """
 
-from .error_handler import register_error_handlers
-from .trace import (
-    TraceMiddleware,
-    get_trace_id,
-    get_correlation_id,
-    set_trace_id,
-    set_correlation_id,
-)
-from .tracing import (
-    TracingMiddleware,
-    get_trace_id_from_request,
-    get_correlation_id_from_request,
-)
 from .auth import (
     AuthMiddleware,
     get_current_operator,
-    require_auth,
     is_auth_required,
+    require_auth,
+)
+from .error_handler import register_error_handlers
+from .trace import (
+    TraceMiddleware,
+    get_correlation_id,
+    get_trace_id,
+    set_correlation_id,
+    set_trace_id,
+)
+from .tracing import (
+    TracingMiddleware,
+    get_correlation_id_from_request,
+    get_trace_id_from_request,
 )
 
 __all__ = [

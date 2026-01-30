@@ -17,19 +17,19 @@ from __future__ import annotations
 import json
 import logging
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from enum import Enum
-from typing import Any, Dict, List, Optional
-from uuid import UUID, uuid4
+from typing import Any
+from uuid import uuid4
 
-from ..database.adapter import get_database, DatabaseAdapter
+from ..database.adapter import DatabaseAdapter, get_database
 
 logger = logging.getLogger(__name__)
 
 
 def _utcnow() -> datetime:
     """Get current UTC datetime."""
-    return datetime.now(timezone.utc)
+    return datetime.now(UTC)
 
 
 class CheckpointStatus(str, Enum):
@@ -54,27 +54,27 @@ class Checkpoint:
     """A durable execution checkpoint."""
     checkpoint_id: str
     correlation_id: str
-    action_id: Optional[str] = None
-    run_id: Optional[str] = None
+    action_id: str | None = None
+    run_id: str | None = None
 
     # Checkpoint info
     checkpoint_name: str = ""
     checkpoint_type: CheckpointType = CheckpointType.STATE
-    checkpoint_data: Dict[str, Any] = field(default_factory=dict)
+    checkpoint_data: dict[str, Any] = field(default_factory=dict)
 
     # Sequence
     sequence_number: int = 0
 
     # Status
     status: CheckpointStatus = CheckpointStatus.ACTIVE
-    expires_at: Optional[datetime] = None
-    resumed_at: Optional[datetime] = None
-    resumed_by: Optional[str] = None
+    expires_at: datetime | None = None
+    resumed_at: datetime | None = None
+    resumed_by: str | None = None
 
     # Timestamps
-    created_at: Optional[datetime] = None
+    created_at: datetime | None = None
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "checkpoint_id": self.checkpoint_id,
             "correlation_id": self.correlation_id,
@@ -130,7 +130,7 @@ class CheckpointStore:
         await store.mark_resumed(checkpoint.checkpoint_id, resumed_by="operator@example.com")
     """
 
-    def __init__(self, db: Optional[DatabaseAdapter] = None):
+    def __init__(self, db: DatabaseAdapter | None = None):
         self._db = db
 
     async def _get_db(self) -> DatabaseAdapter:
@@ -142,12 +142,12 @@ class CheckpointStore:
         self,
         correlation_id: str,
         checkpoint_name: str,
-        checkpoint_data: Dict[str, Any],
+        checkpoint_data: dict[str, Any],
         *,
-        action_id: Optional[str] = None,
-        run_id: Optional[str] = None,
+        action_id: str | None = None,
+        run_id: str | None = None,
         checkpoint_type: CheckpointType = CheckpointType.STATE,
-        expires_in_hours: Optional[int] = None,
+        expires_in_hours: int | None = None,
     ) -> Checkpoint:
         """
         Save a durable checkpoint.
@@ -232,7 +232,7 @@ class CheckpointStore:
 
         return checkpoint
 
-    async def get_checkpoint(self, checkpoint_id: str) -> Optional[Checkpoint]:
+    async def get_checkpoint(self, checkpoint_id: str) -> Checkpoint | None:
         """Get a checkpoint by ID."""
         db = await self._get_db()
 
@@ -249,11 +249,11 @@ class CheckpointStore:
     async def get_latest_checkpoint(
         self,
         *,
-        action_id: Optional[str] = None,
-        correlation_id: Optional[str] = None,
-        checkpoint_name: Optional[str] = None,
+        action_id: str | None = None,
+        correlation_id: str | None = None,
+        checkpoint_name: str | None = None,
         active_only: bool = True,
-    ) -> Optional[Checkpoint]:
+    ) -> Checkpoint | None:
         """
         Get the latest checkpoint for an action or correlation.
 
@@ -312,7 +312,7 @@ class CheckpointStore:
         *,
         include_resumed: bool = False,
         limit: int = 100,
-    ) -> List[Checkpoint]:
+    ) -> list[Checkpoint]:
         """Get all checkpoints for an action."""
         db = await self._get_db()
 
@@ -339,7 +339,7 @@ class CheckpointStore:
         self,
         checkpoint_id: str,
         *,
-        resumed_by: Optional[str] = None,
+        resumed_by: str | None = None,
     ) -> bool:
         """
         Mark a checkpoint as resumed.
@@ -512,7 +512,7 @@ class CheckpointStore:
 
         return 0
 
-    def _row_to_checkpoint(self, row: Dict[str, Any]) -> Checkpoint:
+    def _row_to_checkpoint(self, row: dict[str, Any]) -> Checkpoint:
         """Convert a database row to a Checkpoint."""
         checkpoint_data = row.get("checkpoint_data") or {}
         if isinstance(checkpoint_data, str):
@@ -539,7 +539,7 @@ class CheckpointStore:
 
 
 # Global store instance
-_store: Optional[CheckpointStore] = None
+_store: CheckpointStore | None = None
 
 
 async def get_checkpoint_store() -> CheckpointStore:

@@ -4,12 +4,12 @@ Agent Callback Handler
 Handles events from agent execution and emits to event system.
 """
 
-from datetime import datetime
-from typing import Dict, Any, Optional, List
-from uuid import UUID
 import logging
+from datetime import datetime
+from typing import Any
+from uuid import UUID
 
-from .models import ToolCall, ToolResult, AgentRunStatus
+from .models import AgentRunStatus, ToolCall, ToolResult
 
 logger = logging.getLogger(__name__)
 
@@ -21,7 +21,7 @@ async def _safe_publish_event(event_data: dict, event_type: str, correlation_id:
     Event publishing is best-effort - failures should not block agent execution.
     """
     try:
-        from ..events import publish_event, AgentEvent
+        from ..events import AgentEvent, publish_event
 
         await publish_event(AgentEvent(
             correlation_id=correlation_id,
@@ -51,10 +51,10 @@ class AgentCallbackHandler:
         self.deal_id = deal_id
         self.trace_id = trace_id
         self.correlation_id = correlation_id
-        self.tool_calls: List[ToolCall] = []
-        self.tool_results: List[ToolResult] = []
+        self.tool_calls: list[ToolCall] = []
+        self.tool_results: list[ToolResult] = []
 
-    async def on_run_start(self, task: str, context: Dict[str, Any] = None):
+    async def on_run_start(self, task: str, context: dict[str, Any] = None):
         """Called when agent run starts."""
         logger.info(f"Agent run started: {self.run_id} (trace: {self.trace_id})")
 
@@ -71,7 +71,7 @@ class AgentCallbackHandler:
             correlation_id=self.correlation_id
         )
 
-    async def on_tool_start(self, tool_name: str, tool_input: Dict[str, Any]) -> ToolCall:
+    async def on_tool_start(self, tool_name: str, tool_input: dict[str, Any]) -> ToolCall:
         """Called when a tool is invoked."""
         tool_call = ToolCall(
             tool_name=tool_name,
@@ -101,7 +101,7 @@ class AgentCallbackHandler:
         self,
         tool_call: ToolCall,
         output: Any,
-        error: Optional[str] = None,
+        error: str | None = None,
         duration_ms: int = 0
     ) -> ToolResult:
         """Called when a tool completes."""
@@ -137,9 +137,9 @@ class AgentCallbackHandler:
     async def on_run_end(
         self,
         status: AgentRunStatus,
-        result: Optional[Dict[str, Any]] = None,
-        error: Optional[str] = None,
-        actions_created: List[UUID] = None
+        result: dict[str, Any] | None = None,
+        error: str | None = None,
+        actions_created: list[UUID] = None
     ):
         """Called when agent run completes."""
         event_type = (

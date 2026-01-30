@@ -11,17 +11,14 @@ matching with a multi-tier alias system supporting:
 - Broker + sector heuristics
 """
 
-import json
-import re
 import csv
-import sqlite3
+import json
 import logging
+import re
 import shutil
-from datetime import datetime, timezone
+from dataclasses import asdict, dataclass, field
+from datetime import UTC, datetime
 from pathlib import Path
-from dataclasses import dataclass, field, asdict
-from typing import Dict, List, Optional, Any, Tuple
-from collections import defaultdict
 
 try:
     from rapidfuzz import fuzz
@@ -54,57 +51,57 @@ class Alias:
 @dataclass
 class Identifiers:
     """Deal identifiers from various sources"""
-    listing_ids: List[str] = field(default_factory=list)
-    broker_reference_ids: List[str] = field(default_factory=list)
-    bizbuysell_id: Optional[str] = None
-    axial_id: Optional[str] = None
-    internal_codes: List[str] = field(default_factory=list)
+    listing_ids: list[str] = field(default_factory=list)
+    broker_reference_ids: list[str] = field(default_factory=list)
+    bizbuysell_id: str | None = None
+    axial_id: str | None = None
+    internal_codes: list[str] = field(default_factory=list)
 
 
 @dataclass
 class Location:
     """Deal location information"""
-    city: Optional[str] = None
-    state: Optional[str] = None
-    region: Optional[str] = None
+    city: str | None = None
+    state: str | None = None
+    region: str | None = None
 
 
 @dataclass
 class CompanyInfo:
     """Company information for a deal"""
-    company_name: Optional[str] = None
-    legal_entity: Optional[str] = None
-    dba_names: List[str] = field(default_factory=list)
-    location: Optional[Location] = None
-    sector: Optional[str] = None
-    franchise_system: Optional[str] = None
+    company_name: str | None = None
+    legal_entity: str | None = None
+    dba_names: list[str] = field(default_factory=list)
+    location: Location | None = None
+    sector: str | None = None
+    franchise_system: str | None = None
 
 
 @dataclass
 class BrokerInfo:
     """Broker information"""
-    broker_id: Optional[str] = None
+    broker_id: str | None = None
     name: str = ""
     email: str = ""
     phone: str = ""
     company: str = ""
     quality_rating: str = "MEDIUM"
-    sectors: List[str] = field(default_factory=list)
-    domain: Optional[str] = None  # Email domain for broker identification
+    sectors: list[str] = field(default_factory=list)
+    domain: str | None = None  # Email domain for broker identification
 
 
 @dataclass
 class DealMetadata:
     """Additional deal metadata"""
     priority: str = "MEDIUM"
-    asking_price: Optional[str] = None
-    ebitda: Optional[str] = None
-    revenue: Optional[str] = None
-    employees: Optional[int] = None
+    asking_price: str | None = None
+    ebitda: str | None = None
+    revenue: str | None = None
+    employees: int | None = None
     nda_status: str = "none"  # none, pending, signed
     cim_received: bool = False
-    junk_reason: Optional[str] = None
-    archived_at: Optional[str] = None
+    junk_reason: str | None = None
+    archived_at: str | None = None
 
 
 @dataclass
@@ -121,24 +118,24 @@ class Deal:
     """Complete deal record"""
     deal_id: str
     canonical_name: str
-    display_name: Optional[str] = None
-    folder_path: Optional[str] = None
+    display_name: str | None = None
+    folder_path: str | None = None
     stage: str = "inbound"  # inbound, screening, qualified, loi, closing, archive, rejected
     status: str = "active"  # active, inactive, merged, archived, junk
     identifiers: Identifiers = field(default_factory=Identifiers)
     company_info: CompanyInfo = field(default_factory=CompanyInfo)
-    broker: Optional[BrokerInfo] = None
-    aliases: List[Alias] = field(default_factory=list)
-    email_thread_ids: List[str] = field(default_factory=list)
-    related_folders: List[str] = field(default_factory=list)
+    broker: BrokerInfo | None = None
+    aliases: list[Alias] = field(default_factory=list)
+    email_thread_ids: list[str] = field(default_factory=list)
+    related_folders: list[str] = field(default_factory=list)
     metadata: DealMetadata = field(default_factory=DealMetadata)
-    audit_trail: List[AuditEntry] = field(default_factory=list)
+    audit_trail: list[AuditEntry] = field(default_factory=list)
     created_at: str = field(default_factory=lambda: datetime.now().isoformat())
     updated_at: str = field(default_factory=lambda: datetime.now().isoformat())
     deleted: bool = False
-    deleted_at: Optional[str] = None
-    deleted_by: Optional[str] = None
-    deleted_reason: Optional[str] = None
+    deleted_at: str | None = None
+    deleted_by: str | None = None
+    deleted_reason: str | None = None
 
     def add_alias(self, alias: str, alias_type: str, confidence: float = 1.0, source: str = "manual"):
         """Add an alias to the deal"""
@@ -180,13 +177,13 @@ class JunkPattern:
 class MatchResult:
     """Result of a matching attempt"""
     matched: bool
-    deal_id: Optional[str] = None
+    deal_id: str | None = None
     confidence: float = 0.0
-    match_type: Optional[str] = None
-    matched_alias: Optional[str] = None
-    reason: Optional[str] = None
+    match_type: str | None = None
+    matched_alias: str | None = None
+    reason: str | None = None
     action: str = "none"  # none, create_new, reject
-    suggested_aliases: List[Tuple[str, str]] = field(default_factory=list)  # (alias, type)
+    suggested_aliases: list[tuple[str, str]] = field(default_factory=list)  # (alias, type)
 
 
 @dataclass
@@ -195,22 +192,22 @@ class EmailContent:
     subject: str
     body: str
     sender: str
-    message_id: Optional[str] = None
-    thread_id: Optional[str] = None
-    in_reply_to: Optional[str] = None
-    received_date: Optional[str] = None
+    message_id: str | None = None
+    thread_id: str | None = None
+    in_reply_to: str | None = None
+    received_date: str | None = None
 
 
 @dataclass
 class ExtractedIdentifiers:
     """Identifiers extracted from email content"""
-    listing_ids: List[str] = field(default_factory=list)
-    broker_email: Optional[str] = None
-    broker_domain: Optional[str] = None
-    company_names: List[str] = field(default_factory=list)
-    locations: List[str] = field(default_factory=list)
-    sectors: List[str] = field(default_factory=list)
-    keywords: List[str] = field(default_factory=list)
+    listing_ids: list[str] = field(default_factory=list)
+    broker_email: str | None = None
+    broker_domain: str | None = None
+    company_names: list[str] = field(default_factory=list)
+    locations: list[str] = field(default_factory=list)
+    sectors: list[str] = field(default_factory=list)
+    keywords: list[str] = field(default_factory=list)
 
 
 # ============================================================================
@@ -363,7 +360,7 @@ class IdentifierExtractor:
 
         return identifiers
 
-    def _extract_keywords(self, text: str) -> List[str]:
+    def _extract_keywords(self, text: str) -> list[str]:
         """Extract significant keywords"""
         words = re.findall(r'\b[a-z]{4,}\b', text.lower())
         significant = [w for w in words if w not in self.STOP_WORDS]
@@ -373,7 +370,7 @@ class IdentifierExtractor:
         word_counts = Counter(significant)
         return [w for w, c in word_counts.most_common(20)]
 
-    def _extract_company_names(self, subject: str) -> List[str]:
+    def _extract_company_names(self, subject: str) -> list[str]:
         """Extract potential company names from subject"""
         names = []
         # Look for capitalized word sequences
@@ -464,7 +461,7 @@ class DealMatcher:
             suggested_aliases=suggested_aliases
         )
 
-    def check_junk(self, content: EmailContent) -> Optional[str]:
+    def check_junk(self, content: EmailContent) -> str | None:
         """Check if content matches junk patterns"""
         for pattern in self.registry.junk_patterns:
             if pattern.pattern_type == 'domain':
@@ -483,7 +480,7 @@ class DealMatcher:
                     return pattern.pattern
         return None
 
-    def _try_listing_id_match(self, identifiers: ExtractedIdentifiers) -> Optional[MatchResult]:
+    def _try_listing_id_match(self, identifiers: ExtractedIdentifiers) -> MatchResult | None:
         """Tier 1: Exact listing ID match"""
         for listing_id in identifiers.listing_ids:
             for deal_id, deal in self.registry.deals.items():
@@ -511,7 +508,7 @@ class DealMatcher:
                             )
         return None
 
-    def _try_email_thread_match(self, content: EmailContent) -> Optional[MatchResult]:
+    def _try_email_thread_match(self, content: EmailContent) -> MatchResult | None:
         """Tier 3: Email thread continuity"""
         if content.thread_id:
             for deal_id, deal in self.registry.deals.items():
@@ -539,7 +536,7 @@ class DealMatcher:
                 )
         return None
 
-    def _try_broker_listing_combo(self, identifiers: ExtractedIdentifiers) -> Optional[MatchResult]:
+    def _try_broker_listing_combo(self, identifiers: ExtractedIdentifiers) -> MatchResult | None:
         """Tier 4: Broker + listing ID combination"""
         if not identifiers.broker_email or not identifiers.listing_ids:
             return None
@@ -569,7 +566,7 @@ class DealMatcher:
                     )
         return None
 
-    def _try_company_name_exact(self, identifiers: ExtractedIdentifiers) -> Optional[MatchResult]:
+    def _try_company_name_exact(self, identifiers: ExtractedIdentifiers) -> MatchResult | None:
         """Tier 5: Exact company name match"""
         for company in identifiers.company_names:
             normalized = normalize_company_name(company)
@@ -605,7 +602,7 @@ class DealMatcher:
                             )
         return None
 
-    def _try_company_name_fuzzy(self, identifiers: ExtractedIdentifiers) -> Optional[MatchResult]:
+    def _try_company_name_fuzzy(self, identifiers: ExtractedIdentifiers) -> MatchResult | None:
         """Tier 6: Fuzzy company name matching"""
         if not FUZZY_AVAILABLE:
             return None
@@ -637,7 +634,7 @@ class DealMatcher:
                             )
         return best_match
 
-    def _try_keyword_match(self, identifiers: ExtractedIdentifiers) -> Optional[MatchResult]:
+    def _try_keyword_match(self, identifiers: ExtractedIdentifiers) -> MatchResult | None:
         """Tier 7: Keyword combination matching (improved from 2+ word match)"""
         MIN_KEYWORD_MATCHES = 3
         MIN_MATCH_RATIO = 0.4
@@ -683,7 +680,7 @@ class DealMatcher:
 
         return best_match
 
-    def _try_broker_sector_location(self, identifiers: ExtractedIdentifiers) -> Optional[MatchResult]:
+    def _try_broker_sector_location(self, identifiers: ExtractedIdentifiers) -> MatchResult | None:
         """Tier 8: Broker + sector + location heuristic"""
         if not identifiers.broker_email:
             return None
@@ -745,12 +742,12 @@ class DealRegistry:
     def __init__(self, registry_path: str):
         self.registry_path = Path(registry_path)
         self.db_path = self.registry_path.parent / "deal_registry.db"
-        self.deals: Dict[str, Deal] = {}
-        self.brokers: Dict[str, BrokerInfo] = {}
-        self.junk_patterns: List[JunkPattern] = []
-        self.email_to_deal: Dict[str, str] = {}  # message_id -> deal_id
-        self.thread_to_deal: Dict[str, str] = {}  # gmail_thread_id -> deal_id
-        self.thread_to_non_deal: Dict[str, str] = {}  # gmail_thread_id -> rejection reason
+        self.deals: dict[str, Deal] = {}
+        self.brokers: dict[str, BrokerInfo] = {}
+        self.junk_patterns: list[JunkPattern] = []
+        self.email_to_deal: dict[str, str] = {}  # message_id -> deal_id
+        self.thread_to_deal: dict[str, str] = {}  # gmail_thread_id -> deal_id
+        self.thread_to_non_deal: dict[str, str] = {}  # gmail_thread_id -> rejection reason
         self._deal_counter = 0
         self._broker_counter = 0
 
@@ -760,7 +757,7 @@ class DealRegistry:
         """Load registry from JSON file"""
         if self.registry_path.exists():
             try:
-                with open(self.registry_path, 'r', encoding='utf-8') as f:
+                with open(self.registry_path, encoding='utf-8') as f:
                     data = json.load(f)
                 self._deserialize(data)
                 logger.info(f"Loaded {len(self.deals)} deals from registry")
@@ -923,18 +920,18 @@ class DealRegistry:
         self._broker_counter += 1
         return f"BRK-{self._broker_counter:03d}"
 
-    def get_deal(self, deal_id: str) -> Optional[Deal]:
+    def get_deal(self, deal_id: str) -> Deal | None:
         """Get deal by ID"""
         return self.deals.get(deal_id)
 
-    def get_deal_by_folder(self, folder_path: str) -> Optional[Deal]:
+    def get_deal_by_folder(self, folder_path: str) -> Deal | None:
         """Get deal by folder path"""
         for deal in self.deals.values():
             if deal.folder_path == folder_path:
                 return deal
         return None
 
-    def get_email_deal_mapping(self, message_id: str) -> Optional[str]:
+    def get_email_deal_mapping(self, message_id: str) -> str | None:
         """Get deal_id for a message_id"""
         return self.email_to_deal.get(message_id)
 
@@ -942,7 +939,7 @@ class DealRegistry:
         """Add email to deal mapping"""
         self.email_to_deal[message_id] = deal_id
 
-    def get_thread_deal_mapping(self, thread_id: str) -> Optional[str]:
+    def get_thread_deal_mapping(self, thread_id: str) -> str | None:
         """Get deal_id for a gmail thread_id."""
         return self.thread_to_deal.get(thread_id)
 
@@ -952,7 +949,7 @@ class DealRegistry:
             return
         self.thread_to_deal[thread_id] = deal_id
 
-    def get_thread_non_deal_mapping(self, thread_id: str) -> Optional[str]:
+    def get_thread_non_deal_mapping(self, thread_id: str) -> str | None:
         """Get rejection reason if thread was marked as non-deal."""
         return self.thread_to_non_deal.get(thread_id)
 
@@ -962,7 +959,7 @@ class DealRegistry:
             return
         self.thread_to_non_deal[thread_id] = (reason or "").strip()[:500] or "rejected"
 
-    def is_thread_resolved(self, thread_id: str) -> Tuple[bool, Optional[str], Optional[str]]:
+    def is_thread_resolved(self, thread_id: str) -> tuple[bool, str | None, str | None]:
         """
         Check if a gmail thread has been resolved deterministically.
 
@@ -982,7 +979,7 @@ class DealRegistry:
         deal_id: str,
         canonical_name: str,
         folder_path: str,
-        broker: Optional[BrokerInfo] = None,
+        broker: BrokerInfo | None = None,
         source: str = "email_sync"
     ) -> Deal:
         """Create a new deal in the registry"""
@@ -1098,9 +1095,9 @@ class DealRegistry:
             "source_folder": source_deal.folder_path
         }
 
-    def list_deals(self, stage: Optional[str] = None,
-                   status: Optional[str] = None,
-                   include_deleted: bool = False) -> List[Deal]:
+    def list_deals(self, stage: str | None = None,
+                   status: str | None = None,
+                   include_deleted: bool = False) -> list[Deal]:
         """List deals with optional filtering"""
         result = []
         for deal in self.deals.values():
@@ -1123,7 +1120,7 @@ class DealRegistry:
         for thread_id in (deal.email_thread_ids or []):
             self.thread_to_deal[thread_id] = deal.deal_id
 
-    def mark_deal_deleted(self, deal_id: str, operator: str, *, reason: Optional[str] = None) -> bool:
+    def mark_deal_deleted(self, deal_id: str, operator: str, *, reason: str | None = None) -> bool:
         """
         Soft delete the deal so it no longer appears in lists.
         Returns True if the deal was marked deleted, False if it was already deleted or missing.
@@ -1132,7 +1129,7 @@ class DealRegistry:
         if not deal or deal.deleted:
             return False
 
-        now_iso = datetime.now(timezone.utc).isoformat()
+        now_iso = datetime.now(UTC).isoformat()
         deal.deleted = True
         deal.deleted_at = now_iso
         deal.deleted_by = operator
@@ -1143,14 +1140,14 @@ class DealRegistry:
         self._remove_mappings_for_deal(deal_id)
         return True
 
-    def restore_deal(self, deal_id: str, operator: str, *, reason: Optional[str] = None) -> bool:
+    def restore_deal(self, deal_id: str, operator: str, *, reason: str | None = None) -> bool:
         """
         Restore a previously deleted deal and re-enable its thread mappings.
         """
         deal = self.get_deal(deal_id)
         if not deal or not deal.deleted:
             return False
-        now_iso = datetime.now(timezone.utc).isoformat()
+        now_iso = datetime.now(UTC).isoformat()
         deal.deleted = False
         deal.deleted_at = None
         deal.deleted_by = None
@@ -1161,7 +1158,7 @@ class DealRegistry:
         self._add_mappings_for_deal(deal)
         return True
 
-    def search(self, query: str) -> List[Dict]:
+    def search(self, query: str) -> list[dict]:
         """Search deals by query"""
         query_normalized = normalize_text(query)
         results = []
@@ -1234,7 +1231,7 @@ def migrate_from_existing(
     # Load broker tracker
     brokers_by_email = {}
     if Path(broker_csv).exists():
-        with open(broker_csv, 'r', encoding='utf-8') as f:
+        with open(broker_csv, encoding='utf-8') as f:
             reader = csv.DictReader(f)
             for row in reader:
                 email = row.get('Email', '').lower().strip()
@@ -1255,7 +1252,7 @@ def migrate_from_existing(
 
     # Load master deal tracker
     if Path(tracker_csv).exists():
-        with open(tracker_csv, 'r', encoding='utf-8') as f:
+        with open(tracker_csv, encoding='utf-8') as f:
             reader = csv.DictReader(f)
             for row in reader:
                 deal_name = row.get('Deal Name', '').strip()
@@ -1314,7 +1311,7 @@ def migrate_from_existing(
                         deal.add_alias(f"listing {lid}", "listing_id", 1.0, "migration")
                         results["aliases_created"] += 2
 
-                    deal.add_audit("created", "migration", f"Migrated from MASTER-DEAL-TRACKER.csv")
+                    deal.add_audit("created", "migration", "Migrated from MASTER-DEAL-TRACKER.csv")
                     registry.deals[deal_id] = deal
 
                 results["deals_created"] += 1
@@ -1371,7 +1368,7 @@ def migrate_from_existing(
                 for lid in listing_ids:
                     deal.add_alias(lid, "listing_number", 0.9, "migration")
 
-                deal.add_audit("created", "migration", f"Migrated from Inbound folder")
+                deal.add_audit("created", "migration", "Migrated from Inbound folder")
                 registry.deals[deal_id] = deal
                 results["deals_created"] += 1
 
@@ -1397,7 +1394,7 @@ def migrate_from_existing(
                     status="active",
                 )
                 deal.add_alias(normalize_text(folder.name), "name_variation", 1.0, "migration")
-                deal.add_audit("created", "migration", f"Migrated from Screening folder")
+                deal.add_audit("created", "migration", "Migrated from Screening folder")
                 registry.deals[deal_id] = deal
                 results["deals_created"] += 1
 

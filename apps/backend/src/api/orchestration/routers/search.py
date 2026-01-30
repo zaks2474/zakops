@@ -4,11 +4,11 @@ Search API
 Endpoints for searching deals and actions with cursor-based pagination.
 """
 
-from typing import Optional, List
-from fastapi import APIRouter, Query, HTTPException
-from pydantic import BaseModel
 import base64
 import json
+
+from fastapi import APIRouter, HTTPException, Query
+from pydantic import BaseModel
 
 from ....core.database.adapter import get_database
 
@@ -39,31 +39,31 @@ class DealSearchResult(BaseModel):
     """Deal search result."""
     deal_id: str
     canonical_name: str
-    company_name: Optional[str] = None
+    company_name: str | None = None
     stage: str
     status: str
     created_at: str
-    updated_at: Optional[str] = None
+    updated_at: str | None = None
 
 
 class DealSearchResponse(BaseModel):
     """Response from deal search."""
-    results: List[DealSearchResult]
-    next_cursor: Optional[str] = None
+    results: list[DealSearchResult]
+    next_cursor: str | None = None
     has_more: bool = False
     query: str
     # Legacy fields for backwards compatibility
-    total: Optional[int] = None
+    total: int | None = None
     limit: int
-    offset: Optional[int] = None
+    offset: int | None = None
 
 
 class ActionSearchResult(BaseModel):
     """Action search result."""
     action_id: str
-    deal_id: Optional[str] = None
+    deal_id: str | None = None
     action_type: str
-    title: Optional[str] = None
+    title: str | None = None
     status: str
     risk_level: str
     created_at: str
@@ -71,8 +71,8 @@ class ActionSearchResult(BaseModel):
 
 class ActionSearchResponse(BaseModel):
     """Response from action search."""
-    results: List[ActionSearchResult]
-    next_cursor: Optional[str] = None
+    results: list[ActionSearchResult]
+    next_cursor: str | None = None
     has_more: bool = False
     query: str
     limit: int
@@ -83,17 +83,17 @@ class GlobalSearchResult(BaseModel):
     id: str
     type: str  # "deal" or "action"
     title: str
-    subtitle: Optional[str] = None
+    subtitle: str | None = None
 
 
 @router.get("/deals", response_model=DealSearchResponse)
 async def search_deals(
     q: str = Query(..., min_length=1, description="Search query"),
-    stage: Optional[str] = Query(None, description="Filter by stage"),
-    status: Optional[str] = Query(None, description="Filter by status"),
+    stage: str | None = Query(None, description="Filter by stage"),
+    status: str | None = Query(None, description="Filter by status"),
     limit: int = Query(20, ge=1, le=100, description="Results per page"),
-    cursor: Optional[str] = Query(None, description="Pagination cursor from previous response"),
-    offset: Optional[int] = Query(None, ge=0, description="Legacy offset (use cursor instead)")
+    cursor: str | None = Query(None, description="Pagination cursor from previous response"),
+    offset: int | None = Query(None, ge=0, description="Legacy offset (use cursor instead)")
 ):
     """
     Search deals by name, company, or content with cursor-based pagination.
@@ -205,11 +205,11 @@ async def search_deals(
 @router.get("/actions", response_model=ActionSearchResponse)
 async def search_actions(
     q: str = Query(..., min_length=1, description="Search query"),
-    status: Optional[str] = Query(None, description="Filter by status"),
-    action_type: Optional[str] = Query(None, description="Filter by action type"),
-    deal_id: Optional[str] = Query(None, description="Filter by deal ID"),
+    status: str | None = Query(None, description="Filter by status"),
+    action_type: str | None = Query(None, description="Filter by action type"),
+    deal_id: str | None = Query(None, description="Filter by deal ID"),
     limit: int = Query(20, ge=1, le=100, description="Results per page"),
-    cursor: Optional[str] = Query(None, description="Pagination cursor")
+    cursor: str | None = Query(None, description="Pagination cursor")
 ):
     """
     Search actions with cursor-based pagination.

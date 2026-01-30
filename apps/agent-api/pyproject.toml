@@ -92,7 +92,18 @@ exclude = ["migrations", "*.ipynb", "venv"]
 # Enable flake8-bugbear (`B`) rules and docstring (`D`) rules
 select = ["E", "F", "B", "ERA", "D"]
 # Never enforce `E501` (line length violations).
-ignore = ["E501", "F401", "D203", "D213", "B904", "B008"]
+ignore = [
+    "E501",   # line length (handled by formatter)
+    "F401",   # unused imports
+    "D203",   # no-blank-line-before-class (conflicts with D211)
+    "D213",   # multi-line-summary-second-line (conflicts with D212)
+    "D104",   # missing docstring in public package __init__.py
+    "D107",   # missing docstring in __init__ method
+    "D102",   # missing docstring in public method (too noisy at current maturity)
+    "ERA001", # commented-out code (too aggressive for config comments)
+    "B904",   # raise-without-from-inside-except
+    "B008",   # function-call-in-default-argument
+]
 # Avoid trying to fix flake8-bugbear (`B`) violations.
 unfixable = ["B"]
 

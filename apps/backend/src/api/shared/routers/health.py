@@ -5,9 +5,9 @@ Phase 8: OpenAPI & Tooling
 Provides health, readiness, and liveness endpoints for container orchestration.
 """
 
-from datetime import datetime
-from typing import Dict, Any
 import os
+from datetime import datetime
+from typing import Any
 
 from fastapi import APIRouter, Response
 
@@ -15,7 +15,7 @@ router = APIRouter(tags=["health"])
 
 
 @router.get("/health")
-async def health_check() -> Dict[str, Any]:
+async def health_check() -> dict[str, Any]:
     """
     Basic health check.
 
@@ -29,7 +29,7 @@ async def health_check() -> Dict[str, Any]:
 
 
 @router.get("/health/live")
-async def liveness_check() -> Dict[str, str]:
+async def liveness_check() -> dict[str, str]:
     """
     Kubernetes liveness probe.
 
@@ -40,7 +40,7 @@ async def liveness_check() -> Dict[str, str]:
 
 
 @router.get("/health/ready")
-async def readiness_check(response: Response) -> Dict[str, Any]:
+async def readiness_check(response: Response) -> dict[str, Any]:
     """
     Kubernetes readiness probe.
 
@@ -84,7 +84,7 @@ async def readiness_check(response: Response) -> Dict[str, Any]:
 
 
 @router.get("/health/startup")
-async def startup_check() -> Dict[str, Any]:
+async def startup_check() -> dict[str, Any]:
     """
     Kubernetes startup probe.
 
@@ -109,7 +109,7 @@ async def startup_check() -> Dict[str, Any]:
 
 
 @router.get("/api/version")
-async def get_version() -> Dict[str, Any]:
+async def get_version() -> dict[str, Any]:
     """
     Get build version information.
 
@@ -124,7 +124,7 @@ async def get_version() -> Dict[str, Any]:
 
 
 @router.get("/health/detailed")
-async def detailed_health_check() -> Dict[str, Any]:
+async def detailed_health_check() -> dict[str, Any]:
     """
     Detailed health check with system information.
 

@@ -6,20 +6,22 @@ Phase 15: Observability
 FastAPI middleware for automatic request tracing with OpenTelemetry.
 """
 
-import time
 import logging
-from typing import Callable
+import time
+from collections.abc import Callable
 from uuid import uuid4
 
 from fastapi import Request, Response
+from opentelemetry import trace
 from starlette.middleware.base import BaseHTTPMiddleware
 
-from ....core.observability.tracing import (
-    get_tracer, extract_trace_context,
-    add_correlation_id_to_span, get_trace_id
-)
 from ....core.observability.metrics import record_counter, record_histogram
-from opentelemetry import trace
+from ....core.observability.tracing import (
+    add_correlation_id_to_span,
+    extract_trace_context,
+    get_trace_id,
+    get_tracer,
+)
 
 logger = logging.getLogger(__name__)
 

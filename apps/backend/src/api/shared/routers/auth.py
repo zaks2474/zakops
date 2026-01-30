@@ -7,20 +7,18 @@ Provides login, logout, and session management.
 """
 
 import os
-from typing import Optional
 
-from fastapi import APIRouter, Request, Response, HTTPException
+from fastapi import APIRouter, HTTPException, Request, Response
 from pydantic import BaseModel, EmailStr
 
 from ....core.auth import (
+    SESSION_COOKIE_NAME,
     authenticate_operator,
+    create_operator,
     create_session,
     invalidate_session,
-    create_operator,
-    SESSION_COOKIE_NAME,
 )
 from ..middleware.auth import get_current_operator
-
 
 router = APIRouter(prefix="/api/auth", tags=["auth"])
 

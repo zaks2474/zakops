@@ -22,10 +22,10 @@ import json
 import logging
 import os
 import uuid
+from collections.abc import AsyncGenerator
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import Enum
-from typing import Any, AsyncGenerator, Optional
 
 import asyncpg
 from starlette.responses import StreamingResponse
@@ -108,15 +108,15 @@ class AgentEventType(str, Enum):
 class AgentThread:
     thread_id: str
     assistant_id: str
-    deal_id: Optional[str] = None
+    deal_id: str | None = None
     status: ThreadStatus = ThreadStatus.ACTIVE
     metadata: dict = field(default_factory=dict)
-    user_id: Optional[str] = None
+    user_id: str | None = None
     user_context: dict = field(default_factory=dict)
     message_count: int = 0
-    created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
-    updated_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
-    last_active_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    created_at: datetime = field(default_factory=lambda: datetime.now(UTC))
+    updated_at: datetime = field(default_factory=lambda: datetime.now(UTC))
+    last_active_at: datetime = field(default_factory=lambda: datetime.now(UTC))
 
 
 @dataclass
@@ -125,21 +125,21 @@ class AgentRun:
     thread_id: str
     assistant_id: str
     status: RunStatus = RunStatus.PENDING
-    input_message: Optional[str] = None
-    output_message: Optional[str] = None
-    started_at: Optional[datetime] = None
-    completed_at: Optional[datetime] = None
-    duration_ms: Optional[int] = None
-    error: Optional[str] = None
-    error_code: Optional[str] = None
-    input_tokens: Optional[int] = None
-    output_tokens: Optional[int] = None
-    total_tokens: Optional[int] = None
+    input_message: str | None = None
+    output_message: str | None = None
+    started_at: datetime | None = None
+    completed_at: datetime | None = None
+    duration_ms: int | None = None
+    error: str | None = None
+    error_code: str | None = None
+    input_tokens: int | None = None
+    output_tokens: int | None = None
+    total_tokens: int | None = None
     metadata: dict = field(default_factory=dict)
-    last_event_id: Optional[str] = None
+    last_event_id: str | None = None
     stream_position: int = 0
-    created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
-    updated_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    created_at: datetime = field(default_factory=lambda: datetime.now(UTC))
+    updated_at: datetime = field(default_factory=lambda: datetime.now(UTC))
 
 
 @dataclass
@@ -148,22 +148,22 @@ class AgentToolCall:
     run_id: str
     tool_name: str
     tool_input: dict = field(default_factory=dict)
-    tool_output: Optional[dict] = None
+    tool_output: dict | None = None
     status: ToolCallStatus = ToolCallStatus.PENDING
     risk_level: ToolRiskLevel = ToolRiskLevel.LOW
     requires_approval: bool = False
-    approved_by: Optional[str] = None
-    approved_at: Optional[datetime] = None
-    rejection_reason: Optional[str] = None
-    started_at: Optional[datetime] = None
-    completed_at: Optional[datetime] = None
-    duration_ms: Optional[int] = None
-    error: Optional[str] = None
+    approved_by: str | None = None
+    approved_at: datetime | None = None
+    rejection_reason: str | None = None
+    started_at: datetime | None = None
+    completed_at: datetime | None = None
+    duration_ms: int | None = None
+    error: str | None = None
     retry_count: int = 0
-    created_action_id: Optional[str] = None
+    created_action_id: str | None = None
     sequence_number: int = 0
-    created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
-    updated_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    created_at: datetime = field(default_factory=lambda: datetime.now(UTC))
+    updated_at: datetime = field(default_factory=lambda: datetime.now(UTC))
 
 
 @dataclass
@@ -173,16 +173,16 @@ class AgentEvent:
     run_id: str
     event_type: AgentEventType
     event_data: dict = field(default_factory=dict)
-    tool_call_id: Optional[str] = None
+    tool_call_id: str | None = None
     sequence_number: int = 0
-    created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    created_at: datetime = field(default_factory=lambda: datetime.now(UTC))
 
 
 # =============================================================================
 # Database Pool
 # =============================================================================
 
-_pool: Optional[asyncpg.Pool] = None
+_pool: asyncpg.Pool | None = None
 
 
 async def get_pool() -> asyncpg.Pool:
@@ -211,16 +211,16 @@ async def close_pool():
 
 async def create_thread(
     assistant_id: str,
-    deal_id: Optional[str] = None,
-    user_id: Optional[str] = None,
-    metadata: Optional[dict] = None,
-    user_context: Optional[dict] = None,
+    deal_id: str | None = None,
+    user_id: str | None = None,
+    metadata: dict | None = None,
+    user_context: dict | None = None,
 ) -> AgentThread:
     """Create a new agent thread."""
     pool = await get_pool()
 
     thread_id = f"thread_{uuid.uuid4().hex}"
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
 
     async with pool.acquire() as conn:
         await conn.execute(
@@ -254,7 +254,7 @@ async def create_thread(
     )
 
 
-async def get_thread(thread_id: str) -> Optional[AgentThread]:
+async def get_thread(thread_id: str) -> AgentThread | None:
     """Get a thread by ID."""
     pool = await get_pool()
 
@@ -323,13 +323,13 @@ async def create_run(
     thread_id: str,
     assistant_id: str,
     input_message: str,
-    metadata: Optional[dict] = None,
+    metadata: dict | None = None,
 ) -> AgentRun:
     """Create a new run within a thread."""
     pool = await get_pool()
 
     run_id = f"run_{uuid.uuid4().hex}"
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
 
     async with pool.acquire() as conn:
         await conn.execute(
@@ -369,7 +369,7 @@ async def create_run(
     )
 
 
-async def get_run(run_id: str) -> Optional[AgentRun]:
+async def get_run(run_id: str) -> AgentRun | None:
     """Get a run by ID."""
     pool = await get_pool()
 
@@ -410,7 +410,7 @@ async def get_run(run_id: str) -> Optional[AgentRun]:
 async def list_runs(
     thread_id: str,
     limit: int = 20,
-    status: Optional[RunStatus] = None,
+    status: RunStatus | None = None,
 ) -> list[AgentRun]:
     """List runs for a thread."""
     pool = await get_pool()
@@ -455,16 +455,16 @@ async def list_runs(
 async def update_run_status(
     run_id: str,
     status: RunStatus,
-    output_message: Optional[str] = None,
-    error: Optional[str] = None,
-    error_code: Optional[str] = None,
-    input_tokens: Optional[int] = None,
-    output_tokens: Optional[int] = None,
+    output_message: str | None = None,
+    error: str | None = None,
+    error_code: str | None = None,
+    input_tokens: int | None = None,
+    output_tokens: int | None = None,
 ):
     """Update run status and related fields."""
     pool = await get_pool()
 
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
 
     async with pool.acquire() as conn:
         # Get current run for duration calculation
@@ -527,7 +527,7 @@ async def create_tool_call(
     pool = await get_pool()
 
     tool_call_id = f"tc_{uuid.uuid4().hex}"
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
 
     async with pool.acquire() as conn:
         # Get next sequence number
@@ -583,7 +583,7 @@ async def create_tool_call(
     )
 
 
-async def get_tool_call(tool_call_id: str) -> Optional[AgentToolCall]:
+async def get_tool_call(tool_call_id: str) -> AgentToolCall | None:
     """Get a tool call by ID."""
     pool = await get_pool()
 
@@ -628,7 +628,7 @@ async def approve_tool_call(
 ) -> AgentToolCall:
     """Approve a pending tool call."""
     pool = await get_pool()
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
 
     async with pool.acquire() as conn:
         await conn.execute(
@@ -653,7 +653,7 @@ async def reject_tool_call(
 ) -> AgentToolCall:
     """Reject a pending tool call."""
     pool = await get_pool()
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
 
     async with pool.acquire() as conn:
         await conn.execute(
@@ -675,11 +675,11 @@ async def reject_tool_call(
 async def complete_tool_call(
     tool_call_id: str,
     tool_output: dict,
-    created_action_id: Optional[str] = None,
+    created_action_id: str | None = None,
 ):
     """Mark a tool call as completed with output."""
     pool = await get_pool()
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
 
     async with pool.acquire() as conn:
         # Get started_at for duration calculation
@@ -711,7 +711,7 @@ async def complete_tool_call(
 async def fail_tool_call(tool_call_id: str, error: str):
     """Mark a tool call as failed."""
     pool = await get_pool()
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
 
     async with pool.acquire() as conn:
         # Get started_at for duration calculation
@@ -747,7 +747,7 @@ async def record_event(
     run_id: str,
     event_type: AgentEventType,
     event_data: dict,
-    tool_call_id: Optional[str] = None,
+    tool_call_id: str | None = None,
 ) -> str:
     """Record an agent event and return the event_id."""
     pool = await get_pool()
@@ -769,7 +769,7 @@ async def record_event(
 
 async def get_events_since(
     run_id: str,
-    last_event_id: Optional[str] = None,
+    last_event_id: str | None = None,
     limit: int = 100,
 ) -> list[AgentEvent]:
     """Get events for a run, optionally starting after a specific event_id."""
@@ -817,7 +817,7 @@ async def get_events_since(
 async def stream_events(
     run_id: str,
     thread_id: str,
-    last_event_id: Optional[str] = None,
+    last_event_id: str | None = None,
 ) -> AsyncGenerator[str, None]:
     """
     Stream events as SSE, supporting resume via Last-Event-ID.
@@ -884,7 +884,7 @@ async def stream_events(
 def format_sse_event(
     event_type: str,
     data: dict,
-    event_id: Optional[str] = None,
+    event_id: str | None = None,
 ) -> str:
     """Format an SSE event."""
     lines = []
@@ -903,7 +903,7 @@ def format_sse_event(
 def create_sse_response(
     run_id: str,
     thread_id: str,
-    last_event_id: Optional[str] = None,
+    last_event_id: str | None = None,
 ) -> StreamingResponse:
     """Create a StreamingResponse for SSE events."""
     return StreamingResponse(
@@ -939,8 +939,8 @@ async def complete_run(
     run_id: str,
     thread_id: str,
     output_message: str,
-    input_tokens: Optional[int] = None,
-    output_tokens: Optional[int] = None,
+    input_tokens: int | None = None,
+    output_tokens: int | None = None,
 ) -> str:
     """Complete a run and emit the run_completed event."""
     await update_run_status(
@@ -970,7 +970,7 @@ async def fail_run(
     run_id: str,
     thread_id: str,
     error: str,
-    error_code: Optional[str] = None,
+    error_code: str | None = None,
 ) -> str:
     """Fail a run and emit the run_failed event."""
     await update_run_status(

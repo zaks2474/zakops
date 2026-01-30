@@ -10,14 +10,13 @@ import logging
 import traceback
 from uuid import uuid4
 
-from fastapi import Request, FastAPI
-from fastapi.responses import JSONResponse
+from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
-from pydantic import ValidationError as PydanticValidationError
+from fastapi.responses import JSONResponse
 
-from ..exceptions import APIException
-from ..responses import ErrorResponse, ErrorBody, ErrorDetail
 from ..error_codes import ErrorCode
+from ..exceptions import APIException
+from ..responses import ErrorBody, ErrorDetail
 
 logger = logging.getLogger(__name__)
 

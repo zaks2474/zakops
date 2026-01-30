@@ -1,17 +1,21 @@
 from __future__ import annotations
 
-from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any
 
 from actions.engine.models import ActionError, ActionPayload, ArtifactMetadata, now_utc_iso
 from actions.executors._artifacts import resolve_action_artifact_dir
-from actions.executors.base import ActionExecutionError, ActionExecutor, ExecutionContext, ExecutionResult
+from actions.executors.base import (
+    ActionExecutionError,
+    ActionExecutor,
+    ExecutionContext,
+    ExecutionResult,
+)
 
 
 class GenerateLoiExecutor(ActionExecutor):
     action_type = "DOCUMENT.GENERATE_LOI"
 
-    def validate(self, payload: ActionPayload) -> tuple[bool, Optional[str]]:
+    def validate(self, payload: ActionPayload) -> tuple[bool, str | None]:
         # LOI inputs are optional; deal context is required for destination path.
         return True, None
 
@@ -100,7 +104,7 @@ class GenerateLoiExecutor(ActionExecutor):
         except Exception:
             pass
 
-        outputs: Dict[str, Any] = {
+        outputs: dict[str, Any] = {
             "purchaser_name": purchaser_name,
             "target_company": target_company,
             "purchase_price": purchase_price,

@@ -10,14 +10,13 @@ from __future__ import annotations
 
 import asyncio
 import hashlib
-import json
 import os
 import time
-from dataclasses import dataclass, field
-from typing import Any, Dict, Optional, Tuple, TYPE_CHECKING
+from dataclasses import dataclass
+from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
-    from chat_evidence_builder import EvidenceBundle
+    pass
 
 # Configuration from environment
 CACHE_ENABLED = os.getenv("CHAT_CACHE_ENABLED", "true").lower() == "true"
@@ -35,7 +34,7 @@ class CacheEntry:
     ttl_seconds: int
     query_hash: str
     scope_type: str
-    deal_id: Optional[str] = None
+    deal_id: str | None = None
     hit_count: int = 0
 
     def is_expired(self) -> bool:
@@ -61,7 +60,7 @@ class CacheStats:
         total = self.hits + self.misses
         return self.hits / total if total > 0 else 0.0
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "hits": self.hits,
             "misses": self.misses,
@@ -83,7 +82,7 @@ class EvidenceCache:
     """
 
     def __init__(self):
-        self._cache: Dict[str, CacheEntry] = {}
+        self._cache: dict[str, CacheEntry] = {}
         self._lock = asyncio.Lock()
         self._stats = CacheStats()
         self._enabled = CACHE_ENABLED
@@ -98,7 +97,7 @@ class EvidenceCache:
             return DOC_TTL_SECONDS
         return GLOBAL_TTL_SECONDS  # Default
 
-    def cache_key(self, query: str, scope: Dict[str, Any]) -> str:
+    def cache_key(self, query: str, scope: dict[str, Any]) -> str:
         """
         Generate cache key from query + scope.
 
@@ -118,7 +117,7 @@ class EvidenceCache:
 
         return hashlib.sha256(key_string.encode()).hexdigest()[:16]
 
-    async def get(self, key: str, scope_type: str) -> Tuple[Optional[Any], bool]:
+    async def get(self, key: str, scope_type: str) -> tuple[Any | None, bool]:
         """
         Get cached bundle if not expired.
 
@@ -156,7 +155,7 @@ class EvidenceCache:
         key: str,
         bundle: Any,
         scope_type: str,
-        deal_id: Optional[str] = None
+        deal_id: str | None = None
     ):
         """
         Cache a bundle with appropriate TTL.
@@ -255,7 +254,7 @@ class EvidenceCache:
             del self._cache[key]
         self._stats.entries_count = len(self._cache)
 
-    def stats(self) -> Dict[str, Any]:
+    def stats(self) -> dict[str, Any]:
         """Get cache statistics."""
         # Clean up expired entries first
         self._cleanup_expired()
@@ -280,7 +279,7 @@ class EvidenceCache:
 
 
 # Singleton instance
-_cache_instance: Optional[EvidenceCache] = None
+_cache_instance: EvidenceCache | None = None
 
 
 def get_cache() -> EvidenceCache:
@@ -304,7 +303,7 @@ if __name__ == "__main__":
 
         # Set a value
         await cache.set(key, {"test": "bundle"}, "global")
-        print(f"Set bundle")
+        print("Set bundle")
 
         # Get it back
         bundle, hit = await cache.get(key, "global")

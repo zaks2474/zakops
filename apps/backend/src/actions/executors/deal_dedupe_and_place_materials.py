@@ -6,10 +6,15 @@ import os
 import re
 import shutil
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 from actions.engine.models import ActionError, ActionPayload, ArtifactMetadata, now_utc_iso
-from actions.executors.base import ActionExecutionError, ActionExecutor, ExecutionContext, ExecutionResult
+from actions.executors.base import (
+    ActionExecutionError,
+    ActionExecutor,
+    ExecutionContext,
+    ExecutionResult,
+)
 
 
 def _dataroom_root() -> Path:
@@ -117,7 +122,7 @@ class DedupeAndPlaceMaterialsExecutor(ActionExecutor):
 
     action_type = "DEAL.DEDUPE_AND_PLACE_MATERIALS"
 
-    def validate(self, payload: ActionPayload) -> tuple[bool, Optional[str]]:
+    def validate(self, payload: ActionPayload) -> tuple[bool, str | None]:
         inputs = payload.inputs or {}
         bundle_path = str(inputs.get("bundle_path") or "").strip()
         if not bundle_path:
@@ -176,7 +181,7 @@ class DedupeAndPlaceMaterialsExecutor(ActionExecutor):
 
         placements_path = bundle_dir / "placed_materials.json"
         existing = _load_json(placements_path)
-        placements: List[Dict[str, Any]] = []
+        placements: list[dict[str, Any]] = []
         if isinstance(existing, dict) and isinstance(existing.get("placements"), list):
             placements = [p for p in existing.get("placements") if isinstance(p, dict)]
 
@@ -264,7 +269,7 @@ class DedupeAndPlaceMaterialsExecutor(ActionExecutor):
                 },
             )
 
-        outputs: Dict[str, Any] = {
+        outputs: dict[str, Any] = {
             "deal_id": payload.deal_id or inputs.get("deal_id"),
             "deal_path": str(deal_path),
             "bundle_path": str(bundle_dir),
@@ -273,7 +278,7 @@ class DedupeAndPlaceMaterialsExecutor(ActionExecutor):
             "skipped": skipped,
         }
 
-        artifacts: List[ArtifactMetadata] = []
+        artifacts: list[ArtifactMetadata] = []
         if updated and placements_path.exists():
             artifacts.append(
                 ArtifactMetadata(

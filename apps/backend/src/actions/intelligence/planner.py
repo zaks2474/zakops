@@ -5,12 +5,23 @@ import os
 import re
 import uuid
 from dataclasses import asdict
-from typing import Any, Dict, List, Optional, Protocol
+from typing import Any, Protocol
 
-from actions.contracts.plan_spec import ArtifactTypeSpec, MissingCapabilitySpec, PlanSpec, PlanStep, StepSafety
+from tools.manifest.registry import (
+    ManifestEntry,
+    UnifiedManifestRegistry,
+    get_unified_manifest_registry,
+)
+
+from actions.contracts.plan_spec import (
+    ArtifactTypeSpec,
+    MissingCapabilitySpec,
+    PlanSpec,
+    PlanStep,
+    StepSafety,
+)
 from actions.intelligence.validator import PlanValidator
 from actions.memory.store import ActionMemoryStore
-from tools.manifest.registry import ManifestEntry, UnifiedManifestRegistry, get_unified_manifest_registry
 
 
 class LLMPlannerClient(Protocol):
@@ -65,13 +76,13 @@ def _step_from_entry(
     entry: ManifestEntry,
     title: str,
     summary: str,
-    inputs: Dict[str, Any],
+    inputs: dict[str, Any],
 ) -> PlanStep:
     safety_class = (entry.safety_class or "reversible").strip().lower()
     irreversible = bool(entry.irreversible)
     gated = safety_class in {"gated", "irreversible"} or irreversible
 
-    expected_artifacts: List[ArtifactTypeSpec] = []
+    expected_artifacts: list[ArtifactTypeSpec] = []
     for raw in entry.output_artifacts or []:
         if not isinstance(raw, dict):
             continue
@@ -100,17 +111,17 @@ class ToolRAGPlanner:
     def __init__(
         self,
         *,
-        registry: Optional[UnifiedManifestRegistry] = None,
-        validator: Optional[PlanValidator] = None,
-        memory: Optional[ActionMemoryStore] = None,
-        llm: Optional[LLMPlannerClient] = None,
+        registry: UnifiedManifestRegistry | None = None,
+        validator: PlanValidator | None = None,
+        memory: ActionMemoryStore | None = None,
+        llm: LLMPlannerClient | None = None,
     ):
         self.registry = registry or get_unified_manifest_registry()
         self.validator = validator or PlanValidator(registry=self.registry)
         self.memory = memory or ActionMemoryStore()
         self.llm = llm  # optional; may be None for deterministic-only mode
 
-    def _find_by_action_type(self, action_type: str) -> Optional[ManifestEntry]:
+    def _find_by_action_type(self, action_type: str) -> ManifestEntry | None:
         at = (action_type or "").strip()
         for entry in self.registry.list_entries():
             if entry.action_type == at:
@@ -139,8 +150,8 @@ class ToolRAGPlanner:
         self,
         goal: str,
         *,
-        deal_id: Optional[str] = None,
-        provided_inputs: Optional[Dict[str, Any]] = None,
+        deal_id: str | None = None,
+        provided_inputs: dict[str, Any] | None = None,
     ) -> PlanSpec:
         intent = (goal or "").strip()
         if not intent:
@@ -230,7 +241,7 @@ class ToolRAGPlanner:
         if not matches:
             return self._needs_tool(goal=intent, reason="no_manifest_match")
 
-        candidates: List[ManifestEntry] = []
+        candidates: list[ManifestEntry] = []
         for m in matches:
             entry = self.registry.get_entry(m.capability_id)
             if entry:

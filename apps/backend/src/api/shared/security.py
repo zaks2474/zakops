@@ -9,8 +9,9 @@ Phase 13: Production Hardening
 import logging
 import re
 import time
-from typing import Optional, Callable, Dict, List
-from fastapi import Request, Response, HTTPException
+from collections.abc import Callable
+
+from fastapi import HTTPException, Request, Response
 from starlette.middleware.base import BaseHTTPMiddleware
 
 logger = logging.getLogger(__name__)
@@ -107,7 +108,7 @@ class RateLimiter:
 
     def __init__(self, requests_per_minute: int = 60):
         self.limit = requests_per_minute
-        self._timestamps: Dict[str, List[float]] = {}
+        self._timestamps: dict[str, list[float]] = {}
 
     def is_allowed(self, key: str) -> bool:
         """Check if request is allowed."""
@@ -176,10 +177,10 @@ class CORSConfig:
 
     def __init__(
         self,
-        allowed_origins: Optional[List[str]] = None,
+        allowed_origins: list[str] | None = None,
         allow_credentials: bool = True,
-        allow_methods: Optional[List[str]] = None,
-        allow_headers: Optional[List[str]] = None,
+        allow_methods: list[str] | None = None,
+        allow_headers: list[str] | None = None,
     ):
         self.allowed_origins = allowed_origins or ["*"]
         self.allow_credentials = allow_credentials

@@ -7,13 +7,13 @@ Combines business operations with event publishing in a single transaction
 to guarantee atomicity: either both succeed or both fail.
 """
 
-from typing import Optional, Dict, Any, List
-from uuid import UUID
 from contextlib import asynccontextmanager
+from typing import Any
+from uuid import UUID
 
-from ..database.adapter import get_database, DatabaseAdapter
-from .writer import OutboxWriter
+from ..database.adapter import DatabaseAdapter, get_database
 from .models import OutboxEntry
+from .writer import OutboxWriter
 
 
 class TransactionalPublisher:
@@ -38,9 +38,9 @@ class TransactionalPublisher:
     """
 
     def __init__(self):
-        self.db: Optional[DatabaseAdapter] = None
-        self._writer: Optional[OutboxWriter] = None
-        self._events: List[OutboxEntry] = []
+        self.db: DatabaseAdapter | None = None
+        self._writer: OutboxWriter | None = None
+        self._events: list[OutboxEntry] = []
 
     async def __aenter__(self):
         self.db = await get_database()
@@ -61,9 +61,9 @@ class TransactionalPublisher:
         self,
         correlation_id: UUID,
         event_type: str,
-        event_data: Dict[str, Any],
+        event_data: dict[str, Any],
         aggregate_type: str = "event",
-        aggregate_id: Optional[str] = None
+        aggregate_id: str | None = None
     ) -> OutboxEntry:
         """
         Emit an event (writes to outbox in current transaction).
@@ -90,8 +90,8 @@ class TransactionalPublisher:
 
     async def emit_batch(
         self,
-        events: List[tuple]  # List of (correlation_id, event_type, event_data)
-    ) -> List[OutboxEntry]:
+        events: list[tuple]  # List of (correlation_id, event_type, event_data)
+    ) -> list[OutboxEntry]:
         """
         Emit multiple events in the same transaction.
 
@@ -108,7 +108,7 @@ class TransactionalPublisher:
         return entries
 
     @property
-    def emitted_events(self) -> List[OutboxEntry]:
+    def emitted_events(self) -> list[OutboxEntry]:
         """Get list of events emitted in this transaction."""
         return self._events.copy()
 

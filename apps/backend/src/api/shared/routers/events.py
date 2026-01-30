@@ -7,19 +7,16 @@ These endpoints are consumed by the UI for the Agent Visibility Layer.
 Phase 13: Production hardening with SSE streaming support.
 """
 
-from datetime import datetime, timedelta, timezone
-from typing import List, Optional
-from uuid import UUID
 import json
 import logging
-import os
+from datetime import UTC, datetime, timedelta
+from uuid import UUID
 
-from fastapi import APIRouter, Query, Request, HTTPException
-from fastapi.responses import StreamingResponse
+from fastapi import APIRouter, HTTPException, Query, Request
 from pydantic import BaseModel
 
-from ..sse import create_sse_response, get_sse_manager
 from ..middleware.auth import get_current_operator, is_auth_required
+from ..sse import create_sse_response, get_sse_manager
 
 logger = logging.getLogger(__name__)
 
@@ -33,9 +30,9 @@ class EventResponse(BaseModel):
     event_type: str
     event_data: dict
     schema_version: int
-    source: Optional[str]
-    run_id: Optional[str]
-    thread_id: Optional[str]
+    source: str | None
+    run_id: str | None
+    thread_id: str | None
     created_at: str
 
 
@@ -84,10 +81,10 @@ def _format_event(event: dict) -> EventResponse:
     )
 
 
-@router.get("/recent", response_model=List[EventResponse])
+@router.get("/recent", response_model=list[EventResponse])
 async def get_recent_events(
     limit: int = Query(50, ge=1, le=200),
-    event_types: Optional[str] = Query(None, description="Comma-separated event types")
+    event_types: str | None = Query(None, description="Comma-separated event types")
 ):
     """
     Get recent events.
@@ -105,7 +102,7 @@ async def get_recent_events(
     return [_format_event(e) for e in events]
 
 
-@router.get("/by-correlation/{correlation_id}", response_model=List[EventResponse])
+@router.get("/by-correlation/{correlation_id}", response_model=list[EventResponse])
 async def get_events_by_correlation(
     correlation_id: UUID,
     limit: int = Query(100, ge=1, le=500),
@@ -128,7 +125,7 @@ async def get_events_by_correlation(
     return [_format_event(e) for e in events]
 
 
-@router.get("/by-run/{run_id}", response_model=List[EventResponse])
+@router.get("/by-run/{run_id}", response_model=list[EventResponse])
 async def get_events_by_run(
     run_id: UUID,
     limit: int = Query(100, ge=1, le=500)
@@ -158,7 +155,7 @@ async def get_event_stats(
     from ....core.events import get_query_service
 
     service = await get_query_service()
-    since = datetime.now(timezone.utc) - timedelta(hours=hours)
+    since = datetime.now(UTC) - timedelta(hours=hours)
     stats = await service.get_stats(since=since)
 
     return EventStatsResponse(**stats)
@@ -167,7 +164,7 @@ async def get_event_stats(
 @router.get("/stream")
 async def event_stream(
     request: Request,
-    correlation_id: Optional[str] = Query(None, description="Filter by deal_id"),
+    correlation_id: str | None = Query(None, description="Filter by deal_id"),
 ):
     """
     Server-Sent Events stream.
@@ -214,8 +211,8 @@ async def stream_status():
 @router.get("/poll")
 async def poll_events(
     request: Request,
-    correlation_id: Optional[str] = Query(None),
-    since: Optional[str] = Query(None, description="Event ID to fetch after"),
+    correlation_id: str | None = Query(None),
+    since: str | None = Query(None, description="Event ID to fetch after"),
     limit: int = Query(50, ge=1, le=100),
 ):
     """

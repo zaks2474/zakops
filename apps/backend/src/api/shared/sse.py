@@ -13,13 +13,14 @@ Features:
 import asyncio
 import json
 import logging
-from datetime import datetime, timedelta, timezone
-from typing import AsyncGenerator, Optional, Dict, Any, Set
-from uuid import uuid4
-from dataclasses import dataclass, field
 from collections import defaultdict
+from collections.abc import AsyncGenerator
+from dataclasses import dataclass, field
+from datetime import UTC, datetime, timedelta
+from typing import Any
+from uuid import uuid4
 
-from fastapi import Request, HTTPException
+from fastapi import HTTPException, Request
 from fastapi.responses import StreamingResponse
 
 logger = logging.getLogger(__name__)
@@ -41,10 +42,10 @@ class SSEConfig:
 class SSEConnection:
     """Represents an active SSE connection."""
     id: str = field(default_factory=lambda: uuid4().hex)
-    user_id: Optional[str] = None
-    correlation_id: Optional[str] = None  # Filter events by deal_id
-    connected_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
-    last_event_id: Optional[str] = None
+    user_id: str | None = None
+    correlation_id: str | None = None  # Filter events by deal_id
+    connected_at: datetime = field(default_factory=lambda: datetime.now(UTC))
+    last_event_id: str | None = None
     queue: asyncio.Queue = field(default_factory=lambda: asyncio.Queue(maxsize=100))
 
     def __hash__(self):
@@ -64,9 +65,9 @@ class SSEManager:
 
     def __init__(self, config: SSEConfig = None):
         self.config = config or SSEConfig()
-        self._connections: Set[SSEConnection] = set()
-        self._user_connections: Dict[str, Set[SSEConnection]] = defaultdict(set)
-        self._event_buffer: Dict[str, Dict[str, Any]] = {}  # event_id -> event
+        self._connections: set[SSEConnection] = set()
+        self._user_connections: dict[str, set[SSEConnection]] = defaultdict(set)
+        self._event_buffer: dict[str, dict[str, Any]] = {}  # event_id -> event
         self._buffer_order: list = []  # Ordered list of event_ids
         self._lock = asyncio.Lock()
 
@@ -76,9 +77,9 @@ class SSEManager:
 
     async def connect(
         self,
-        user_id: Optional[str] = None,
-        correlation_id: Optional[str] = None,
-        last_event_id: Optional[str] = None
+        user_id: str | None = None,
+        correlation_id: str | None = None,
+        last_event_id: str | None = None
     ) -> SSEConnection:
         """
         Register a new SSE connection.
@@ -140,9 +141,9 @@ class SSEManager:
     async def broadcast(
         self,
         event_type: str,
-        data: Dict[str, Any],
-        correlation_id: Optional[str] = None,
-        event_id: Optional[str] = None
+        data: dict[str, Any],
+        correlation_id: str | None = None,
+        event_id: str | None = None
     ):
         """
         Broadcast event to all relevant connections.
@@ -159,7 +160,7 @@ class SSEManager:
             "id": event_id,
             "type": event_type,
             "data": data,
-            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
             "correlation_id": correlation_id
         }
 
@@ -183,14 +184,14 @@ class SSEManager:
             except asyncio.QueueFull:
                 logger.warning(f"SSE queue full for {conn.id}")
 
-    async def _buffer_event(self, event_id: str, event: Dict[str, Any]):
+    async def _buffer_event(self, event_id: str, event: dict[str, Any]):
         """Buffer event for replay."""
         async with self._lock:
             self._event_buffer[event_id] = event
             self._buffer_order.append(event_id)
 
             # Clean old events outside replay window
-            cutoff = datetime.now(timezone.utc) - self.config.event_replay_window
+            cutoff = datetime.now(UTC) - self.config.event_replay_window
             while self._buffer_order:
                 oldest_id = self._buffer_order[0]
                 oldest = self._event_buffer.get(oldest_id)
@@ -254,7 +255,7 @@ class SSEManager:
                     )
                     yield self._format_event(event)
 
-                except asyncio.TimeoutError:
+                except TimeoutError:
                     # No event received, connection might be slow/dead
                     # Heartbeat will keep connection alive
                     continue
@@ -278,8 +279,8 @@ class SSEManager:
                 heartbeat = {
                     "id": f"heartbeat-{uuid4().hex[:8]}",
                     "type": "heartbeat",
-                    "data": {"timestamp": datetime.now(timezone.utc).isoformat()},
-                    "timestamp": datetime.now(timezone.utc).isoformat()
+                    "data": {"timestamp": datetime.now(UTC).isoformat()},
+                    "timestamp": datetime.now(UTC).isoformat()
                 }
 
                 try:
@@ -291,7 +292,7 @@ class SSEManager:
         except asyncio.CancelledError:
             pass
 
-    def _format_event(self, event: Dict[str, Any]) -> str:
+    def _format_event(self, event: dict[str, Any]) -> str:
         """Format event as SSE."""
         lines = []
 
@@ -308,7 +309,7 @@ class SSEManager:
 
 
 # Global manager instance
-_sse_manager: Optional[SSEManager] = None
+_sse_manager: SSEManager | None = None
 
 
 def get_sse_manager() -> SSEManager:
@@ -321,8 +322,8 @@ def get_sse_manager() -> SSEManager:
 
 async def create_sse_response(
     request: Request,
-    user_id: Optional[str] = None,
-    correlation_id: Optional[str] = None
+    user_id: str | None = None,
+    correlation_id: str | None = None
 ) -> StreamingResponse:
     """
     Create an SSE StreamingResponse with proper headers.

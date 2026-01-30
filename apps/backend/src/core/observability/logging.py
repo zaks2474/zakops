@@ -6,13 +6,12 @@ Phase 15: Observability
 Configures logging to include trace_id and correlation_id.
 """
 
-import logging
 import json
+import logging
 import sys
 from datetime import datetime
-from typing import Optional
 
-from .tracing import get_trace_id, get_current_span
+from .tracing import get_current_span, get_trace_id
 
 
 class StructuredFormatter(logging.Formatter):

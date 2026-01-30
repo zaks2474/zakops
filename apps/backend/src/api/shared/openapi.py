@@ -5,12 +5,12 @@ Phase 8: OpenAPI & Tooling (Enhanced from Phase 5)
 Provides comprehensive API documentation for ZakOps Backend.
 """
 
-from typing import Dict, Any
+from typing import Any
 
 from fastapi import FastAPI
 
 
-def customize_openapi(app: FastAPI) -> Dict[str, Any]:
+def customize_openapi(app: FastAPI) -> dict[str, Any]:
     """
     Customize the OpenAPI schema with comprehensive documentation.
 

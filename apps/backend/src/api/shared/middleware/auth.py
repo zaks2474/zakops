@@ -6,10 +6,16 @@ Phase 7: Authentication & Security
 Validates session cookies and loads operator into request state.
 """
 
+from __future__ import annotations
+
 import os
-from typing import Callable, Optional
-from datetime import datetime, timezone
+from collections.abc import Callable
+from datetime import UTC, datetime
+from typing import TYPE_CHECKING
 from uuid import UUID
+
+if TYPE_CHECKING:
+    from src.core.auth.operator import Operator
 
 from fastapi import Request, Response
 from starlette.middleware.base import BaseHTTPMiddleware
@@ -71,8 +77,8 @@ class AuthMiddleware(BaseHTTPMiddleware):
             return await call_next(request)
 
         # Import here to avoid circular imports
-        from ....core.auth.session import validate_session, SESSION_COOKIE_NAME
         from ....core.auth.operator import get_operator_by_id
+        from ....core.auth.session import SESSION_COOKIE_NAME, validate_session
 
         # Get session cookie
         session_id = request.cookies.get(SESSION_COOKIE_NAME)
@@ -107,11 +113,11 @@ def _create_dev_operator():
         name="Development User",
         role="admin",
         is_active=True,
-        created_at=datetime.now(timezone.utc)
+        created_at=datetime.now(UTC)
     )
 
 
-def get_current_operator(request: Request) -> Optional["Operator"]:
+def get_current_operator(request: Request) -> Operator | None:
     """
     Get the current operator from request state.
 
@@ -124,7 +130,7 @@ def get_current_operator(request: Request) -> Optional["Operator"]:
     return getattr(request.state, "operator", None)
 
 
-def require_auth(request: Request) -> "Operator":
+def require_auth(request: Request) -> Operator:
     """
     Require authentication and return the operator.
 

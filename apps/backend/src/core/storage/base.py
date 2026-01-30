@@ -12,11 +12,11 @@ from __future__ import annotations
 
 import hashlib
 from abc import ABC, abstractmethod
+from collections.abc import Iterator
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
-from pathlib import Path
-from typing import BinaryIO, Dict, Iterator, List, Optional, Union
+from typing import BinaryIO
 
 
 class StorageBackend(str, Enum):
@@ -46,16 +46,16 @@ class ArtifactMetadata:
     filename: str
     mime_type: str
     size_bytes: int
-    sha256: Optional[str] = None
+    sha256: str | None = None
 
     # Timestamps
-    created_at: Optional[datetime] = None
-    modified_at: Optional[datetime] = None
+    created_at: datetime | None = None
+    modified_at: datetime | None = None
 
     # Additional metadata
-    metadata: Dict[str, str] = field(default_factory=dict)
+    metadata: dict[str, str] = field(default_factory=dict)
 
-    def to_dict(self) -> Dict[str, any]:
+    def to_dict(self) -> dict[str, any]:
         """Convert to dictionary for JSON serialization."""
         return {
             "storage_key": self.storage_key,
@@ -111,11 +111,11 @@ class ArtifactStore(ABC):
     def put(
         self,
         key: str,
-        data: Union[bytes, BinaryIO],
+        data: bytes | BinaryIO,
         *,
-        filename: Optional[str] = None,
+        filename: str | None = None,
         mime_type: str = "application/octet-stream",
-        metadata: Optional[Dict[str, str]] = None,
+        metadata: dict[str, str] | None = None,
     ) -> ArtifactMetadata:
         """
         Store an artifact.
@@ -258,7 +258,7 @@ class ArtifactStore(ABC):
     # Utility Methods (non-abstract, common to all backends)
     # =========================================================================
 
-    def compute_sha256(self, data: Union[bytes, BinaryIO]) -> str:
+    def compute_sha256(self, data: bytes | BinaryIO) -> str:
         """Compute SHA256 hash of data."""
         hasher = hashlib.sha256()
         if isinstance(data, bytes):
@@ -290,7 +290,7 @@ class ArtifactStore(ABC):
             key = key.replace("//", "/")
         return key
 
-    def key_to_deal_id(self, key: str) -> Optional[str]:
+    def key_to_deal_id(self, key: str) -> str | None:
         """
         Extract deal_id from a storage key.
 
@@ -307,7 +307,7 @@ class ArtifactStore(ABC):
         deal_id: str,
         category: str,
         filename: str,
-        subcategory: Optional[str] = None,
+        subcategory: str | None = None,
     ) -> str:
         """
         Build a storage key following the spec convention.

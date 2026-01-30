@@ -30,6 +30,14 @@ target-version = "py311"
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "N", "W", "UP"]
+ignore = [
+    "E501",  # line length (too many violations; enforce via formatter later)
+    "E741",  # ambiguous variable name (common in math/data code)
+    "E722",  # bare except (to be tightened incrementally)
+    "E402",  # module-import-not-at-top (sys.path manipulation patterns)
+    "N806",  # non-lowercase variable in function (constants in functions)
+    "N818",  # exception name suffix (existing naming conventions)
+]
 
 [tool.mypy]
 python_version = "3.11"

@@ -4,12 +4,12 @@ Action Execution Engine
 Executes approved actions with proper logging and error handling.
 """
 
-from datetime import datetime, timezone
-from typing import Optional, Dict, Any
-from uuid import UUID
-from enum import Enum
 import json
 import logging
+from datetime import UTC, datetime
+from enum import Enum
+from typing import Any
+from uuid import UUID
 
 from ..database.adapter import get_database
 from ..events import publish_action_event
@@ -38,8 +38,8 @@ class ActionExecutor:
     async def execute(
         self,
         action_id: str,
-        trace_id: Optional[str] = None
-    ) -> Dict[str, Any]:
+        trace_id: str | None = None
+    ) -> dict[str, Any]:
         """
         Execute an approved action.
 
@@ -66,7 +66,7 @@ class ActionExecutor:
         if status not in (ActionStatus.QUEUED.value, ActionStatus.APPROVED.value):
             raise ValueError(f"Action not in executable state: {status}")
 
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         deal_id = action.get("deal_id")
 
         # Mark as executing
@@ -107,7 +107,7 @@ class ActionExecutor:
                 action_id,
                 ActionStatus.COMPLETED.value,
                 json.dumps(result),
-                datetime.now(timezone.utc)
+                datetime.now(UTC)
             )
 
             # Emit completion event
@@ -144,7 +144,7 @@ class ActionExecutor:
                 action_id,
                 ActionStatus.FAILED.value,
                 json.dumps({"error": error_msg}),
-                datetime.now(timezone.utc)
+                datetime.now(UTC)
             )
 
             # Emit failure event
@@ -169,7 +169,7 @@ class ActionExecutor:
             logger.error(f"Action {action_id} failed: {error_msg}")
             raise
 
-    async def _execute_action(self, action: dict) -> Dict[str, Any]:
+    async def _execute_action(self, action: dict) -> dict[str, Any]:
         """Execute action based on type."""
         action_type = action["action_type"]
         inputs = action.get("inputs", {})
@@ -202,7 +202,7 @@ class ActionExecutor:
                 "inputs": inputs
             }
 
-    async def _execute_create_task(self, action: dict, inputs: dict) -> Dict[str, Any]:
+    async def _execute_create_task(self, action: dict, inputs: dict) -> dict[str, Any]:
         """Execute create_task action."""
         # In a real system, this might create a task in an external system
         return {
@@ -212,7 +212,7 @@ class ActionExecutor:
             "deal_id": action.get("deal_id")
         }
 
-    async def _execute_send_email(self, action: dict, inputs: dict) -> Dict[str, Any]:
+    async def _execute_send_email(self, action: dict, inputs: dict) -> dict[str, Any]:
         """Execute send_email action."""
         # In a real system, this would send via email provider
         logger.info(f"[MOCK] Sending email to {inputs.get('to')}: {inputs.get('subject')}")
@@ -224,7 +224,7 @@ class ActionExecutor:
             "subject": inputs.get("subject")
         }
 
-    async def _execute_stage_change(self, action: dict, inputs: dict) -> Dict[str, Any]:
+    async def _execute_stage_change(self, action: dict, inputs: dict) -> dict[str, Any]:
         """Execute stage_change action."""
         from ..deals.workflow import get_workflow_engine
 
@@ -247,7 +247,7 @@ class ActionExecutor:
             "to_stage": transition.to_stage
         }
 
-    async def _execute_analyze_document(self, action: dict, inputs: dict) -> Dict[str, Any]:
+    async def _execute_analyze_document(self, action: dict, inputs: dict) -> dict[str, Any]:
         """Execute analyze_document action."""
         # In a real system, this would trigger document analysis
         return {
@@ -256,7 +256,7 @@ class ActionExecutor:
             "document_id": inputs.get("document_id")
         }
 
-    async def _execute_fetch_deal_info(self, action: dict, inputs: dict) -> Dict[str, Any]:
+    async def _execute_fetch_deal_info(self, action: dict, inputs: dict) -> dict[str, Any]:
         """Execute fetch_deal_info action."""
         db = await get_database()
 
@@ -282,10 +282,10 @@ class ActionExecutor:
             "deal_id": deal_id,
             "deal_name": deal.get("canonical_name"),
             "stage": deal.get("stage"),
-            "status": deal.get("status")
+            "deal_status": deal.get("status")
         }
 
-    async def get_pending_actions(self, deal_id: Optional[str] = None, limit: int = 50) -> list:
+    async def get_pending_actions(self, deal_id: str | None = None, limit: int = 50) -> list:
         """Get pending actions that need execution."""
         db = await get_database()
 
@@ -314,7 +314,7 @@ class ActionExecutor:
 
 
 # Singleton instance
-_executor: Optional[ActionExecutor] = None
+_executor: ActionExecutor | None = None
 
 
 async def get_action_executor() -> ActionExecutor:

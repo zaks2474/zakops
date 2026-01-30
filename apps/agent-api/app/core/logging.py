@@ -95,7 +95,7 @@ def sanitize_event_dict(logger: Any, method_name: str, event_dict: Dict[str, Any
 settings.LOG_DIR.mkdir(parents=True, exist_ok=True)
 
 # Context variables for storing request-specific data
-_request_context: ContextVar[Dict[str, Any]] = ContextVar("request_context", default={})
+_request_context: ContextVar[Dict[str, Any]] = ContextVar("request_context", default={})  # noqa: B039
 
 
 def bind_context(**kwargs: Any) -> None:

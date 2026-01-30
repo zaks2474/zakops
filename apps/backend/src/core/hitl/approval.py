@@ -17,12 +17,12 @@ from __future__ import annotations
 
 import logging
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from enum import Enum
-from typing import Any, Dict, List, Optional
-from uuid import UUID, uuid4
+from typing import Any
+from uuid import uuid4
 
-from ..database.adapter import get_database, DatabaseAdapter
+from ..database.adapter import DatabaseAdapter, get_database
 from .risk import RiskAssessment, RiskLevel, assess_risk
 
 logger = logging.getLogger(__name__)
@@ -30,7 +30,7 @@ logger = logging.getLogger(__name__)
 
 def _utcnow() -> datetime:
     """Get current UTC datetime."""
-    return datetime.now(timezone.utc)
+    return datetime.now(UTC)
 
 
 class ApprovalStatus(str, Enum):
@@ -49,36 +49,36 @@ class ApprovalRequest:
     request_id: str
     action_id: str
     action_type: str
-    correlation_id: Optional[str] = None
-    deal_id: Optional[str] = None
+    correlation_id: str | None = None
+    deal_id: str | None = None
 
     # Risk info
     risk_level: RiskLevel = RiskLevel.MEDIUM
-    risk_reasons: List[str] = field(default_factory=list)
+    risk_reasons: list[str] = field(default_factory=list)
 
     # Approval info
     status: ApprovalStatus = ApprovalStatus.PENDING
-    requested_by: Optional[str] = None
-    requested_at: Optional[datetime] = None
-    approver_roles: List[str] = field(default_factory=list)
+    requested_by: str | None = None
+    requested_at: datetime | None = None
+    approver_roles: list[str] = field(default_factory=list)
 
     # Decision info
-    decided_by: Optional[str] = None
-    decided_at: Optional[datetime] = None
-    decision_reason: Optional[str] = None
+    decided_by: str | None = None
+    decided_at: datetime | None = None
+    decision_reason: str | None = None
 
     # Escalation
-    escalated_to: Optional[str] = None
-    escalated_at: Optional[datetime] = None
-    escalation_reason: Optional[str] = None
+    escalated_to: str | None = None
+    escalated_at: datetime | None = None
+    escalation_reason: str | None = None
 
     # Timeout
-    expires_at: Optional[datetime] = None
+    expires_at: datetime | None = None
 
     # Context
-    context: Dict[str, Any] = field(default_factory=dict)
+    context: dict[str, Any] = field(default_factory=dict)
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "request_id": self.request_id,
             "action_id": self.action_id,
@@ -128,7 +128,7 @@ class ApprovalWorkflow:
         await workflow.reject(request_id, approver_id, reason)
     """
 
-    def __init__(self, db: Optional[DatabaseAdapter] = None):
+    def __init__(self, db: DatabaseAdapter | None = None):
         self._db = db
 
     async def _get_db(self) -> DatabaseAdapter:
@@ -139,8 +139,8 @@ class ApprovalWorkflow:
     def needs_approval(
         self,
         action_type: str,
-        inputs: Optional[Dict[str, Any]] = None,
-        context: Optional[Dict[str, Any]] = None,
+        inputs: dict[str, Any] | None = None,
+        context: dict[str, Any] | None = None,
     ) -> bool:
         """
         Check if an action needs approval.
@@ -153,8 +153,8 @@ class ApprovalWorkflow:
     def get_risk_assessment(
         self,
         action_type: str,
-        inputs: Optional[Dict[str, Any]] = None,
-        context: Optional[Dict[str, Any]] = None,
+        inputs: dict[str, Any] | None = None,
+        context: dict[str, Any] | None = None,
     ) -> RiskAssessment:
         """Get full risk assessment for an action."""
         return assess_risk(action_type, inputs, context)
@@ -164,11 +164,11 @@ class ApprovalWorkflow:
         action_id: str,
         action_type: str,
         *,
-        correlation_id: Optional[str] = None,
-        deal_id: Optional[str] = None,
-        requested_by: Optional[str] = None,
-        inputs: Optional[Dict[str, Any]] = None,
-        context: Optional[Dict[str, Any]] = None,
+        correlation_id: str | None = None,
+        deal_id: str | None = None,
+        requested_by: str | None = None,
+        inputs: dict[str, Any] | None = None,
+        context: dict[str, Any] | None = None,
         timeout_hours: int = 24,
     ) -> ApprovalRequest:
         """
@@ -252,8 +252,8 @@ class ApprovalWorkflow:
         action_id: str,
         *,
         approver_id: str,
-        reason: Optional[str] = None,
-    ) -> Dict[str, Any]:
+        reason: str | None = None,
+    ) -> dict[str, Any]:
         """
         Approve an action.
 
@@ -311,7 +311,7 @@ class ApprovalWorkflow:
         *,
         rejector_id: str,
         reason: str,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Reject an action.
 
@@ -368,7 +368,7 @@ class ApprovalWorkflow:
         escalated_by: str,
         escalate_to: str,
         reason: str,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Escalate an action to a higher authority.
 
@@ -424,10 +424,10 @@ class ApprovalWorkflow:
     async def get_pending_approvals(
         self,
         *,
-        deal_id: Optional[str] = None,
-        approver_role: Optional[str] = None,
+        deal_id: str | None = None,
+        approver_role: str | None = None,
         limit: int = 50,
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """
         Get pending approval requests.
 
@@ -495,7 +495,7 @@ class ApprovalWorkflow:
 
 
 # Global workflow instance
-_workflow: Optional[ApprovalWorkflow] = None
+_workflow: ApprovalWorkflow | None = None
 
 
 async def get_approval_workflow() -> ApprovalWorkflow:

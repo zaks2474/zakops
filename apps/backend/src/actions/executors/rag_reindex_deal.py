@@ -5,13 +5,18 @@ import json
 import os
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 import requests
 
 from actions.engine.models import ActionError, ActionPayload, ArtifactMetadata, now_utc_iso
 from actions.executors._artifacts import resolve_action_artifact_dir
-from actions.executors.base import ActionExecutionError, ActionExecutor, ExecutionContext, ExecutionResult
+from actions.executors.base import (
+    ActionExecutionError,
+    ActionExecutor,
+    ExecutionContext,
+    ExecutionResult,
+)
 
 try:
     from zakops_secret_scan import find_secrets_in_text
@@ -63,7 +68,7 @@ def _safe_read_text(path: Path, *, max_bytes: int = 500_000) -> str:
         return raw.decode("utf-8", errors="replace")
 
 
-def _load_manifest(path: Path) -> Dict[str, str]:
+def _load_manifest(path: Path) -> dict[str, str]:
     if not path.exists():
         return {}
     try:
@@ -77,7 +82,7 @@ def _load_manifest(path: Path) -> Dict[str, str]:
     return {}
 
 
-def _write_manifest(path: Path, files: Dict[str, str]) -> None:
+def _write_manifest(path: Path, files: dict[str, str]) -> None:
     payload = {"updated_at": now_utc_iso(), "files": files}
     path.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
 
@@ -99,7 +104,7 @@ class RagReindexDealExecutor(ActionExecutor):
 
     action_type = "RAG.REINDEX_DEAL"
 
-    def validate(self, payload: ActionPayload) -> tuple[bool, Optional[str]]:
+    def validate(self, payload: ActionPayload) -> tuple[bool, str | None]:
         # Inputs are flexible; deal_path is resolved via ctx.deal where possible.
         return True, None
 
@@ -139,7 +144,7 @@ class RagReindexDealExecutor(ActionExecutor):
             )
 
         # Build candidate file list from inputs.
-        candidates: List[Path] = []
+        candidates: list[Path] = []
         artifact_paths = inputs.get("artifact_paths") or []
         if isinstance(artifact_paths, list):
             for raw in artifact_paths:
@@ -162,7 +167,7 @@ class RagReindexDealExecutor(ActionExecutor):
                         candidates.append(p.resolve())
 
         # Filter and deduplicate candidates.
-        uniq: List[Path] = []
+        uniq: list[Path] = []
         seen = set()
         for p in candidates:
             if not p.exists() or not p.is_file():
@@ -188,7 +193,7 @@ class RagReindexDealExecutor(ActionExecutor):
         blocked = 0
         errors = 0
 
-        details: List[Dict[str, Any]] = []
+        details: list[dict[str, Any]] = []
 
         for p in uniq:
             try:
@@ -293,7 +298,7 @@ class RagReindexDealExecutor(ActionExecutor):
             ArtifactMetadata(filename=report_md.name, mime_type="text/markdown", path=str(report_md), created_at=now_utc_iso()),
         ]
 
-        outputs: Dict[str, Any] = {
+        outputs: dict[str, Any] = {
             "deal_id": payload.deal_id or inputs.get("deal_id"),
             "deal_path": str(deal_path),
             "rag_api_url": _rag_api_url(),

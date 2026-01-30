@@ -2,14 +2,18 @@ from __future__ import annotations
 
 import os
 from dataclasses import dataclass
-from typing import Any, Dict, List, Optional
+from typing import Any
+
+from tools.manifest.registry import (
+    UnifiedManifestRegistry,
+    get_unified_manifest_registry,
+)
 
 from actions.contracts.plan_spec import PlanSpec
-from tools.manifest.registry import ManifestEntry, UnifiedManifestRegistry, get_unified_manifest_registry
 
 
-def _required_fields_from_schema(schema: Dict[str, Any]) -> List[str]:
-    required: List[str] = []
+def _required_fields_from_schema(schema: dict[str, Any]) -> list[str]:
+    required: list[str] = []
     if not isinstance(schema, dict):
         return required
 
@@ -27,7 +31,7 @@ def _required_fields_from_schema(schema: Dict[str, Any]) -> List[str]:
 
     # Deduplicate while preserving order.
     seen: set[str] = set()
-    out: List[str] = []
+    out: list[str] = []
     for k in required:
         if k in seen:
             continue
@@ -42,12 +46,12 @@ ValidationStatus = str  # ok|blocked|needs_tool
 @dataclass(frozen=True)
 class ValidationResult:
     status: ValidationStatus
-    reason: Optional[str] = None
-    details: Optional[Dict[str, Any]] = None
+    reason: str | None = None
+    details: dict[str, Any] | None = None
 
 
 class PlanValidator:
-    def __init__(self, *, registry: Optional[UnifiedManifestRegistry] = None):
+    def __init__(self, *, registry: UnifiedManifestRegistry | None = None):
         self.registry = registry or get_unified_manifest_registry()
 
     def validate(self, plan: PlanSpec) -> ValidationResult:
@@ -67,7 +71,7 @@ class PlanValidator:
         if not plan.steps:
             return ValidationResult(status="blocked", reason="no_steps")
 
-        errors: List[Dict[str, Any]] = []
+        errors: list[dict[str, Any]] = []
         for step in plan.steps:
             entry = self.registry.get_entry(step.capability_id)
             if not entry:

@@ -8,7 +8,6 @@ Role-based access control for API endpoints.
 
 import os
 from enum import Enum
-from typing import Set
 from functools import wraps
 
 from fastapi import HTTPException, Request
@@ -45,7 +44,7 @@ class Permission(str, Enum):
 
 
 # Role to permissions mapping
-ROLE_PERMISSIONS: dict[str, Set[Permission]] = {
+ROLE_PERMISSIONS: dict[str, set[Permission]] = {
     "admin": {
         Permission.DEALS_READ, Permission.DEALS_WRITE, Permission.DEALS_DELETE,
         Permission.ACTIONS_READ, Permission.ACTIONS_APPROVE, Permission.ACTIONS_EXECUTE,
@@ -71,7 +70,7 @@ ROLE_PERMISSIONS: dict[str, Set[Permission]] = {
 }
 
 
-def get_permissions_for_role(role: str) -> Set[Permission]:
+def get_permissions_for_role(role: str) -> set[Permission]:
     """
     Get all permissions for a role.
 

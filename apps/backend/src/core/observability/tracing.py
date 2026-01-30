@@ -7,30 +7,31 @@ Provides distributed tracing with trace_id propagation.
 """
 
 import logging
-from typing import Optional, Dict, Any, Callable
+from collections.abc import Callable
 from contextlib import contextmanager
 from functools import wraps
+from typing import Any
 
 from opentelemetry import trace
+from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
+from opentelemetry.propagate import extract, inject, set_global_textmap
+from opentelemetry.sdk.resources import SERVICE_NAME, SERVICE_VERSION, Resource
 from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.sdk.trace.export import BatchSpanProcessor, ConsoleSpanExporter
-from opentelemetry.sdk.resources import Resource, SERVICE_NAME, SERVICE_VERSION
-from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
-from opentelemetry.trace import Status, StatusCode, Span
+from opentelemetry.trace import Span, Status, StatusCode
 from opentelemetry.trace.propagation.tracecontext import TraceContextTextMapPropagator
-from opentelemetry.propagate import set_global_textmap, inject, extract
 
 logger = logging.getLogger(__name__)
 
 # Global tracer
-_tracer: Optional[trace.Tracer] = None
+_tracer: trace.Tracer | None = None
 _propagator = TraceContextTextMapPropagator()
 
 
 def init_tracing(
     service_name: str = "zakops-backend",
     service_version: str = "1.0.0",
-    otlp_endpoint: Optional[str] = None,
+    otlp_endpoint: str | None = None,
     console_export: bool = False
 ) -> trace.Tracer:
     """
@@ -88,12 +89,12 @@ def get_tracer() -> trace.Tracer:
     return _tracer
 
 
-def get_current_span() -> Optional[Span]:
+def get_current_span() -> Span | None:
     """Get the current active span."""
     return trace.get_current_span()
 
 
-def get_trace_id() -> Optional[str]:
+def get_trace_id() -> str | None:
     """Get the current trace ID as hex string."""
     span = get_current_span()
     if span and span.get_span_context().is_valid:
@@ -104,7 +105,7 @@ def get_trace_id() -> Optional[str]:
 @contextmanager
 def create_span(
     name: str,
-    attributes: Dict[str, Any] = None,
+    attributes: dict[str, Any] = None,
     kind: trace.SpanKind = trace.SpanKind.INTERNAL
 ):
     """
@@ -131,8 +132,8 @@ def create_span(
 
 
 def traced(
-    name: Optional[str] = None,
-    attributes: Dict[str, Any] = None,
+    name: str | None = None,
+    attributes: dict[str, Any] = None,
     kind: trace.SpanKind = trace.SpanKind.INTERNAL
 ) -> Callable:
     """
@@ -167,7 +168,7 @@ def traced(
     return decorator
 
 
-def inject_trace_context(carrier: Dict[str, str]) -> Dict[str, str]:
+def inject_trace_context(carrier: dict[str, str]) -> dict[str, str]:
     """
     Inject trace context into a carrier (e.g., HTTP headers).
 
@@ -181,7 +182,7 @@ def inject_trace_context(carrier: Dict[str, str]) -> Dict[str, str]:
     return carrier
 
 
-def extract_trace_context(carrier: Dict[str, str]) -> trace.Context:
+def extract_trace_context(carrier: dict[str, str]) -> trace.Context:
     """
     Extract trace context from a carrier (e.g., HTTP headers).
 
@@ -194,7 +195,7 @@ def extract_trace_context(carrier: Dict[str, str]) -> trace.Context:
     return extract(carrier)
 
 
-def add_correlation_id_to_span(correlation_id: str, span: Optional[Span] = None):
+def add_correlation_id_to_span(correlation_id: str, span: Span | None = None):
     """Add correlation_id (deal_id) to current span."""
     span = span or get_current_span()
     if span:
@@ -204,8 +205,8 @@ def add_correlation_id_to_span(correlation_id: str, span: Optional[Span] = None)
 
 def add_event_to_span(
     name: str,
-    attributes: Dict[str, Any] = None,
-    span: Optional[Span] = None
+    attributes: dict[str, Any] = None,
+    span: Span | None = None
 ):
     """Add an event to the current span."""
     span = span or get_current_span()

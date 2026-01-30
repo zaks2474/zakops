@@ -20,8 +20,8 @@ from .adapter import (
     DatabaseAdapter,
     DatabaseBackend,
     DatabaseConfig,
-    get_database,
     close_database,
+    get_database,
 )
 
 __all__ = [

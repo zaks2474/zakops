@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import re
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from pydantic import BaseModel, Field
 
@@ -22,19 +22,19 @@ class ActionPlan(BaseModel):
     intent: str
     interpretation: str
 
-    selected_capability_id: Optional[str] = None
-    action_type: Optional[str] = None
-    action_inputs: Dict[str, Any] = Field(default_factory=dict)
-    missing_fields: List[str] = Field(default_factory=list)
+    selected_capability_id: str | None = None
+    action_type: str | None = None
+    action_inputs: dict[str, Any] = Field(default_factory=dict)
+    missing_fields: list[str] = Field(default_factory=list)
 
-    plan_steps: List[Dict[str, Any]] = Field(default_factory=list)
+    plan_steps: list[dict[str, Any]] = Field(default_factory=list)
 
     requires_clarification: bool = False
-    clarifying_questions: List[str] = Field(default_factory=list)
+    clarifying_questions: list[str] = Field(default_factory=list)
 
     is_refusal: bool = False
-    refusal_reason: Optional[str] = None
-    suggested_alternatives: List[str] = Field(default_factory=list)
+    refusal_reason: str | None = None
+    suggested_alternatives: list[str] = Field(default_factory=list)
 
     confidence: float = 0.0
     risk_level: str = "medium"
@@ -42,8 +42,8 @@ class ActionPlan(BaseModel):
     model_config = {"extra": "forbid"}
 
 
-def _required_fields_from_schema(schema: Dict[str, Any]) -> List[str]:
-    required: List[str] = []
+def _required_fields_from_schema(schema: dict[str, Any]) -> list[str]:
+    required: list[str] = []
     if not isinstance(schema, dict):
         return required
 
@@ -62,7 +62,7 @@ def _required_fields_from_schema(schema: Dict[str, Any]) -> List[str]:
 
     # Deduplicate while preserving order.
     seen: set[str] = set()
-    out: List[str] = []
+    out: list[str] = []
     for k in required:
         if k in seen:
             continue
@@ -71,7 +71,7 @@ def _required_fields_from_schema(schema: Dict[str, Any]) -> List[str]:
     return out
 
 
-def _extract_common_inputs(query: str, capability: CapabilityManifest) -> Dict[str, Any]:
+def _extract_common_inputs(query: str, capability: CapabilityManifest) -> dict[str, Any]:
     """
     Best-effort offline extraction for a few obvious fields.
 
@@ -79,7 +79,7 @@ def _extract_common_inputs(query: str, capability: CapabilityManifest) -> Dict[s
     """
     intent = (query or "").strip()
     at = (capability.action_type or "").upper()
-    out: Dict[str, Any] = {}
+    out: dict[str, Any] = {}
 
     # Email address extraction for draft_email-like capabilities.
     if "DRAFT_EMAIL" in at:
@@ -123,7 +123,7 @@ class ActionPlanner:
         except Exception:
             pass
 
-    def plan(self, query: str, *, provided_inputs: Optional[Dict[str, Any]] = None) -> ActionPlan:
+    def plan(self, query: str, *, provided_inputs: dict[str, Any] | None = None) -> ActionPlan:
         intent = (query or "").strip()
         if not intent:
             return ActionPlan(
@@ -163,8 +163,8 @@ class ActionPlanner:
         step_matches = [m for m in matches if m.score >= 0.20]
 
         if bundle and len(step_matches) >= 2:
-            steps: List[Dict[str, Any]] = []
-            all_questions: List[str] = []
+            steps: list[dict[str, Any]] = []
+            all_questions: list[str] = []
             any_missing = False
             highest_risk = "low"
             for m in step_matches[:3]:
@@ -220,7 +220,7 @@ class ActionPlanner:
         required = _required_fields_from_schema(cap.input_schema or {})
         missing = [k for k in required if k not in inputs or inputs.get(k) in (None, "", [])]
 
-        questions: List[str] = []
+        questions: list[str] = []
         if missing:
             questions = [f"Please provide `{f}`." for f in missing]
 

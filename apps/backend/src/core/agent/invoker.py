@@ -5,24 +5,20 @@ Main entry point for agent invocation.
 Phase 15: Added OpenTelemetry tracing.
 """
 
-import asyncio
 import json
-from datetime import datetime
-from typing import Optional, Dict, Any, List
-from uuid import UUID, uuid4
 import logging
 import time
+from datetime import datetime
+from typing import Any
+from uuid import UUID, uuid4
 
 from ..database.adapter import get_database
-from ..hitl import assess_risk, RiskLevel
-from ..observability.tracing import create_span, traced, add_correlation_id_to_span
+from ..hitl import assess_risk
 from ..observability.metrics import record_counter, record_histogram
-from .models import (
-    AgentRun, AgentRunRequest, AgentRunResponse, AgentRunStatus,
-    ToolCall, ToolResult
-)
-from .tools import get_tool_registry, ToolRegistry
+from ..observability.tracing import add_correlation_id_to_span, create_span, traced
 from .callbacks import AgentCallbackHandler
+from .models import AgentRun, AgentRunRequest, AgentRunResponse, AgentRunStatus
+from .tools import ToolRegistry, get_tool_registry
 
 logger = logging.getLogger(__name__)
 
@@ -45,7 +41,7 @@ class AgentInvoker:
     async def invoke(
         self,
         request: AgentRunRequest,
-        trace_id: Optional[str] = None
+        trace_id: str | None = None
     ) -> AgentRunResponse:
         """
         Invoke the agent for a deal.
@@ -88,7 +84,7 @@ class AgentInvoker:
         # Emit run started event
         await callback.on_run_start(request.task, request.context)
 
-        actions_created: List[UUID] = []
+        actions_created: list[UUID] = []
         start_time = time.time()
 
         try:
@@ -147,8 +143,8 @@ class AgentInvoker:
         self,
         run: AgentRun,
         callback: AgentCallbackHandler,
-        actions_created: List[UUID]
-    ) -> Dict[str, Any]:
+        actions_created: list[UUID]
+    ) -> dict[str, Any]:
         """
         Execute agent logic.
 
@@ -160,7 +156,6 @@ class AgentInvoker:
 
         For now, we simulate a simple agent workflow.
         """
-        context = run.context or {}
 
         with create_span("agent.execute", {"deal_id": str(run.deal_id)}) as span:
             # Step 1: Fetch deal info
@@ -226,9 +221,9 @@ class AgentInvoker:
         deal_id: UUID,
         trace_id: str,
         action_type: str,
-        action_data: Dict[str, Any],
+        action_data: dict[str, Any],
         callback: AgentCallbackHandler
-    ) -> Optional[UUID]:
+    ) -> UUID | None:
         """Create an action from agent output."""
         db = await get_database()
 
@@ -329,7 +324,7 @@ class AgentInvoker:
 # Convenience function
 async def invoke_agent(
     request: AgentRunRequest,
-    trace_id: Optional[str] = None
+    trace_id: str | None = None
 ) -> AgentRunResponse:
     """Convenience function to invoke agent."""
     invoker = AgentInvoker()

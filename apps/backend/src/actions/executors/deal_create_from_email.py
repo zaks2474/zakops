@@ -5,10 +5,15 @@ import os
 import re
 import shutil
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from actions.engine.models import ActionError, ActionPayload, ArtifactMetadata, now_utc_iso
-from actions.executors.base import ActionExecutionError, ActionExecutor, ExecutionContext, ExecutionResult
+from actions.executors.base import (
+    ActionExecutionError,
+    ActionExecutor,
+    ExecutionContext,
+    ExecutionResult,
+)
 
 
 def _dataroom_root() -> Path:
@@ -64,7 +69,7 @@ def _ensure_deal_folder_template(deal_dir: Path) -> None:
         (deal_dir / name).mkdir(parents=True, exist_ok=True)
 
 
-def _resolve_quarantine_dir(inputs: Dict[str, Any], *, dataroom_root: Path, message_id: str) -> Optional[Path]:
+def _resolve_quarantine_dir(inputs: dict[str, Any], *, dataroom_root: Path, message_id: str) -> Path | None:
     qdir = str(inputs.get("quarantine_dir") or "").strip()
     if qdir:
         return Path(qdir).expanduser().resolve()
@@ -102,7 +107,7 @@ class CreateDealFromEmailExecutor(ActionExecutor):
 
     action_type = "DEAL.CREATE_FROM_EMAIL"
 
-    def validate(self, payload: ActionPayload) -> tuple[bool, Optional[str]]:
+    def validate(self, payload: ActionPayload) -> tuple[bool, str | None]:
         inputs = payload.inputs or {}
         mid = str(inputs.get("gmail_message_id") or inputs.get("message_id") or "").strip()
         subject = str(inputs.get("subject") or "").strip()
@@ -161,8 +166,8 @@ class CreateDealFromEmailExecutor(ActionExecutor):
 
         # Determine existing mapping (registry first, marker second).
         deal_id = registry.get_email_deal_mapping(message_id)
-        deal_folder_path: Optional[str] = None
-        deal_name: Optional[str] = None
+        deal_folder_path: str | None = None
+        deal_name: str | None = None
 
         if not deal_id and marker_path and marker_path.exists():
             try:
@@ -255,7 +260,7 @@ class CreateDealFromEmailExecutor(ActionExecutor):
         _ensure_deal_folder_template(deal_dir_path)
 
         # Copy quarantine artifacts (best-effort; never destructive).
-        written: List[str] = []
+        written: list[str] = []
 
         corr_dir = deal_dir_path / "07-Correspondence"
         inbox_dir = corr_dir / "INBOX"
@@ -269,7 +274,7 @@ class CreateDealFromEmailExecutor(ActionExecutor):
 
         if not email_md_path.exists():
             links = inputs.get("links") or []
-            link_lines: List[str] = []
+            link_lines: list[str] = []
             if isinstance(links, list):
                 for item in links:
                     if isinstance(item, dict):
@@ -315,7 +320,7 @@ class CreateDealFromEmailExecutor(ActionExecutor):
             written.append(str(email_json_path))
 
         # Copy files from quarantine dir
-        copied_attachments: List[str] = []
+        copied_attachments: list[str] = []
         if quarantine_dir and quarantine_dir.exists():
             for child in sorted(quarantine_dir.iterdir()):
                 if not child.is_file():
@@ -384,7 +389,7 @@ class CreateDealFromEmailExecutor(ActionExecutor):
             summary.append("")
             summary_path.write_text("\n".join(summary), encoding="utf-8")
 
-        artifacts: List[ArtifactMetadata] = [
+        artifacts: list[ArtifactMetadata] = [
             ArtifactMetadata(
                 filename=manifest_path.name,
                 mime_type="application/json",
@@ -570,7 +575,7 @@ class CreateDealFromEmailExecutor(ActionExecutor):
             }
         ]
 
-        outputs: Dict[str, Any] = {
+        outputs: dict[str, Any] = {
             "deal_id": deal_id,
             "deal_name": deal_name,
             "deal_path": str(deal_dir_path),

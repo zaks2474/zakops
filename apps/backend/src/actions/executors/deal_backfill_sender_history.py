@@ -8,20 +8,33 @@ import sqlite3
 import threading
 import time
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Literal
 
-from pydantic import BaseModel, Field
-from typing_extensions import Literal
-
-from actions.engine.models import ActionError, ActionPayload, ArtifactMetadata, compute_idempotency_key, now_utc_iso
-from actions.executors._artifacts import resolve_action_artifact_dir
-from actions.executors.base import ActionExecutionError, ActionExecutor, ExecutionContext, ExecutionResult
 from email_ingestion.enrichment.link_extractor import LinkExtractor
-from integrations.gmail_thread_fetch import GmailThreadFetchConfig, get_thread_message_ids, load_thread_fetch_config
+from integrations.gmail_thread_fetch import (
+    GmailThreadFetchConfig,
+    get_thread_message_ids,
+    load_thread_fetch_config,
+)
+from pydantic import BaseModel, Field
 from tools.gateway import ToolErrorCode, ToolInvocationContext, ToolResult, get_tool_gateway
 
+from actions.engine.models import (
+    ActionError,
+    ActionPayload,
+    ArtifactMetadata,
+    compute_idempotency_key,
+    now_utc_iso,
+)
+from actions.executors._artifacts import resolve_action_artifact_dir
+from actions.executors.base import (
+    ActionExecutionError,
+    ActionExecutor,
+    ExecutionContext,
+    ExecutionResult,
+)
 
 _ID_LINE_RE = re.compile(r"^ID:\s*(?P<id>.+?)\s*$")
 _SUBJECT_LINE_RE = re.compile(r"^Subject:\s*(?P<subject>.*)$")
@@ -43,8 +56,8 @@ def _run_coro_blocking(coro):
     except RuntimeError:
         return asyncio.run(coro)
 
-    result: Dict[str, Any] = {}
-    error: Dict[str, BaseException] = {}
+    result: dict[str, Any] = {}
+    error: dict[str, BaseException] = {}
 
     def _thread_main() -> None:
         try:
@@ -119,7 +132,7 @@ def _backfill_log_path() -> Path:
     return (_dataroom_root() / ".deal-registry" / "logs" / "email_backfill.jsonl").resolve()
 
 
-def _append_jsonl(path: Path, record: Dict[str, Any]) -> None:
+def _append_jsonl(path: Path, record: dict[str, Any]) -> None:
     try:
         path.parent.mkdir(parents=True, exist_ok=True)
         with open(path, "a", encoding="utf-8") as f:
@@ -157,12 +170,12 @@ class EmailMessage:
     to: str
     date: str
     body: str
-    attachments: List[EmailAttachment]
+    attachments: list[EmailAttachment]
 
 
-def _parse_search_emails_text(text: str) -> List[EmailSearchHit]:
-    hits: List[EmailSearchHit] = []
-    current: Dict[str, str] = {}
+def _parse_search_emails_text(text: str) -> list[EmailSearchHit]:
+    hits: list[EmailSearchHit] = []
+    current: dict[str, str] = {}
     for raw in (text or "").splitlines():
         line = raw.strip("\\r")
         if not line.strip():
@@ -236,8 +249,8 @@ def _parse_read_email_text(message_id: str, text: str) -> EmailMessage:
             date = m.group("date").strip()
         i += 1
 
-    body_lines: List[str] = []
-    attachments: List[EmailAttachment] = []
+    body_lines: list[str] = []
+    attachments: list[EmailAttachment] = []
     in_attachments = False
     while i < len(lines):
         line = lines[i].rstrip("\\r")
@@ -289,7 +302,7 @@ class BackfillLinkDecision(BaseModel):
     belongs_to_deal: Literal["same", "different", "uncertain"]
     confidence: float = Field(ge=0.0, le=1.0)
     reason: str = Field(default="", max_length=600)
-    evidence: List[BackfillEvidence] = Field(default_factory=list)
+    evidence: list[BackfillEvidence] = Field(default_factory=list)
 
     model_config = {"extra": "forbid"}
 
@@ -300,9 +313,9 @@ def _decision_to_backfill_v1_item(
     decision: Literal["BELONGS_TO_APPROVED_DEAL", "NEW_DEAL_CANDIDATE", "IGNORE"],
     confidence: float,
     reason: str,
-    evidence: List[BackfillEvidence],
-) -> Dict[str, Any]:
-    evidence_out: List[Dict[str, str]] = []
+    evidence: list[BackfillEvidence],
+) -> dict[str, Any]:
+    evidence_out: list[dict[str, str]] = []
     for e in evidence[:10]:
         quote = _sanitize_evidence_quote(e.snippet)
         if not quote:
@@ -318,7 +331,7 @@ def _decision_to_backfill_v1_item(
     }
 
 
-def _extract_first_json_object(text: str) -> Optional[dict]:
+def _extract_first_json_object(text: str) -> dict | None:
     """
     Best-effort JSON object extractor for LLM responses.
 
@@ -365,7 +378,7 @@ def _assert_local_vllm_base_url(url: str) -> None:
         )
 
 
-def _call_local_vllm_json(*, system: str, user: str, max_tokens: int = 900, temperature: float = 0.2) -> Tuple[Optional[dict], Optional[str], Dict[str, Any]]:
+def _call_local_vllm_json(*, system: str, user: str, max_tokens: int = 900, temperature: float = 0.2) -> tuple[dict | None, str | None, dict[str, Any]]:
     import urllib.error
     import urllib.request
     from urllib.parse import urljoin
@@ -478,7 +491,7 @@ def _sanitize_urls_in_text(text: str) -> str:
     return _URL_LIKE_RE.sub(_repl, raw)
 
 
-def _safe_link_dicts(*, message_id: str, date: str, links: List[Any]) -> List[Dict[str, Any]]:
+def _safe_link_dicts(*, message_id: str, date: str, links: list[Any]) -> list[dict[str, Any]]:
     def _safe_url(url: str) -> str:
         """
         Strip query/fragment to avoid persisting access tokens.
@@ -491,7 +504,7 @@ def _safe_link_dicts(*, message_id: str, date: str, links: List[Any]) -> List[Di
         except Exception:
             return (url or "").split("?", 1)[0].split("#", 1)[0]
 
-    safe: List[Dict[str, Any]] = []
+    safe: list[dict[str, Any]] = []
     for l in links:
         if not isinstance(l, dict):
             continue
@@ -630,7 +643,7 @@ class DealBackfillSenderHistoryExecutor(ActionExecutor):
 
     action_type = "DEAL.BACKFILL_SENDER_HISTORY"
 
-    def validate(self, payload: ActionPayload) -> tuple[bool, Optional[str]]:
+    def validate(self, payload: ActionPayload) -> tuple[bool, str | None]:
         inputs = payload.inputs or {}
         deal_id = str(inputs.get("deal_id") or payload.deal_id or "").strip()
         sender_email = str(inputs.get("sender_email") or "").strip()
@@ -769,10 +782,10 @@ class DealBackfillSenderHistoryExecutor(ActionExecutor):
             hits = _parse_search_emails_text(_extract_first_text(search.output))
 
             cfg: GmailThreadFetchConfig = load_thread_fetch_config()
-            thread_fetch_cache: Dict[str, Tuple[List[str], Optional[str]]] = {}
+            thread_fetch_cache: dict[str, tuple[list[str], str | None]] = {}
 
-            next_actions: List[Dict[str, Any]] = []
-            backfill_decisions_v1: List[Dict[str, Any]] = []
+            next_actions: list[dict[str, Any]] = []
+            backfill_decisions_v1: list[dict[str, Any]] = []
             scanned = skipped = appended = quarantined = 0
 
             extractor = LinkExtractor()
@@ -872,7 +885,7 @@ class DealBackfillSenderHistoryExecutor(ActionExecutor):
                     if len(thread_message_ids) > max(1, int(max_thread_messages)):
                         thread_message_ids = thread_message_ids[-max(1, int(max_thread_messages)) :]
 
-                    thread_messages: List[EmailMessage] = []
+                    thread_messages: list[EmailMessage] = []
                     for tm in thread_message_ids:
                         if tm == mid:
                             thread_messages.append(msg)
@@ -891,7 +904,7 @@ class DealBackfillSenderHistoryExecutor(ActionExecutor):
                     deal_name = str(getattr(deal_obj, "canonical_name", "") or getattr(deal_obj, "display_name", "") or deal_id)
 
                     # Build a compact thread input for the model (no tool calls).
-                    thread_lines: List[str] = []
+                    thread_lines: list[str] = []
                     for idx, m in enumerate(thread_messages):
                         body = (m.body or "").strip()
                         if body:
@@ -966,7 +979,7 @@ class DealBackfillSenderHistoryExecutor(ActionExecutor):
                     ],
                 )
 
-                attachment_filename_by_id: Dict[str, str] = {}
+                attachment_filename_by_id: dict[str, str] = {}
                 used_attachment_names: set[str] = set()
                 for a in msg.attachments:
                     base = _sanitize_filename(a.filename)
@@ -982,7 +995,7 @@ class DealBackfillSenderHistoryExecutor(ActionExecutor):
                     used_attachment_names.add(candidate)
                     attachment_filename_by_id[a.attachment_id] = candidate
 
-                attachments_payload: List[Dict[str, Any]] = []
+                attachments_payload: list[dict[str, Any]] = []
                 for a in msg.attachments:
                     attachments_payload.append(
                         {
@@ -1278,7 +1291,7 @@ class DealBackfillSenderHistoryExecutor(ActionExecutor):
                 deal_folder.relative_to(_dataroom_root())
                 corr_dir = deal_folder / "07-Correspondence"
                 corr_dir.mkdir(parents=True, exist_ok=True)
-                ts = datetime.now(timezone.utc).strftime("%Y%m%d-%H%M%S")
+                ts = datetime.now(UTC).strftime("%Y%m%d-%H%M%S")
                 corr_path = corr_dir / f"backfill_sender_history_{ts}.json"
                 corr_path.write_text(json.dumps(report_v1, ensure_ascii=False, indent=2), encoding="utf-8")
             except Exception:

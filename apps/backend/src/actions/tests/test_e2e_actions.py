@@ -11,7 +11,6 @@ Run: python3 actions/tests/test_e2e_actions.py
 """
 
 import json
-import os
 import sys
 from pathlib import Path
 
@@ -39,7 +38,7 @@ from actions.codex import (
     list_capabilities,
     propose_action,
 )
-from actions.engine.models import ActionPayload, compute_idempotency_key, now_utc_iso, safe_uuid
+from actions.engine.models import ActionPayload, compute_idempotency_key, safe_uuid
 from actions.engine.store import ActionStore
 from actions.executors.base import ExecutionContext
 from actions.executors.diligence_request_docs import RequestDocsExecutor

@@ -6,9 +6,9 @@ import os
 import re
 import sqlite3
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 
 def _default_state_db_path() -> Path:
@@ -16,27 +16,27 @@ def _default_state_db_path() -> Path:
 
 
 def _now_iso() -> str:
-    return datetime.now(timezone.utc).isoformat()
+    return datetime.now(UTC).isoformat()
 
 
 def _json_dumps(value: Any) -> str:
     return json.dumps(value, ensure_ascii=False, sort_keys=True)
 
 
-def _json_loads(raw: Optional[str]) -> Any:
+def _json_loads(raw: str | None) -> Any:
     if not raw:
         return None
     return json.loads(raw)
 
 
-def _tokenize(text: str) -> List[str]:
+def _tokenize(text: str) -> list[str]:
     cleaned = re.sub(r"[^a-z0-9]+", " ", (text or "").lower()).strip()
     if not cleaned:
         return []
     return [t for t in cleaned.split() if len(t) > 1]
 
 
-def _jaccard(a: List[str], b: List[str]) -> float:
+def _jaccard(a: list[str], b: list[str]) -> float:
     sa = set(a)
     sb = set(b)
     if not sa or not sb:
@@ -44,7 +44,7 @@ def _jaccard(a: List[str], b: List[str]) -> float:
     return len(sa & sb) / max(1, len(sa | sb))
 
 
-def fingerprint_inputs(inputs: Dict[str, Any]) -> str:
+def fingerprint_inputs(inputs: dict[str, Any]) -> str:
     raw = _json_dumps(inputs or {}).encode("utf-8")
     return hashlib.sha256(raw).hexdigest()
 
@@ -55,12 +55,12 @@ class ActionSummary:
     created_at: str
     action_id: str
     action_type: str
-    deal_id: Optional[str]
+    deal_id: str | None
     inputs_fingerprint: str
-    plan_spec: Dict[str, Any]
+    plan_spec: dict[str, Any]
     outcome_status: str
-    artifacts: List[Dict[str, Any]]
-    user_edits: Dict[str, Any]
+    artifacts: list[dict[str, Any]]
+    user_edits: dict[str, Any]
     summary_text: str
 
 
@@ -107,7 +107,7 @@ def _try_create_fts(conn: sqlite3.Connection) -> None:
 
 
 class ActionMemoryStore:
-    def __init__(self, db_path: Optional[Path] = None):
+    def __init__(self, db_path: Path | None = None):
         self.db_path = Path(db_path or _default_state_db_path())
         self.db_path.parent.mkdir(parents=True, exist_ok=True)
         self._init_db()
@@ -159,7 +159,7 @@ class ActionMemoryStore:
                 pass
             conn.commit()
 
-    def list_recent(self, *, limit: int = 50) -> List[ActionSummary]:
+    def list_recent(self, *, limit: int = 50) -> list[ActionSummary]:
         with self._connect() as conn:
             rows = conn.execute(
                 """
@@ -172,7 +172,7 @@ class ActionMemoryStore:
                 (max(1, int(limit)),),
             ).fetchall()
 
-        out: List[ActionSummary] = []
+        out: list[ActionSummary] = []
         for r in rows:
             out.append(
                 ActionSummary(
@@ -195,10 +195,10 @@ class ActionMemoryStore:
         self,
         query: str,
         *,
-        deal_id: Optional[str] = None,
+        deal_id: str | None = None,
         top_k: int = 3,
         search_limit: int = 200,
-    ) -> List[ActionSummaryMatch]:
+    ) -> list[ActionSummaryMatch]:
         intent = (query or "").strip()
         if not intent:
             return []
@@ -206,7 +206,7 @@ class ActionMemoryStore:
         # Prefer FTS when available.
         with self._connect() as conn:
             try:
-                params: List[Any] = [intent]
+                params: list[Any] = [intent]
                 deal_filter = ""
                 if deal_id:
                     deal_filter = " AND m.deal_id = ?"
@@ -226,7 +226,7 @@ class ActionMemoryStore:
                     (*params, max(1, int(search_limit))),
                 ).fetchall()
 
-                matches: List[ActionSummaryMatch] = []
+                matches: list[ActionSummaryMatch] = []
                 for r in rows:
                     summary = ActionSummary(
                         memory_id=r["memory_id"],
@@ -250,7 +250,7 @@ class ActionMemoryStore:
         # Fallback: scan recent entries + token similarity.
         intent_tokens = _tokenize(intent)
         pool = self.list_recent(limit=max(10, int(search_limit)))
-        scored: List[ActionSummaryMatch] = []
+        scored: list[ActionSummaryMatch] = []
         for s in pool:
             if deal_id and s.deal_id and s.deal_id != deal_id:
                 continue
@@ -266,12 +266,12 @@ def build_summary_from_action(
     *,
     action_id: str,
     action_type: str,
-    deal_id: Optional[str],
-    inputs: Dict[str, Any],
-    plan_spec: Dict[str, Any],
+    deal_id: str | None,
+    inputs: dict[str, Any],
+    plan_spec: dict[str, Any],
     outcome_status: str,
-    artifacts: List[Dict[str, Any]],
-    user_edits: Optional[Dict[str, Any]] = None,
+    artifacts: list[dict[str, Any]],
+    user_edits: dict[str, Any] | None = None,
 ) -> ActionSummary:
     try:
         from tools.gateway import SecretRedactor

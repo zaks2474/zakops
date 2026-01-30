@@ -1,17 +1,21 @@
 from __future__ import annotations
 
 import asyncio
-import os
 import re
 import threading
-from typing import Any, Dict, List, Optional
+from typing import Any
 
-from actions.engine.models import ActionError, ActionPayload
-from actions.executors.base import ActionExecutionError, ActionExecutor, ExecutionContext, ExecutionResult
-from actions.memory.triage_feedback import append_feedback, build_feedback_entry
 from integrations.n8n_webhook import emit_quarantine_rejected
 from tools.gateway import ToolErrorCode, ToolInvocationContext, ToolResult, get_tool_gateway
 
+from actions.engine.models import ActionError, ActionPayload
+from actions.executors.base import (
+    ActionExecutionError,
+    ActionExecutor,
+    ExecutionContext,
+    ExecutionResult,
+)
+from actions.memory.triage_feedback import append_feedback, build_feedback_entry
 
 _LABEL_ID_RE = re.compile(r"\bID:\s*([A-Za-z0-9_-]+)\b")
 
@@ -22,8 +26,8 @@ def _run_coro_blocking(coro):
     except RuntimeError:
         return asyncio.run(coro)
 
-    result: Dict[str, Any] = {}
-    error: Dict[str, BaseException] = {}
+    result: dict[str, Any] = {}
+    error: dict[str, BaseException] = {}
 
     def _thread_main() -> None:
         try:
@@ -53,7 +57,7 @@ def _extract_first_text(output: Any) -> str:
     return ""
 
 
-def _parse_label_id(output: Any) -> Optional[str]:
+def _parse_label_id(output: Any) -> str | None:
     text = _extract_first_text(output)
     m = _LABEL_ID_RE.search(text or "")
     return m.group(1) if m else None
@@ -85,7 +89,7 @@ class EmailTriageRejectEmailExecutor(ActionExecutor):
 
     action_type = "EMAIL_TRIAGE.REJECT_EMAIL"
 
-    def validate(self, payload: ActionPayload) -> tuple[bool, Optional[str]]:
+    def validate(self, payload: ActionPayload) -> tuple[bool, str | None]:
         inputs = payload.inputs or {}
         message_id = str(inputs.get("message_id") or "").strip()
         if not message_id:
@@ -180,13 +184,13 @@ class EmailTriageRejectEmailExecutor(ActionExecutor):
                 )
             return label_id
 
-        add_ids: List[str] = []
+        add_ids: list[str] = []
         for name in labels_to_add if isinstance(labels_to_add, list) else []:
             n = str(name or "").strip()
             if n:
                 add_ids.append(_ensure_label_id(n))
 
-        remove_ids: List[str] = []
+        remove_ids: list[str] = []
         for name in labels_to_remove if isinstance(labels_to_remove, list) else []:
             n = str(name or "").strip()
             if n:
@@ -196,7 +200,7 @@ class EmailTriageRejectEmailExecutor(ActionExecutor):
                     # Best-effort removal; missing labels should not block rejection.
                     continue
 
-        modify_args: Dict[str, Any] = {"messageId": message_id}
+        modify_args: dict[str, Any] = {"messageId": message_id}
         if add_ids:
             modify_args["addLabelIds"] = add_ids
         if remove_ids:

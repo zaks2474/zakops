@@ -3,14 +3,13 @@ from __future__ import annotations
 import json
 import os
 import re
+from collections.abc import Iterable
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Dict, Iterable, List, Optional, Tuple
+from typing import Any, Literal
 
 import yaml
 from pydantic import BaseModel, Field
-from typing_extensions import Literal
-
 
 RiskLevel = Literal["low", "medium", "high"]
 
@@ -19,21 +18,21 @@ class CapabilityExample(BaseModel):
     # Support both v1.2 example shapes:
     # - {user_intent, expected}
     # - {description, inputs, expected_output}
-    user_intent: Optional[str] = None
-    expected: Optional[str] = Field(default=None, description="What this capability should do for the user.")
-    description: Optional[str] = None
-    inputs: Optional[Dict[str, Any]] = None
-    expected_output: Optional[str] = None
+    user_intent: str | None = None
+    expected: str | None = Field(default=None, description="What this capability should do for the user.")
+    description: str | None = None
+    inputs: dict[str, Any] | None = None
+    expected_output: str | None = None
 
     model_config = {"extra": "allow"}
 
 
 class OutputArtifactSpec(BaseModel):
     kind: str = Field(min_length=1, alias="type", description="Logical artifact type, e.g. docx, pdf, xlsx, pptx, md")
-    extension: Optional[str] = Field(default=None, description="File extension including dot, e.g. .docx")
+    extension: str | None = Field(default=None, description="File extension including dot, e.g. .docx")
     mime_type: str = Field(min_length=1)
     required: bool = True
-    description: Optional[str] = None
+    description: str | None = None
 
     model_config = {"extra": "allow", "populate_by_name": True}
 
@@ -47,19 +46,19 @@ class CapabilityManifest(BaseModel):
     description: str = Field(min_length=1)
     action_type: str = Field(min_length=1, description="Namespaced action type, e.g. DOCUMENT.GENERATE_LOI")
 
-    input_schema: Dict[str, Any] = Field(default_factory=dict, description="JSON Schema for inputs")
-    output_artifacts: List[OutputArtifactSpec] = Field(default_factory=list)
+    input_schema: dict[str, Any] = Field(default_factory=dict, description="JSON Schema for inputs")
+    output_artifacts: list[OutputArtifactSpec] = Field(default_factory=list)
 
     risk_level: RiskLevel = "medium"
     requires_approval: bool = Field(default=True, alias="required_approval")
 
-    deterministic_steps: List[str] = Field(default_factory=list)
+    deterministic_steps: list[str] = Field(default_factory=list)
     llm_allowed: bool = False
     cloud_required: bool = Field(default=False, description="If true, this capability may call cloud LLMs/tools, but only after explicit approval.")
 
-    examples: List[CapabilityExample] = Field(default_factory=list)
-    constraints: List[str] = Field(default_factory=list)
-    tags: List[str] = Field(default_factory=list)
+    examples: list[CapabilityExample] = Field(default_factory=list)
+    constraints: list[str] = Field(default_factory=list)
+    tags: list[str] = Field(default_factory=list)
 
     model_config = {"extra": "allow", "populate_by_name": True}
 
@@ -79,7 +78,7 @@ def _default_capabilities_dir() -> Path:
     return Path("/home/zaks/scripts/actions/capabilities")
 
 
-def _tokenize(text: str) -> List[str]:
+def _tokenize(text: str) -> list[str]:
     cleaned = re.sub(r"[^a-z0-9]+", " ", (text or "").lower()).strip()
     if not cleaned:
         return []
@@ -95,16 +94,16 @@ def _jaccard(a: Iterable[str], b: Iterable[str]) -> float:
 
 
 class CapabilityRegistry:
-    def __init__(self, capabilities_dir: Optional[Path] = None):
+    def __init__(self, capabilities_dir: Path | None = None):
         self.capabilities_dir = capabilities_dir or _default_capabilities_dir()
-        self._by_id: Dict[str, CapabilityManifest] = {}
-        self._by_action_type: Dict[str, CapabilityManifest] = {}
+        self._by_id: dict[str, CapabilityManifest] = {}
+        self._by_action_type: dict[str, CapabilityManifest] = {}
 
     def load(self) -> None:
         if not self.capabilities_dir.exists():
             raise FileNotFoundError(f"capabilities_dir_not_found: {self.capabilities_dir}")
 
-        manifests: List[Tuple[Path, CapabilityManifest]] = []
+        manifests: list[tuple[Path, CapabilityManifest]] = []
         for path in sorted(self.capabilities_dir.glob("*.y*ml")):
             raw = path.read_text(encoding="utf-8")
             data = yaml.safe_load(raw) or {}
@@ -113,8 +112,8 @@ class CapabilityRegistry:
             manifest = CapabilityManifest.model_validate(data)
             manifests.append((path, manifest))
 
-        by_id: Dict[str, CapabilityManifest] = {}
-        by_action: Dict[str, CapabilityManifest] = {}
+        by_id: dict[str, CapabilityManifest] = {}
+        by_action: dict[str, CapabilityManifest] = {}
         for path, manifest in manifests:
             if manifest.capability_id in by_id:
                 raise ValueError(f"duplicate_capability_id: {manifest.capability_id} ({path})")
@@ -126,16 +125,16 @@ class CapabilityRegistry:
         self._by_id = by_id
         self._by_action_type = by_action
 
-    def list_capabilities(self) -> List[CapabilityManifest]:
+    def list_capabilities(self) -> list[CapabilityManifest]:
         return [self._by_id[k] for k in sorted(self._by_id.keys())]
 
-    def get_capability(self, capability_id: str) -> Optional[CapabilityManifest]:
+    def get_capability(self, capability_id: str) -> CapabilityManifest | None:
         return self._by_id.get((capability_id or "").strip())
 
-    def get_by_action_type(self, action_type: str) -> Optional[CapabilityManifest]:
+    def get_by_action_type(self, action_type: str) -> CapabilityManifest | None:
         return self._by_action_type.get((action_type or "").strip())
 
-    def match_capability(self, user_intent: str, *, top_k: int = 3) -> List[CapabilityMatch]:
+    def match_capability(self, user_intent: str, *, top_k: int = 3) -> list[CapabilityMatch]:
         """
         Deterministic-first matcher (fast, offline).
 
@@ -157,10 +156,10 @@ class CapabilityRegistry:
 
         intent_tokens = _tokenize(intent)
         has_email_address = bool(re.search(r"[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}", intent.lower()))
-        results: List[CapabilityMatch] = []
+        results: list[CapabilityMatch] = []
 
         for cap in self._by_id.values():
-            example_texts: List[str] = []
+            example_texts: list[str] = []
             for ex in cap.examples or []:
                 parts = [
                     (ex.user_intent or "").strip(),
@@ -273,14 +272,14 @@ class CapabilityRegistry:
 
         return added
 
-    def to_jsonable(self, capability: CapabilityManifest) -> Dict[str, Any]:
+    def to_jsonable(self, capability: CapabilityManifest) -> dict[str, Any]:
         data = capability.model_dump()
         # Ensure `input_schema` is JSON-safe (YAML may contain non-JSON types).
         data["input_schema"] = json.loads(json.dumps(data.get("input_schema") or {}))
         return data
 
 
-_REGISTRY: Optional[CapabilityRegistry] = None
+_REGISTRY: CapabilityRegistry | None = None
 
 
 def get_registry() -> CapabilityRegistry:

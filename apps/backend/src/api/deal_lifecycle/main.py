@@ -38,21 +38,24 @@ import argparse
 import json
 import os
 import sys
-from datetime import datetime, timezone
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
-from typing import Any, Dict, List, Optional
-from typing import Literal
-from datetime import timedelta
+from typing import Any, Literal
 
 # Add paths
 sys.path.insert(0, str(Path(__file__).parent))
 
-from fastapi import Body, FastAPI, HTTPException, Query
-from fastapi.responses import JSONResponse, HTMLResponse, RedirectResponse, FileResponse, PlainTextResponse
-from fastapi.staticfiles import StaticFiles
-from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel, Field
 import uvicorn
+from fastapi import Body, FastAPI, HTTPException, Query
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import (
+    FileResponse,
+    HTMLResponse,
+    JSONResponse,
+    PlainTextResponse,
+    RedirectResponse,
+)
+from pydantic import BaseModel, Field
 
 # Canonical roots
 DATAROOM_ROOT = Path(os.getenv("DATAROOM_ROOT", "/home/zaks/DataRoom")).resolve()
@@ -60,12 +63,13 @@ DATAROOM_ROOT = Path(os.getenv("DATAROOM_ROOT", "/home/zaks/DataRoom")).resolve(
 # Dashboard path
 DASHBOARD_DIR = DATAROOM_ROOT / "_dashboard"
 
-from deal_registry import DealRegistry
 from deal_events import DealEventStore
-from link_normalizer import LinkNormalizer, process_links as normalize_links, classify_link, LinkCategory
+from deal_registry import DealRegistry
+from deal_state_machine import DealStage, DealStateMachine
 from deferred_actions import DeferredActionQueue
-from deal_state_machine import DealStateMachine, DealStage
 from lifecycle_event_emitter import QuarantineManager
+from link_normalizer import LinkCategory, classify_link
+from link_normalizer import process_links as normalize_links
 
 # Configuration
 REGISTRY_PATH = str(DATAROOM_ROOT / ".deal-registry" / "deal_registry.json")
@@ -102,49 +106,49 @@ class NoteRequest(BaseModel):
 
 class QuarantineResolveRequest(BaseModel):
     resolution: str  # link_to_deal, create_new_deal, discard
-    deal_id: Optional[str] = None
+    deal_id: str | None = None
     resolved_by: str = "operator"
 
 
 class AgentInvokeRequest(BaseModel):
     task: str
     deal_id: str
-    params: Optional[Dict[str, Any]] = None
+    params: dict[str, Any] | None = None
 
 
 class DealArchiveRequest(BaseModel):
     operator: str = "operator"
-    reason: Optional[str] = None
+    reason: str | None = None
 
 
 class DealBulkArchiveRequest(BaseModel):
-    deal_ids: List[str]
+    deal_ids: list[str]
     operator: str = "operator"
-    reason: Optional[str] = None
+    reason: str | None = None
 
 
 class QuarantineDeleteRequest(BaseModel):
     deleted_by: str = "operator"
-    reason: Optional[str] = None
+    reason: str | None = None
 
 
 class QuarantineBulkDeleteRequest(BaseModel):
-    action_ids: List[str]
+    action_ids: list[str]
     deleted_by: str = "operator"
-    reason: Optional[str] = None
+    reason: str | None = None
 
 
 class ChatScopeModel(BaseModel):
     type: str = "global"  # global, deal, document
-    deal_id: Optional[str] = None
-    doc: Optional[Dict[str, Any]] = None
+    deal_id: str | None = None
+    doc: dict[str, Any] | None = None
 
 
 class ChatRequest(BaseModel):
     query: str
     scope: ChatScopeModel = ChatScopeModel()
-    session_id: Optional[str] = None
-    options: Optional[Dict[str, Any]] = None
+    session_id: str | None = None
+    options: dict[str, Any] | None = None
 
 
 class ProposalExecuteRequest(BaseModel):
@@ -152,7 +156,7 @@ class ProposalExecuteRequest(BaseModel):
     approved_by: str
     session_id: str
     action: Literal["approve", "reject"] = "approve"
-    reject_reason: Optional[str] = None
+    reject_reason: str | None = None
 
 
 # ---------------------------------------------------------------------------
@@ -163,14 +167,14 @@ class KineticActionCreateRequest(BaseModel):
     action_type: str
     title: str
     summary: str = ""
-    deal_id: Optional[str] = None
-    capability_id: Optional[str] = None
+    deal_id: str | None = None
+    capability_id: str | None = None
     created_by: str = "operator"
     source: Literal["chat", "ui", "system"] = "ui"
     risk_level: Literal["low", "medium", "high"] = "medium"
     requires_human_review: bool = True
-    idempotency_key: Optional[str] = None
-    inputs: Optional[Dict[str, Any]] = None
+    idempotency_key: str | None = None
+    inputs: dict[str, Any] | None = None
 
 
 class KineticActionApproveRequest(BaseModel):
@@ -188,7 +192,7 @@ class KineticActionCancelRequest(BaseModel):
 
 class KineticActionUpdateRequest(BaseModel):
     updated_by: str = "operator"
-    inputs: Dict[str, Any]
+    inputs: dict[str, Any]
 
 
 class KineticActionUnstickRequest(BaseModel):
@@ -196,7 +200,7 @@ class KineticActionUnstickRequest(BaseModel):
     reason: str = "operator_unstick"
 
 
-def _action_payload_to_frontend(action: Any) -> Dict[str, Any]:
+def _action_payload_to_frontend(action: Any) -> dict[str, Any]:
     """
     Normalize ActionPayload to the frontend contract used by `zakops-dashboard/src/lib/api.ts`.
 
@@ -208,7 +212,7 @@ def _action_payload_to_frontend(action: Any) -> Dict[str, Any]:
     - Always include artifacts as [] (never null)
     """
     try:
-        payload: Dict[str, Any] = action.model_dump()
+        payload: dict[str, Any] = action.model_dump()
     except Exception:
         payload = dict(action or {})
 
@@ -274,7 +278,7 @@ def _action_payload_to_frontend(action: Any) -> Dict[str, Any]:
     return payload
 
 
-def _capability_manifest_to_frontend(capability: Any) -> Dict[str, Any]:
+def _capability_manifest_to_frontend(capability: Any) -> dict[str, Any]:
     """
     Normalize CapabilityManifest to the frontend contract in `zakops-dashboard/src/lib/api.ts`.
 
@@ -283,7 +287,7 @@ def _capability_manifest_to_frontend(capability: Any) -> Dict[str, Any]:
     - `output_artifacts[].type` (not `kind`)
     """
     try:
-        raw: Dict[str, Any] = capability.model_dump()
+        raw: dict[str, Any] = capability.model_dump()
     except Exception:
         raw = dict(capability or {})
 
@@ -301,7 +305,7 @@ def _capability_manifest_to_frontend(capability: Any) -> Dict[str, Any]:
     if not isinstance(input_schema, dict):
         input_schema = {"type": "object", "properties": {}, "required": []}
 
-    output_artifacts_out: List[Dict[str, Any]] = []
+    output_artifacts_out: list[dict[str, Any]] = []
     for art in raw.get("output_artifacts") or []:
         if not isinstance(art, dict):
             continue
@@ -313,7 +317,7 @@ def _capability_manifest_to_frontend(capability: Any) -> Dict[str, Any]:
             }
         )
 
-    examples_out: List[Dict[str, Any]] = []
+    examples_out: list[dict[str, Any]] = []
     for ex in raw.get("examples") or []:
         if not isinstance(ex, dict):
             continue
@@ -349,8 +353,8 @@ def _capability_manifest_to_frontend(capability: Any) -> Dict[str, Any]:
 
 class KineticActionPlanRequest(BaseModel):
     query: str
-    deal_id: Optional[str] = None
-    inputs: Optional[Dict[str, Any]] = None
+    deal_id: str | None = None
+    inputs: dict[str, Any] | None = None
 
 
 class KineticActionRequeueRequest(BaseModel):
@@ -388,13 +392,13 @@ def get_kinetic_action_store():
     return _KINETIC_ACTION_STORE
 
 
-def load_case_file(deal_id: str) -> Optional[Dict[str, Any]]:
+def load_case_file(deal_id: str) -> dict[str, Any] | None:
     path = CASE_FILES_DIR / f"{deal_id}.json"
     if path.exists():
         try:
-            with open(path, "r") as f:
+            with open(path) as f:
                 return json.load(f)
-        except (json.JSONDecodeError, IOError):
+        except (OSError, json.JSONDecodeError):
             pass
     return None
 
@@ -404,7 +408,7 @@ def days_ago(iso_timestamp: str) -> int:
         if iso_timestamp.endswith("Z"):
             iso_timestamp = iso_timestamp[:-1] + "+00:00"
         ts = datetime.fromisoformat(iso_timestamp)
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         return max(0, (now - ts).days)
     except (ValueError, TypeError):
         return 0
@@ -432,10 +436,10 @@ def serve_dashboard():
 
 @app.get("/api/deals")
 def list_deals(
-    stage: Optional[str] = None,
+    stage: str | None = None,
     status: str = "active",
-    broker: Optional[str] = None,
-    age_gt: Optional[int] = None,
+    broker: str | None = None,
+    age_gt: int | None = None,
 ):
     """List all deals with optional filtering."""
     registry = get_registry()
@@ -614,14 +618,14 @@ def get_deal(deal_id: str):
     }
 
 
-def _extract_enrichment_from_quarantine(deal_folder: str) -> Optional[Dict[str, Any]]:
+def _extract_enrichment_from_quarantine(deal_folder: str) -> dict[str, Any] | None:
     """
     Extract enrichment data from quarantine triage_summary.json for deals
     that don't have deal_profile.json yet (backfill for existing deals).
     """
     import re
 
-    def _parse_money(text: str) -> Optional[float]:
+    def _parse_money(text: str) -> float | None:
         """Parse money string like '$899,000' or '$225K' or '$1.5M' to float."""
         if not text:
             return None
@@ -704,7 +708,7 @@ def _extract_enrichment_from_quarantine(deal_folder: str) -> Optional[Dict[str, 
         return None
 
 
-def _get_pipeline_summary(action_store, deal_id: str) -> Dict[str, Any]:
+def _get_pipeline_summary(action_store, deal_id: str) -> dict[str, Any]:
     """Get a summary of pipeline actions for UI display."""
     all_actions = action_store.get_actions_for_deal(deal_id, status=None)
     pipeline_types = []
@@ -894,7 +898,7 @@ def get_deal_pipeline_outputs(deal_id: str):
 def get_deal_events(
     deal_id: str,
     limit: int = Query(default=100, le=1000),
-    since: Optional[str] = None,
+    since: str | None = None,
 ):
     """Get event history for a deal."""
     event_store = get_event_store()
@@ -955,7 +959,7 @@ def get_deal_materials(deal_id: str):
         return {"deal_id": deal_id, "deal_path": str(deal_path), "correspondence": [], "aggregate_links": {"links": []}, "pending_auth": []}
 
     # Use link normalizer for classification and grouping
-    def _process_bundle_links(links: List[Dict[str, Any]]) -> Dict[str, Any]:
+    def _process_bundle_links(links: list[dict[str, Any]]) -> dict[str, Any]:
         """Process links with normalizer and return UI-ready structure."""
         try:
             result = normalize_links(links)
@@ -978,7 +982,7 @@ def get_deal_materials(deal_id: str):
             # Fallback to basic structure on error
             return {"all": links, "groups": {}, "stats": {}}
 
-    bundles: List[Dict[str, Any]] = []
+    bundles: list[dict[str, Any]] = []
 
     # New-style bundle directories: 07-Correspondence/<bundle>/manifest.json
     for p in sorted(corr_dir.iterdir()):
@@ -996,14 +1000,14 @@ def get_deal_materials(deal_id: str):
         links_list = [l for l in links if isinstance(l, dict)]
 
         attachments_dir = p / "attachments"
-        attachments: List[Dict[str, Any]] = []
+        attachments: list[dict[str, Any]] = []
         if attachments_dir.exists() and attachments_dir.is_dir():
             for f in sorted(attachments_dir.iterdir()):
                 if f.is_file():
                     attachments.append({"filename": f.name, "path": str(f), "size_bytes": int(f.stat().st_size)})
 
         pending_auth = p / "pending_auth_links.json"
-        pending_links: List[Dict[str, Any]] = []
+        pending_links: list[dict[str, Any]] = []
         if pending_auth.exists() and pending_auth.is_file():
             try:
                 pdata = json.loads(pending_auth.read_text(encoding="utf-8"))
@@ -1048,7 +1052,7 @@ def get_deal_materials(deal_id: str):
             email_md = str(candidates[0])
 
         att_dir = corr_dir / f"{base}_attachments"
-        attachments: List[Dict[str, Any]] = []
+        attachments: list[dict[str, Any]] = []
         if att_dir.exists() and att_dir.is_dir():
             for f in sorted(att_dir.iterdir()):
                 if f.is_file():
@@ -1079,7 +1083,7 @@ def get_deal_materials(deal_id: str):
 
     # Aggregate links: prefer classified_links.json (pre-categorized) over links.json (raw).
     # Always process through link normalizer for deduplication and categorization.
-    def _build_classified_links_response(raw_links: List[Dict[str, Any]]) -> Dict[str, Any]:
+    def _build_classified_links_response(raw_links: list[dict[str, Any]]) -> dict[str, Any]:
         """Build UI-ready classified links structure."""
         processed = _process_bundle_links(raw_links)
         groups = processed.get("groups", {})
@@ -1117,7 +1121,7 @@ def get_deal_materials(deal_id: str):
             "_all_groups": groups,
         }
 
-    aggregate_links: Dict[str, Any] = {
+    aggregate_links: dict[str, Any] = {
         "primary_links": [],
         "tracking_links": [],
         "social_links": [],
@@ -1173,7 +1177,7 @@ def get_deal_materials(deal_id: str):
         "microacquire.com",
         "dealstream.com",
     }
-    pending_auth_all: List[Dict[str, Any]] = []
+    pending_auth_all: list[dict[str, Any]] = []
     for b in bundles:
         for l in b.get("pending_auth_links") or []:
             if not isinstance(l, dict):
@@ -1207,7 +1211,7 @@ def get_deal_materials(deal_id: str):
             })
 
     # Most recent first (best-effort: sort by date, then bundle_id).
-    def _sort_key(item: Dict[str, Any]) -> str:
+    def _sort_key(item: dict[str, Any]) -> str:
         return str(item.get("date") or item.get("bundle_id") or "")
 
     bundles.sort(key=_sort_key, reverse=True)
@@ -1225,7 +1229,7 @@ def get_deal_materials(deal_id: str):
 # Enrichment Endpoints
 # =============================================================================
 
-def _get_enrichment_data(deal_id: str) -> Optional[dict]:
+def _get_enrichment_data(deal_id: str) -> dict | None:
     """Get enrichment data for a deal from the registry JSON."""
     registry_path = Path("/home/zaks/DataRoom/.deal-registry/deal_registry.json")
     if not registry_path.exists():
@@ -1248,7 +1252,7 @@ def _get_enrichment_data(deal_id: str) -> Optional[dict]:
             "enriched_at": deal_data.get("enriched_at"),
             "aliases": deal_data.get("aliases", []),
         }
-    except Exception as e:
+    except Exception:
         return None
 
 
@@ -1303,7 +1307,7 @@ def get_enrichment_audit():
         deals = data.get("deals", {})
 
         report = {
-            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
             "total_deals": len(deals),
             "deals_with_materials": 0,
             "deals_with_display_name": 0,
@@ -1382,7 +1386,7 @@ class MarkLinkFetchedRequest(BaseModel):
     """Request to mark a link as fetched."""
     url: str
     local_path: str
-    operator_note: Optional[str] = None
+    operator_note: str | None = None
 
 
 @app.post("/api/enrichment/mark-link-fetched")
@@ -1403,7 +1407,7 @@ def mark_link_fetched(request: MarkLinkFetchedRequest):
             if link.get("url") == request.url or link.get("normalized_url") == request.url:
                 link["status"] = "fetched"
                 link["local_path"] = request.local_path
-                link["fetched_at"] = datetime.now(timezone.utc).isoformat()
+                link["fetched_at"] = datetime.now(UTC).isoformat()
                 if request.operator_note:
                     link["operator_note"] = request.operator_note
                 found = True
@@ -1511,8 +1515,8 @@ def add_deal_note(deal_id: str, request: NoteRequest):
 
 @app.get("/api/deferred-actions")
 def list_deferred_actions(
-    deal_id: Optional[str] = None,
-    status: Optional[str] = None,
+    deal_id: str | None = None,
+    status: str | None = None,
 ):
     """List all scheduled actions."""
     action_queue = get_action_queue()
@@ -1619,12 +1623,12 @@ def cancel_deferred_action(action_id: str, reason: str = "Cancelled via API"):
 
 @app.get("/api/actions")
 def list_kinetic_actions(
-    deal_id: Optional[str] = None,
-    status: Optional[str] = None,
-    type_: Optional[str] = Query(default=None, alias="type"),
-    action_type: Optional[str] = None,
-    created_after: Optional[str] = None,
-    created_before: Optional[str] = None,
+    deal_id: str | None = None,
+    status: str | None = None,
+    type_: str | None = Query(default=None, alias="type"),
+    action_type: str | None = None,
+    created_after: str | None = None,
+    created_before: str | None = None,
     limit: int = Query(default=50, ge=1, le=200),
     offset: int = Query(default=0, ge=0),
 ):
@@ -1739,7 +1743,7 @@ def approve_kinetic_action(action_id: str, request: KineticActionApproveRequest)
 
 
 @app.post("/api/actions/{action_id}/execute")
-def execute_kinetic_action(action_id: str, request: Optional[KineticActionExecuteRequest] = Body(default=None)):
+def execute_kinetic_action(action_id: str, request: KineticActionExecuteRequest | None = Body(default=None)):
     """
     Request execution of a READY action.
 
@@ -1779,7 +1783,7 @@ def execute_kinetic_action(action_id: str, request: Optional[KineticActionExecut
 
 
 @app.post("/api/actions/{action_id}/cancel")
-def cancel_kinetic_action(action_id: str, request: Optional[KineticActionCancelRequest] = Body(default=None)):
+def cancel_kinetic_action(action_id: str, request: KineticActionCancelRequest | None = Body(default=None)):
     store = get_kinetic_action_store()
     actor = request.cancelled_by if request else "operator"
     reason = request.reason if request else "Cancelled via API"
@@ -1874,8 +1878,9 @@ def download_kinetic_action_artifact(action_id: str, artifact_id: str):
 
 @app.get("/api/actions/capabilities")
 def list_action_capabilities():
-    from actions.capabilities.registry import get_registry
     from tools.registry import get_tool_registry
+
+    from actions.capabilities.registry import get_registry
 
     reg = get_registry()
     try:
@@ -1888,8 +1893,9 @@ def list_action_capabilities():
 
 @app.get("/api/actions/capabilities/{capability_id}")
 def get_action_capability(capability_id: str):
-    from actions.capabilities.registry import get_registry
     from tools.registry import get_tool_registry
+
+    from actions.capabilities.registry import get_registry
 
     reg = get_registry()
     try:
@@ -1912,12 +1918,12 @@ def action_metrics(window_hours: int = Query(default=24, ge=1, le=168)):
     try:
         from datetime import timedelta
 
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         cutoff = (now - timedelta(hours=max(1, int(window_hours)))).isoformat().replace("+00:00", "Z")
 
-        queue_lengths: Dict[str, int] = {}
-        avg_duration_by_type: Dict[str, Dict[str, Any]] = {}
-        error_counts: Dict[str, int] = {}
+        queue_lengths: dict[str, int] = {}
+        avg_duration_by_type: dict[str, dict[str, Any]] = {}
+        error_counts: dict[str, int] = {}
 
         with store._connect() as conn:  # type: ignore[attr-defined]
             rows = conn.execute("SELECT status, COUNT(*) AS c FROM actions GROUP BY status").fetchall()
@@ -1982,7 +1988,7 @@ def action_metrics(window_hours: int = Query(default=24, ge=1, le=168)):
     metrics["runner_lease"] = lease.model_dump() if lease else None
     stuck_ids = store.list_stuck_processing_action_ids(older_than_seconds=180, limit=20)
     metrics["stuck_processing"] = {"older_than_seconds": 180, "count": len(stuck_ids), "action_ids": stuck_ids}
-    metrics["timestamp"] = datetime.now(timezone.utc).isoformat()
+    metrics["timestamp"] = datetime.now(UTC).isoformat()
     return metrics
 
 
@@ -2001,12 +2007,12 @@ def plan_action(request: KineticActionPlanRequest):
 
 
 # Cached dependency health checks for ops endpoints (avoid spawning processes per request).
-_DEPENDENCY_HEALTH_CACHE: Dict[str, Any] = {}
+_DEPENDENCY_HEALTH_CACHE: dict[str, Any] = {}
 
 
-def _gmail_mcp_health_cached() -> Dict[str, Any]:
+def _gmail_mcp_health_cached() -> dict[str, Any]:
     ttl_s = int(os.getenv("ZAKOPS_GMAIL_MCP_HEALTH_TTL_SECONDS", "30") or "30")
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     cached = _DEPENDENCY_HEALTH_CACHE.get("gmail_mcp")
     if isinstance(cached, dict):
         checked_at = cached.get("_checked_at")
@@ -2039,7 +2045,7 @@ def actions_runner_status():
     store = get_kinetic_action_store()
     lease = store.get_runner_lease(runner_name="kinetic_actions")
     metrics = store.action_metrics(window_hours=24)
-    now_iso = datetime.now(timezone.utc).isoformat()
+    now_iso = datetime.now(UTC).isoformat()
 
     runner_alive = False
     if lease:
@@ -2047,7 +2053,7 @@ def actions_runner_status():
             from datetime import datetime as _dt
 
             lease_exp = _dt.fromisoformat(lease.lease_expires_at.replace("Z", "+00:00"))
-            runner_alive = lease_exp > _dt.now(timezone.utc)
+            runner_alive = lease_exp > _dt.now(UTC)
         except Exception:
             runner_alive = False
 
@@ -2058,10 +2064,10 @@ def actions_runner_status():
     except Exception:
         pass
 
-    error_breakdown: List[Dict[str, Any]] = []
+    error_breakdown: list[dict[str, Any]] = []
     try:
-        cutoff = (datetime.now(timezone.utc) - timedelta(hours=24)).isoformat().replace("+00:00", "Z")
-        error_counts: Dict[str, int] = {}
+        cutoff = (datetime.now(UTC) - timedelta(hours=24)).isoformat().replace("+00:00", "Z")
+        error_counts: dict[str, int] = {}
         with store._connect() as conn:  # type: ignore[attr-defined]
             rows = conn.execute(
                 "SELECT error FROM actions WHERE status='FAILED' AND updated_at >= ? AND error IS NOT NULL",
@@ -2124,7 +2130,7 @@ def prometheus_metrics():
     if lease:
         try:
             lease_exp = datetime.fromisoformat(str(lease.lease_expires_at).replace("Z", "+00:00"))
-            runner_alive = 1 if lease_exp > datetime.now(timezone.utc) else 0
+            runner_alive = 1 if lease_exp > datetime.now(UTC) else 0
         except Exception:
             runner_alive = 0
 
@@ -2152,7 +2158,7 @@ def prometheus_metrics():
 
     gmail_ok = 1 if bool((_gmail_mcp_health_cached() or {}).get("ok")) else 0
 
-    lines: List[str] = []
+    lines: list[str] = []
     lines.append("# HELP zakops_actions_total Total actions stored in the action DB.")
     lines.append("# TYPE zakops_actions_total gauge")
     lines.append(f"zakops_actions_total {int(metrics.get('total') or 0)}")
@@ -2200,17 +2206,17 @@ def system_diagnostics():
     - runner: alive status, queue sizes
     - vllm: model availability
     """
-    from datetime import datetime, timezone, timedelta
+    from datetime import datetime
 
-    now = datetime.now(timezone.utc)
-    result: Dict[str, Any] = {"timestamp": now.isoformat()}
+    now = datetime.now(UTC)
+    result: dict[str, Any] = {"timestamp": now.isoformat()}
 
     # 1. Triage stats from persisted file
     triage_stats_path = DATAROOM_ROOT / ".triage_stats.json"
     triage_stats_fallback = DATAROOM_ROOT / ".deal-registry" / "triage_stats.json"
     if (not triage_stats_path.exists()) and triage_stats_fallback.exists():
         triage_stats_path = triage_stats_fallback
-    triage: Dict[str, Any] = {"healthy": False, "reason": "no_stats_file"}
+    triage: dict[str, Any] = {"healthy": False, "reason": "no_stats_file"}
     if triage_stats_path.exists():
         try:
             stats = json.loads(triage_stats_path.read_text())
@@ -2282,7 +2288,7 @@ def system_diagnostics():
 
 
 @app.post("/api/actions/{action_id}/unstick")
-def unstick_kinetic_action(action_id: str, request: Optional[KineticActionUnstickRequest] = Body(default=None)):
+def unstick_kinetic_action(action_id: str, request: KineticActionUnstickRequest | None = Body(default=None)):
     """
     Operator admin endpoint: force a stuck PROCESSING action back to READY.
 
@@ -2355,7 +2361,7 @@ def debug_kinetic_action(action_id: str):
 
     audit_tail = (action.audit_trail or [])[-10:]
 
-    transitions: Dict[str, Optional[str]] = {}
+    transitions: dict[str, str | None] = {}
     try:
         for ev in action.audit_trail or []:
             name = (ev.event or "").strip()
@@ -2366,7 +2372,7 @@ def debug_kinetic_action(action_id: str):
         transitions = {}
 
     return {
-        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "timestamp": datetime.now(UTC).isoformat(),
         "action": action.model_dump(),
         "audit_tail": [e.model_dump() for e in audit_tail],
         "last_tool_invocation": last_tool,
@@ -2374,10 +2380,10 @@ def debug_kinetic_action(action_id: str):
     }
 
 
-def _triage_action_to_quarantine_item(action: Any) -> Dict[str, Any]:
+def _triage_action_to_quarantine_item(action: Any) -> dict[str, Any]:
     """Normalize an EMAIL_TRIAGE.REVIEW_EMAIL action to the legacy /api/quarantine item shape."""
     try:
-        payload: Dict[str, Any] = action.model_dump()
+        payload: dict[str, Any] = action.model_dump()
     except Exception:
         payload = dict(action or {})
 
@@ -2506,7 +2512,7 @@ def get_quarantine_action_preview(action_id: str):
 
     # Attachments inventory (from inputs + filesystem presence).
     attachments_in = inputs.get("attachments") or []
-    att_items: List[Dict[str, Any]] = []
+    att_items: list[dict[str, Any]] = []
     if isinstance(attachments_in, list):
         for a in attachments_in:
             if not isinstance(a, dict):
@@ -2538,15 +2544,15 @@ def get_quarantine_action_preview(action_id: str):
         normalized_result = {"groups": {}, "all_unique": [], "unique_count": 0, "total_count": 0}
 
     # Build legacy-compatible grouped structure while adding new categorization
-    grouped: Dict[str, List[Dict[str, Any]]] = {
+    grouped: dict[str, list[dict[str, Any]]] = {
         k: [] for k in ["deal_material", "tracking", "social", "unsubscribe", "calendar", "portal", "contact", "other"]
     }
     # Also maintain backwards-compatible groups for UI
-    legacy_grouped: Dict[str, List[Dict[str, Any]]] = {
+    legacy_grouped: dict[str, list[dict[str, Any]]] = {
         k: [] for k in ["dataroom", "cim", "teaser", "nda", "financials", "calendar", "docs", "other"]
     }
 
-    all_links: List[Dict[str, Any]] = []
+    all_links: list[dict[str, Any]] = []
     for link in normalized_result.get("all_unique", []):
         entry = {
             "type": link.get("link_type", "other"),
@@ -2597,7 +2603,7 @@ def get_quarantine_action_preview(action_id: str):
         if money:
             asking_price = money[0].strip()
 
-    summary: List[str] = []
+    summary: list[str] = []
     if classification or urgency:
         summary.append(f"Classification: {classification or 'unknown'} ({urgency or 'unknown'} urgency)")
     if company_guess:
@@ -2667,7 +2673,7 @@ def get_quarantine_action_preview(action_id: str):
 
 class QuarantineRejectRequest(BaseModel):
     operator: str = Field(..., min_length=1, description="Operator name/initials")
-    reason: Optional[str] = Field(default=None, description="Rejection reason")
+    reason: str | None = Field(default=None, description="Rejection reason")
 
 
 @app.post("/api/actions/quarantine/{action_id}/reject")
@@ -2787,7 +2793,7 @@ def reject_quarantine_item(action_id: str, request: QuarantineRejectRequest):
 
 class QuarantineApproveRequest(BaseModel):
     operator: str = Field(..., min_length=1, description="Operator name/initials")
-    link_to_deal_id: Optional[str] = Field(default=None, description="Link to existing deal instead of creating new")
+    link_to_deal_id: str | None = Field(default=None, description="Link to existing deal instead of creating new")
 
 
 @app.post("/api/actions/quarantine/{action_id}/approve")
@@ -2805,7 +2811,8 @@ def approve_quarantine_item(action_id: str, request: QuarantineApproveRequest):
     This is idempotent: re-approving already-processed action returns success with deal_id.
     """
     from dataclasses import asdict
-    from actions.engine.models import ActionPayload, compute_idempotency_key, now_utc_iso
+
+    from actions.engine.models import compute_idempotency_key
     from actions.executors.registry import get_executor
 
     store = get_kinetic_action_store()
@@ -3023,8 +3030,8 @@ def debug_actions_missing_executors(limit: int = Query(default=100, ge=1, le=500
     from actions.executors.registry import list_executors
 
     executors = set(list_executors())
-    missing_types: List[str] = []
-    actions: List[Dict[str, Any]] = []
+    missing_types: list[str] = []
+    actions: list[dict[str, Any]] = []
 
     try:
         with store._connect() as conn:  # type: ignore[attr-defined]
@@ -3053,8 +3060,9 @@ def debug_actions_capability_mismatches(limit: int = Query(default=200, ge=1, le
     Operator tooling: find actions whose capability_id is missing/invalid or mismatched vs action.type.
     """
     store = get_kinetic_action_store()
-    from actions.capabilities.registry import get_registry as get_capability_registry
     from tools.registry import get_tool_registry
+
+    from actions.capabilities.registry import get_registry as get_capability_registry
 
     cap_reg = get_capability_registry()
     try:
@@ -3062,7 +3070,7 @@ def debug_actions_capability_mismatches(limit: int = Query(default=200, ge=1, le
     except Exception:
         pass
 
-    mismatches: List[Dict[str, Any]] = []
+    mismatches: list[dict[str, Any]] = []
     try:
         with store._connect() as conn:  # type: ignore[attr-defined]
             rows = conn.execute(
@@ -3160,7 +3168,7 @@ def get_tool(tool_id: str):
 @app.get("/api/quarantine/health")
 def quarantine_health():
     """Get quarantine health status."""
-    items: List[Dict[str, Any]] = []
+    items: list[dict[str, Any]] = []
 
     # Include action-backed quarantine (canonical).
     try:
@@ -3187,7 +3195,7 @@ def quarantine_health():
 @app.get("/api/quarantine")
 def list_quarantine():
     """List quarantine items needing resolution."""
-    items: List[Dict[str, Any]] = []
+    items: list[dict[str, Any]] = []
 
     # Canonical quarantine: pending triage actions (action-backed queue).
     try:
@@ -3381,7 +3389,7 @@ def list_checkpoints():
                         "status": cp.get("status", "unknown"),
                         "progress": cp.get("progress", 0),
                     })
-            except (json.JSONDecodeError, IOError):
+            except (OSError, json.JSONDecodeError):
                 continue
 
     return checkpoints
@@ -3483,8 +3491,8 @@ def get_alerts():
 def invoke_agent(agent_name: str, request: AgentInvokeRequest):
     """Invoke an agent with a task."""
     from deal_case_manager import DealCaseManagerAgent
-    from deal_underwriter import UnderwriterAgent
     from deal_diligence_coordinator import DiligenceCoordinatorAgent
+    from deal_underwriter import UnderwriterAgent
 
     agents = {
         "case_manager": DealCaseManagerAgent,
@@ -3544,7 +3552,7 @@ def get_agent_history(agent_name: str, limit: int = Query(default=20, le=100)):
         return {"agent": agent_name, "invocations": []}
 
     invocations = []
-    with open(ledger_path, "r") as f:
+    with open(ledger_path) as f:
         for line in f:
             try:
                 entry = json.loads(line.strip())
@@ -3568,8 +3576,8 @@ def get_agent_history(agent_name: str, limit: int = Query(default=20, le=100)):
 @app.post("/api/chat")
 async def chat_stream(request: ChatRequest):
     """Chat with streaming SSE response."""
-    from fastapi.responses import StreamingResponse
     from chat_orchestrator import get_orchestrator
+    from fastapi.responses import StreamingResponse
 
     orchestrator = get_orchestrator()
 
@@ -3729,7 +3737,7 @@ async def llm_health():
 # ===== VERSION & HEALTH CHECK =====
 
 # Store server start time at module load
-_SERVER_START_TIME = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+_SERVER_START_TIME = datetime.now(UTC).isoformat().replace("+00:00", "Z")
 
 @app.get("/api/version")
 def get_version():
@@ -3764,7 +3772,7 @@ def get_version():
             "allow_cloud_default": os.environ.get("ALLOW_CLOUD_DEFAULT", "false"),
             "gemini_model_pro": os.environ.get("GEMINI_MODEL_PRO", "gemini-2.5-pro"),
             "registry_path": str(REGISTRY_PATH) if 'REGISTRY_PATH' in dir() else "unknown",
-            "case_file_dir": str(CASE_FILE_DIR) if 'CASE_FILE_DIR' in dir() else "unknown",
+            "case_file_dir": str(CASE_FILE_DIR) if 'CASE_FILE_DIR' in dir() else "unknown",  # noqa: F821
         },
     }
 
@@ -3775,8 +3783,8 @@ def get_debug_config():
     Return full debug configuration for deployment verification.
     Includes all paths, service info, and current working directory.
     """
-    import subprocess
     import getpass
+    import subprocess
 
     # Get git commits from both repos
     git_commits = {}
@@ -3836,7 +3844,7 @@ def health_check():
     """API health check."""
     return {
         "status": "healthy",
-        "timestamp": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
+        "timestamp": datetime.now(UTC).isoformat().replace("+00:00", "Z"),
         "version": "1.0.0",
     }
 

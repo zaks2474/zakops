@@ -9,13 +9,12 @@ Sessions are stored in memory for simplicity (can be upgraded to Redis).
 
 import os
 import secrets
-from datetime import datetime, timezone, timedelta
-from typing import Optional, Dict, List
-from dataclasses import dataclass, field
+from dataclasses import dataclass
+from datetime import UTC, datetime, timedelta
 from uuid import UUID
 
 # Session storage (in-memory for now, upgrade to Redis for production)
-_sessions: Dict[str, "SessionData"] = {}
+_sessions: dict[str, "SessionData"] = {}
 
 # Configuration
 SESSION_EXPIRY_HOURS = int(os.getenv("SESSION_EXPIRY_HOURS", "24"))
@@ -30,12 +29,12 @@ class SessionData:
     operator_id: UUID
     created_at: datetime
     expires_at: datetime
-    ip_address: Optional[str] = None
-    user_agent: Optional[str] = None
+    ip_address: str | None = None
+    user_agent: str | None = None
 
     def is_expired(self) -> bool:
         """Check if the session has expired."""
-        return datetime.now(timezone.utc) > self.expires_at
+        return datetime.now(UTC) > self.expires_at
 
     def to_dict(self) -> dict:
         """Convert session data to dictionary."""
@@ -55,8 +54,8 @@ def generate_session_id() -> str:
 
 def create_session(
     operator_id: UUID,
-    ip_address: Optional[str] = None,
-    user_agent: Optional[str] = None
+    ip_address: str | None = None,
+    user_agent: str | None = None
 ) -> SessionData:
     """
     Create a new session for an operator.
@@ -70,7 +69,7 @@ def create_session(
         SessionData with session_id to be set as cookie
     """
     session_id = generate_session_id()
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
 
     session = SessionData(
         session_id=session_id,
@@ -85,7 +84,7 @@ def create_session(
     return session
 
 
-def validate_session(session_id: str) -> Optional[SessionData]:
+def validate_session(session_id: str) -> SessionData | None:
     """
     Validate a session ID and return session data.
 
@@ -124,7 +123,7 @@ def invalidate_session(session_id: str) -> bool:
     return False
 
 
-def get_active_sessions(operator_id: UUID) -> List[SessionData]:
+def get_active_sessions(operator_id: UUID) -> list[SessionData]:
     """Get all active sessions for an operator."""
     return [
         s for s in _sessions.values()

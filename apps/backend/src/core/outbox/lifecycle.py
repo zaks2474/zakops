@@ -6,8 +6,8 @@ Phase 3: Execution Hardening
 Integrates outbox processor with FastAPI application lifecycle.
 """
 
-import os
 import logging
+import os
 from contextlib import asynccontextmanager
 
 from .processor import start_outbox_processor, stop_outbox_processor

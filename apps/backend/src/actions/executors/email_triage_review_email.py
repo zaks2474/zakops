@@ -4,15 +4,20 @@ import json
 import os
 import re
 import shutil
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
-from actions.engine.models import ActionError, ActionPayload, ArtifactMetadata, now_utc_iso
-from actions.executors.base import ActionExecutionError, ActionExecutor, ExecutionContext, ExecutionResult
-from actions.memory.triage_feedback import append_feedback, build_feedback_entry
 from integrations.n8n_webhook import emit_quarantine_approved
 
+from actions.engine.models import ActionError, ActionPayload, ArtifactMetadata, now_utc_iso
+from actions.executors.base import (
+    ActionExecutionError,
+    ActionExecutor,
+    ExecutionContext,
+    ExecutionResult,
+)
+from actions.memory.triage_feedback import append_feedback, build_feedback_entry
 
 # ============================================================================
 # Financial Extraction Helpers
@@ -23,7 +28,7 @@ _MONEY_RE = re.compile(
     re.IGNORECASE,
 )
 
-def _parse_money(text: str) -> Optional[float]:
+def _parse_money(text: str) -> float | None:
     """Parse a money string like '$145,000', '$350K', '$1.5M' into a float."""
     m = _MONEY_RE.search(text or "")
     if not m:
@@ -41,13 +46,13 @@ def _parse_money(text: str) -> Optional[float]:
     return value
 
 
-def _extract_financials_from_text(text: str) -> Dict[str, Any]:
+def _extract_financials_from_text(text: str) -> dict[str, Any]:
     """
     Extract financial data from email/triage text.
 
     Returns dict with keys: asking_price, ebitda, revenue, sde
     """
-    result: Dict[str, Any] = {
+    result: dict[str, Any] = {
         "asking_price": None,
         "ebitda": None,
         "revenue": None,
@@ -56,7 +61,7 @@ def _extract_financials_from_text(text: str) -> Dict[str, Any]:
     if not text:
         return result
 
-    text_lower = text.lower()
+    text.lower()
 
     # Patterns for extracting financial values
     patterns = {
@@ -101,7 +106,7 @@ def _extract_financials_from_text(text: str) -> Dict[str, Any]:
     return result
 
 
-def _extract_sector_from_text(text: str) -> Optional[str]:
+def _extract_sector_from_text(text: str) -> str | None:
     """Extract business sector/industry from text."""
     if not text:
         return None
@@ -126,7 +131,7 @@ def _extract_sector_from_text(text: str) -> Optional[str]:
     return None
 
 
-def _extract_location_from_text(text: str) -> Optional[str]:
+def _extract_location_from_text(text: str) -> str | None:
     """Extract location from text (US states, cities)."""
     if not text:
         return None
@@ -243,7 +248,7 @@ def _score_name(name: str, *, base: float, is_code_name: bool) -> float:
     return score
 
 
-def _resolve_deal_display_name(*, inputs: Dict[str, Any], subject: str, body: str, sender: str) -> Tuple[str, str]:
+def _resolve_deal_display_name(*, inputs: dict[str, Any], subject: str, body: str, sender: str) -> tuple[str, str]:
     """
     Resolve a business-name-first deal display name.
 
@@ -288,7 +293,7 @@ def _resolve_deal_display_name(*, inputs: Dict[str, Any], subject: str, body: st
     return best_name, best_reason
 
 
-def _parse_email_date(raw: str) -> Optional[datetime]:
+def _parse_email_date(raw: str) -> datetime | None:
     text = (raw or "").strip()
     if not text:
         return None
@@ -307,12 +312,12 @@ def _parse_email_date(raw: str) -> Optional[datetime]:
         return None
 
 
-def _timestamp_prefix(dt: Optional[datetime]) -> str:
+def _timestamp_prefix(dt: datetime | None) -> str:
     if dt is None:
-        dt = datetime.now(timezone.utc)
+        dt = datetime.now(UTC)
     if dt.tzinfo is None:
-        dt = dt.replace(tzinfo=timezone.utc)
-    return dt.astimezone(timezone.utc).strftime("%Y%m%d-%H%M%S")
+        dt = dt.replace(tzinfo=UTC)
+    return dt.astimezone(UTC).strftime("%Y%m%d-%H%M%S")
 
 
 def _create_deal_workspace(*, deal_path: Path, deal_name: str, email_from: str, email_subject: str, email_received: str, email_body: str) -> None:
@@ -375,7 +380,7 @@ def _create_deal_workspace(*, deal_path: Path, deal_name: str, email_from: str, 
     (deal_path / "README.md").write_text(readme, encoding="utf-8")
 
 
-def _copy_quarantine_payload(*, quarantine_dir: Path, dest_dir: Path) -> Tuple[int, int]:
+def _copy_quarantine_payload(*, quarantine_dir: Path, dest_dir: Path) -> tuple[int, int]:
     """
     Copy quarantine contents into dest_dir.
 
@@ -415,7 +420,7 @@ class EmailTriageReviewEmailExecutor(ActionExecutor):
 
     action_type = "EMAIL_TRIAGE.REVIEW_EMAIL"
 
-    def validate(self, payload: ActionPayload) -> tuple[bool, Optional[str]]:
+    def validate(self, payload: ActionPayload) -> tuple[bool, str | None]:
         msg_id = str((payload.inputs or {}).get("message_id") or "").strip()
         subject = str((payload.inputs or {}).get("subject") or "").strip()
         if not msg_id:
@@ -792,7 +797,7 @@ class EmailTriageReviewEmailExecutor(ActionExecutor):
                 }
             )
 
-        outputs: Dict[str, Any] = {
+        outputs: dict[str, Any] = {
             "deal_id": deal_id,
             "deal_folder": str(deal_path),
             "created_new_deal": created_new_deal,
@@ -800,7 +805,7 @@ class EmailTriageReviewEmailExecutor(ActionExecutor):
             "next_actions": next_actions,
         }
 
-        artifacts: List[ArtifactMetadata] = []
+        artifacts: list[ArtifactMetadata] = []
 
         # Operator feedback dataset (minimal; no raw bodies). Best-effort.
         try:
