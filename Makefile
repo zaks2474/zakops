@@ -232,14 +232,14 @@ demo: ## Run demo script
 dev: ## Start all services for development
 	@echo "$(YELLOW)Starting services...$(RESET)"
 	@echo "Agent API: http://localhost:8095"
-	@echo "Backend (Deal Lifecycle): http://localhost:8090"
+	@echo "Backend (Deal Lifecycle): http://localhost:8091"
 	@echo "Dashboard: http://localhost:3003"
 
 dev-agent-api: ## Start agent-api dev server
 	cd apps/agent-api && uv run uvicorn app.main:app --reload --port 8095
 
 dev-backend: ## Start backend dev server
-	cd apps/backend && python -m uvicorn src.api.deal_lifecycle.main:app --reload --port 8090
+	cd apps/backend && python -m uvicorn src.api.deal_lifecycle.main:app --reload --port 8091
 
 dev-dashboard: ## Start dashboard dev server
 	cd apps/dashboard && npm run dev
