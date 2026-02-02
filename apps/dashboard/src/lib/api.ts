@@ -942,12 +942,15 @@ export async function transitionDeal(
   reason: string,
   approvedBy: string
 ): Promise<{ success: boolean; message?: string }> {
-  return apiFetch(`/api/deals/${dealId}/transition`, {
+  const params = new URLSearchParams();
+  if (approvedBy) params.set('transitioned_by', approvedBy);
+  const qs = params.toString();
+
+  return apiFetch(`/api/deals/${dealId}/transition${qs ? `?${qs}` : ''}`, {
     method: 'POST',
     body: JSON.stringify({
-      to_stage: toStage,
+      new_stage: toStage,
       reason,
-      approved_by: approvedBy,
     }),
   });
 }
