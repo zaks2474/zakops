@@ -15,7 +15,6 @@ from typing import (
     List,
     Optional,
 )
-from urllib.parse import quote_plus
 
 from asgiref.sync import sync_to_async
 from langchain_core.messages import (
@@ -135,11 +134,7 @@ class LangGraphAgent:
             try:
                 max_size = settings.POSTGRES_POOL_SIZE
 
-                connection_url = (
-                    "postgresql://"
-                    f"{quote_plus(settings.POSTGRES_USER)}:{quote_plus(settings.POSTGRES_PASSWORD)}"
-                    f"@{settings.POSTGRES_HOST}:{settings.POSTGRES_PORT}/{settings.POSTGRES_DB}"
-                )
+                connection_url = settings.DATABASE_URL
 
                 self._connection_pool = AsyncConnectionPool(
                     connection_url,

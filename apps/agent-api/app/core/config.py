@@ -16,6 +16,7 @@ from typing import (
     Optional,
     Union,
 )
+from urllib.parse import unquote, urlparse
 
 from dotenv import load_dotenv
 
@@ -175,11 +176,29 @@ class Settings:
         self.LOG_FORMAT = os.getenv("LOG_FORMAT", "json")  # "json" or "console"
 
         # Postgres Configuration
-        self.POSTGRES_HOST = os.getenv("POSTGRES_HOST", "localhost")
-        self.POSTGRES_PORT = int(os.getenv("POSTGRES_PORT", "5432"))
-        self.POSTGRES_DB = os.getenv("POSTGRES_DB", "food_order_db")
-        self.POSTGRES_USER = os.getenv("POSTGRES_USER", "postgres")
-        self.POSTGRES_PASSWORD = os.getenv("POSTGRES_PASSWORD", "postgres")
+        self.DATABASE_URL = os.getenv("DATABASE_URL", "").strip()
+        if not self.DATABASE_URL:
+            raise ValueError("DATABASE_URL is required — refusing to start with defaults")
+
+        parsed_db_url = urlparse(self.DATABASE_URL)
+        normalized_scheme = parsed_db_url.scheme
+        if normalized_scheme in {"postgres", "postgresql+psycopg"}:
+            parsed_db_url = parsed_db_url._replace(scheme="postgresql")
+            self.DATABASE_URL = parsed_db_url.geturl()
+
+        if parsed_db_url.scheme != "postgresql":
+            raise ValueError("DATABASE_URL must be a Postgres URL (postgresql://...)")
+
+        self.POSTGRES_HOST = parsed_db_url.hostname or ""
+        self.POSTGRES_PORT = parsed_db_url.port or 5432
+        self.POSTGRES_DB = parsed_db_url.path.lstrip("/")
+        self.POSTGRES_USER = unquote(parsed_db_url.username or "")
+        self.POSTGRES_PASSWORD = unquote(parsed_db_url.password or "")
+
+        if not self.POSTGRES_HOST or not self.POSTGRES_DB or not self.POSTGRES_USER:
+            raise ValueError("DATABASE_URL must include user, host, and database name")
+        if parsed_db_url.password is None:
+            raise ValueError("DATABASE_URL must include a password (no silent defaults)")
         self.POSTGRES_POOL_SIZE = int(os.getenv("POSTGRES_POOL_SIZE", "20"))
         self.POSTGRES_MAX_OVERFLOW = int(os.getenv("POSTGRES_MAX_OVERFLOW", "10"))
         self.CHECKPOINT_TABLES = ["checkpoint_blobs", "checkpoint_writes", "checkpoints"]

@@ -39,10 +39,11 @@ class DatabaseService:
             max_overflow = settings.POSTGRES_MAX_OVERFLOW
 
             # Create engine with appropriate pool configuration
-            connection_url = (
-                f"postgresql+psycopg://{settings.POSTGRES_USER}:{settings.POSTGRES_PASSWORD}"
-                f"@{settings.POSTGRES_HOST}:{settings.POSTGRES_PORT}/{settings.POSTGRES_DB}"
-            )
+            connection_url = settings.DATABASE_URL
+            if connection_url.startswith("postgresql://"):
+                connection_url = "postgresql+psycopg://" + connection_url[len("postgresql://") :]
+            elif connection_url.startswith("postgres://"):
+                connection_url = "postgresql+psycopg://" + connection_url[len("postgres://") :]
 
             self.engine = create_engine(
                 connection_url,
