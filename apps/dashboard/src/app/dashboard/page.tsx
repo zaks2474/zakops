@@ -42,10 +42,9 @@ const STAGE_ORDER = [
   'loi',
   'diligence',
   'closing',
-  'integration',
-  'operations',
-  'growth',
-  'exit_planning'
+  'portfolio',
+  'junk',
+  'archived'
 ];
 
 const STAGE_COLORS: Record<string, string> = {
@@ -55,10 +54,9 @@ const STAGE_COLORS: Record<string, string> = {
   loi: 'bg-teal-500',
   diligence: 'bg-green-500',
   closing: 'bg-emerald-500',
-  integration: 'bg-lime-500',
-  operations: 'bg-yellow-500',
-  growth: 'bg-amber-500',
-  exit_planning: 'bg-orange-500',
+  portfolio: 'bg-green-700',
+  junk: 'bg-red-700',
+  archived: 'bg-gray-500',
 };
 
 export default function DashboardPage() {

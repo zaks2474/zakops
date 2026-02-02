@@ -57,10 +57,9 @@ const STAGES = [
   'loi',
   'diligence',
   'closing',
-  'integration',
-  'operations',
-  'growth',
-  'exit_planning'
+  'portfolio',
+  'junk',
+  'archived'
 ];
 
 const STATUSES = ['active', 'junk', 'merged'];
