@@ -1170,7 +1170,7 @@ export default function DealWorkspacePage() {
                     <ScrollArea className='h-[500px]'>
                       <div className='space-y-4'>
                         {events.map((event, i) => (
-                          <div key={event.event_id || i} className='relative pl-6 pb-4 border-l-2 border-muted last:pb-0'>
+                          <div key={event.id || i} className='relative pl-6 pb-4 border-l-2 border-muted last:pb-0'>
                             <div className='absolute -left-[9px] top-0 h-4 w-4 rounded-full bg-background border-2 border-primary' />
                             <div className='flex items-start justify-between'>
                               <div>
@@ -1180,14 +1180,14 @@ export default function DealWorkspacePage() {
                                 )}
                               </div>
                               <span className='text-xs text-muted-foreground'>
-                                {event.timestamp
-                                  ? format(new Date(event.timestamp), 'MMM d, yyyy HH:mm')
+                                {event.created_at
+                                  ? format(new Date(event.created_at), 'MMM d, yyyy HH:mm')
                                   : '-'}
                               </span>
                             </div>
-                            {event.data && (
+                            {event.details && (
                               <pre className='mt-2 text-xs bg-muted p-2 rounded overflow-auto max-h-32'>
-                                {JSON.stringify(event.data, null, 2)}
+                                {JSON.stringify(event.details, null, 2)}
                               </pre>
                             )}
                           </div>

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { agentProvider } from '@/lib/agent/provider-service';
+import { backendHeaders } from '@/lib/backend-fetch';
 import type { AgentMessage } from '@/lib/agent/types';
 
 const AGENT_API_URL = process.env.NEXT_PUBLIC_AGENT_API_URL || process.env.AGENT_API_URL || 'http://localhost:8095';
@@ -96,7 +97,7 @@ export async function POST(request: NextRequest) {
         const backendUrl = `${BACKEND_URL}/api/agent/invoke`;
         const response = await fetch(backendUrl, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: backendHeaders(),
           body: JSON.stringify({
             deal_id: body.scope.deal_id,
             task: userMessage,

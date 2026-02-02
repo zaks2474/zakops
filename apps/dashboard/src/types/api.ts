@@ -107,21 +107,20 @@ export interface DealUpdate {
 }
 
 export interface DealAlias {
-  id: number;
+  id: string;
+  deal_id?: string;
   alias: string;
   alias_type: string;
-  confidence: number;
-  source: string;
   created_at: string;
 }
 
 export interface DealEvent {
-  id: number;
-  deal_id: string;
+  id: string;
+  deal_id?: string;
   event_type: string;
-  source: string;
+  source?: string;
   actor: string | null;
-  details: Record<string, unknown>;
+  details: Record<string, unknown> | null;
   created_at: string;
 }
 

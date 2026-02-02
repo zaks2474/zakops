@@ -8,6 +8,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
+import { backendHeaders } from '@/lib/backend-fetch';
 
 const BACKEND_URL = process.env.BACKEND_URL || process.env.API_URL || 'http://localhost:8091';
 
@@ -40,9 +41,7 @@ export async function POST(request: NextRequest) {
     // Try to proxy to backend
     const backendResponse = await fetch(`${BACKEND_URL}/api/actions/bulk/delete`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: backendHeaders(),
       body: JSON.stringify({ action_ids }),
     });
 

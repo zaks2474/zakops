@@ -53,43 +53,43 @@ export const SenderTypeSchema = z.enum(['broker', 'seller', 'advisor', 'platform
 // =============================================================================
 
 export const DealIdentifiersSchema = z.object({
-  listing_ids: z.array(z.string()),
-  broker_reference_ids: z.array(z.string()),
-  bizbuysell_id: z.string().nullable(),
-  axial_id: z.string().nullable(),
-  internal_codes: z.array(z.string()),
-});
+  listing_ids: z.array(z.string()).optional().default([]),
+  broker_reference_ids: z.array(z.string()).optional().default([]),
+  bizbuysell_id: z.string().nullable().optional(),
+  axial_id: z.string().nullable().optional(),
+  internal_codes: z.array(z.string()).optional().default([]),
+}).passthrough();
 
 export const CompanyInfoSchema = z.object({
-  company_name: z.string().nullable(),
-  legal_entity: z.string().nullable(),
-  dba_names: z.array(z.string()),
-  location: z.string().nullable(),
-  sector: z.string().nullable(),
-  franchise_system: z.string().nullable(),
-});
+  company_name: z.string().nullable().optional(),
+  legal_entity: z.string().nullable().optional(),
+  dba_names: z.array(z.string()).optional().default([]),
+  location: z.string().nullable().optional(),
+  sector: z.string().nullable().optional(),
+  franchise_system: z.string().nullable().optional(),
+}).passthrough();
 
 export const BrokerInfoSchema = z.object({
-  broker_id: z.string().nullable(),
-  name: z.string().nullable(),
-  email: z.string().nullable(),
-  phone: z.string().nullable(),
-  company: z.string().nullable(),
-  quality_rating: PrioritySchema,
-  sectors: z.array(z.string()),
-  domain: z.string().nullable(),
-});
+  broker_id: z.string().nullable().optional(),
+  name: z.string().nullable().optional(),
+  email: z.string().nullable().optional(),
+  phone: z.string().nullable().optional(),
+  company: z.string().nullable().optional(),
+  quality_rating: PrioritySchema.optional(),
+  sectors: z.array(z.string()).optional().default([]),
+  domain: z.string().nullable().optional(),
+}).passthrough();
 
 export const DealMetadataSchema = z.object({
-  priority: PrioritySchema,
-  asking_price: z.number().nullable(),
-  ebitda: z.number().nullable(),
-  revenue: z.number().nullable(),
-  employees: z.number().nullable(),
-  nda_status: NdaStatusSchema,
-  cim_received: z.boolean(),
-  junk_reason: z.string().nullable(),
-});
+  priority: PrioritySchema.optional(),
+  asking_price: z.number().nullable().optional(),
+  ebitda: z.number().nullable().optional(),
+  revenue: z.number().nullable().optional(),
+  employees: z.number().nullable().optional(),
+  nda_status: NdaStatusSchema.optional(),
+  cim_received: z.boolean().optional(),
+  junk_reason: z.string().nullable().optional(),
+}).passthrough();
 
 export const AuditEntrySchema = z.object({
   action: z.string(),
@@ -122,20 +122,20 @@ export const QuarantineLinkSchema = z.object({
 export const DealSchema = z.object({
   deal_id: z.string(),
   canonical_name: z.string(),
-  display_name: z.string().nullable(),
-  folder_path: z.string().nullable(),
+  display_name: z.string().nullable().optional(),
+  folder_path: z.string().nullable().optional(),
   stage: DealStageSchema,
   status: DealStatusSchema,
-  identifiers: DealIdentifiersSchema,
-  company_info: CompanyInfoSchema,
-  broker: BrokerInfoSchema,
-  metadata: DealMetadataSchema,
-  email_thread_ids: z.array(z.string()),
+  identifiers: DealIdentifiersSchema.or(z.record(z.unknown())).optional(),
+  company_info: CompanyInfoSchema.or(z.record(z.unknown())).optional(),
+  broker: BrokerInfoSchema.or(z.record(z.unknown())).optional(),
+  metadata: DealMetadataSchema.or(z.record(z.unknown())).optional(),
+  email_thread_ids: z.array(z.string()).optional().default([]),
   created_at: z.string(),
   updated_at: z.string(),
-  days_since_update: z.number().optional(),
-  action_count: z.number().optional(),
-  alias_count: z.number().optional(),
+  days_since_update: z.number().nullable().optional(),
+  action_count: z.number().nullable().optional(),
+  alias_count: z.number().nullable().optional(),
 });
 
 export const DealCreateSchema = z.object({
@@ -163,21 +163,20 @@ export const DealUpdateSchema = z.object({
 });
 
 export const DealEventSchema = z.object({
-  id: z.number(),
+  id: z.string(),
   deal_id: z.string(),
   event_type: z.string(),
   source: z.string(),
   actor: z.string().nullable(),
-  details: z.record(z.unknown()),
+  details: z.record(z.unknown()).nullable(),
   created_at: z.string(),
 });
 
 export const DealAliasSchema = z.object({
-  id: z.number(),
+  id: z.string(),
+  deal_id: z.string().optional(),
   alias: z.string(),
   alias_type: z.string(),
-  confidence: z.number(),
-  source: z.string(),
   created_at: z.string(),
 });
 

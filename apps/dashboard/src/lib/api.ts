@@ -81,7 +81,7 @@ export const DealSchema = z.object({
   created_at: z.string().nullable().optional(),
   days_since_update: z.preprocess(coerceToNumber, z.number().optional()),
   folder_path: z.string().optional().nullable(),
-});
+}).passthrough();
 
 export type Deal = z.infer<typeof DealSchema>;
 
@@ -141,13 +141,15 @@ export const ActionSchema = z.object({
 
 export type Action = z.infer<typeof ActionSchema>;
 
-// Event schema
+// Event schema — matches backend deal_events response
 export const EventSchema = z.object({
-  event_id: z.string(),
+  id: z.string(),
+  deal_id: z.string().optional(),
   event_type: z.string(),
-  timestamp: z.string(),
+  source: z.string().optional(),
   actor: z.string().nullable().optional(),
-  data: z.any().optional(),
+  details: z.record(z.unknown()).nullable().optional(),
+  created_at: z.string(),
 });
 
 export type DealEvent = z.infer<typeof EventSchema>;
