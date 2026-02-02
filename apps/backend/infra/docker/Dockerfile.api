@@ -20,4 +20,4 @@ RUN useradd -m -u 1000 zakops && chown -R zakops:zakops /app
 USER zakops
 
 # Default command (overridden in docker-compose)
-CMD ["python", "-m", "uvicorn", "src.api.deal_lifecycle.main:app", "--host", "0.0.0.0", "--port", "8090"]
+CMD ["python", "-m", "uvicorn", "src.api.deal_lifecycle.main:app", "--host", "0.0.0.0", "--port", "8091"]
