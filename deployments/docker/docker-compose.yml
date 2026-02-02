@@ -49,7 +49,7 @@ services:
       context: ../../apps/backend
       dockerfile: infra/docker/Dockerfile.orchestration
     ports:
-      - "8091:8091"
+      - "9200:9200"
     environment:
       - DATABASE_URL=postgresql://zakops:zakops@postgres:5432/zakops
       - AGENT_API_URL=http://agent-api:8095
