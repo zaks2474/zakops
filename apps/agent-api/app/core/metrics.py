@@ -48,9 +48,13 @@ def setup_metrics(app):
     Args:
         app: FastAPI application instance
     """
-    # Expose Prometheus metrics endpoint (no copyleft middleware dependency).
-    app.add_route(
-        "/metrics",
-        lambda _: Response(generate_latest(), media_type=CONTENT_TYPE_LATEST),
-        methods=["GET"],
-    )
+    import os
+    from app.core.config import Environment, settings
+
+    # Only expose /metrics in development or when explicitly enabled (UF-005)
+    if settings.ENVIRONMENT == Environment.DEVELOPMENT or os.getenv("ENABLE_API_DOCS", "false").lower() == "true":
+        app.add_route(
+            "/metrics",
+            lambda _: Response(generate_latest(), media_type=CONTENT_TYPE_LATEST),
+            methods=["GET"],
+        )

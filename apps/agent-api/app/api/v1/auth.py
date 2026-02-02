@@ -4,6 +4,7 @@ This module provides endpoints for user registration, login, session management,
 and token verification.
 """
 
+import hmac
 import uuid
 from typing import List
 
@@ -181,7 +182,7 @@ async def get_session_or_service(
     """
     # Check service token first (for Dashboard and internal services)
     if x_service_token and settings.DASHBOARD_SERVICE_TOKEN:
-        if x_service_token == settings.DASHBOARD_SERVICE_TOKEN:
+        if hmac.compare_digest(x_service_token, settings.DASHBOARD_SERVICE_TOKEN):
             logger.info("service_token_auth_success", source="dashboard")
             # Return a synthetic service session
             return Session(

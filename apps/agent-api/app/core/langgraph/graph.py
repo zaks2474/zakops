@@ -66,6 +66,7 @@ from app.utils import (
     process_llm_response,
 )
 from app.core.idempotency import tool_idempotency_key
+from app.core.security.output_validation import sanitize_llm_output
 import os
 
 # Approval timeout in seconds (default 1 hour)
@@ -567,6 +568,17 @@ class LangGraphAgent:
                     response_text = str(msg.content)
                     break
 
+            # Sanitize LLM output before returning (UF-004)
+            if response_text:
+                sanitization_result = sanitize_llm_output(response_text)
+                if sanitization_result.was_modified:
+                    logger.warning(
+                        "llm_output_sanitized",
+                        modifications=sanitization_result.modifications,
+                        thread_id=thread_id,
+                    )
+                response_text = sanitization_result.sanitized
+
             # Update memory in background
             asyncio.create_task(
                 self._update_long_term_memory(
@@ -629,6 +641,13 @@ class LangGraphAgent:
                 if isinstance(msg, AIMessage) and msg.content:
                     response_text = str(msg.content)
                     break
+
+            # Sanitize LLM output (UF-004)
+            if response_text:
+                sanitization_result = sanitize_llm_output(response_text)
+                if sanitization_result.was_modified:
+                    logger.warning("llm_output_sanitized_on_resume", modifications=sanitization_result.modifications)
+                response_text = sanitization_result.sanitized
 
             logger.info(
                 "resume_after_approval_success",

@@ -67,7 +67,7 @@ async def chat(
         return ChatResponse(messages=result)
     except Exception as e:
         logger.error("chat_request_failed", session_id=session.id, error=str(e), exc_info=True)
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="An internal error occurred")
 
 
 @router.post("/chat/stream")
@@ -127,7 +127,7 @@ async def chat_stream(
                     error=str(e),
                     exc_info=True,
                 )
-                error_response = StreamResponse(content=str(e), done=True)
+                error_response = StreamResponse(content="An internal error occurred", done=True)
                 yield f"data: {json.dumps(error_response.model_dump())}\n\n"
 
         return StreamingResponse(event_generator(), media_type="text/event-stream")
@@ -139,7 +139,7 @@ async def chat_stream(
             error=str(e),
             exc_info=True,
         )
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="An internal error occurred")
 
 
 @router.get("/messages", response_model=ChatResponse)
@@ -165,7 +165,7 @@ async def get_session_messages(
         return ChatResponse(messages=messages)
     except Exception as e:
         logger.error("get_messages_failed", session_id=session.id, error=str(e), exc_info=True)
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="An internal error occurred")
 
 
 @router.delete("/messages")
@@ -188,4 +188,4 @@ async def clear_chat_history(
         return {"message": "Chat history cleared successfully"}
     except Exception as e:
         logger.error("clear_chat_history_failed", session_id=session.id, error=str(e), exc_info=True)
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="An internal error occurred")

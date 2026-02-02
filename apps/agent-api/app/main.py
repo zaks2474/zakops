@@ -23,7 +23,7 @@ from slowapi.errors import RateLimitExceeded
 
 from app.api.v1.api import api_router
 from app.api.v1.agent import router as agent_router
-from app.core.config import settings
+from app.core.config import Environment, settings
 from app.core.limiter import limiter
 from app.core.logging import logger
 from app.core.metrics import setup_metrics
@@ -57,11 +57,16 @@ async def lifespan(app: FastAPI):
     logger.info("application_shutdown")
 
 
+# Disable docs/openapi in non-development environments (UF-005)
+_enable_docs = settings.ENVIRONMENT == Environment.DEVELOPMENT or os.getenv("ENABLE_API_DOCS", "false").lower() == "true"
+
 app = FastAPI(
     title=settings.PROJECT_NAME,
     version=settings.VERSION,
     description=settings.DESCRIPTION,
-    openapi_url=f"{settings.API_V1_STR}/openapi.json",
+    openapi_url=f"{settings.API_V1_STR}/openapi.json" if _enable_docs else None,
+    docs_url="/docs" if _enable_docs else None,
+    redoc_url="/redoc" if _enable_docs else None,
     lifespan=lifespan,
 )
 
@@ -111,10 +116,18 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
     )
 
 
-# Set up CORS middleware
+# Set up CORS middleware (UF-010: explicit origins instead of wildcard)
+_cors_origins = settings.ALLOWED_ORIGINS
+if _cors_origins == ["*"]:
+    # Replace wildcard with known origins for credential-bearing requests
+    _cors_origins = [
+        "http://localhost:3003",
+        "http://localhost:3000",
+    ]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=settings.ALLOWED_ORIGINS,
+    allow_origins=_cors_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

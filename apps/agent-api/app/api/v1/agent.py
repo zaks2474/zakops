@@ -130,6 +130,7 @@ async def _reclaim_stale_approvals(db: Session) -> int:
 async def invoke_agent(
     request: Request,
     invoke_request: AgentInvokeRequest,
+    user: Optional[AgentUser] = Depends(get_agent_user),
 ):
     """Invoke the agent with a message.
 
@@ -202,7 +203,7 @@ async def invoke_agent(
             error=str(e),
             exc_info=True,
         )
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="An internal error occurred")
 
 
 @router.post("/approvals/{approval_id}:approve", response_model=AgentInvokeResponse)
@@ -471,7 +472,7 @@ async def approve_action(
             )
             raise HTTPException(
                 status_code=500,
-                detail=f"Execution failed: {str(resume_error)}"
+                detail="An internal error occurred"
             )
 
     except HTTPException:
@@ -483,7 +484,7 @@ async def approve_action(
             error=str(e),
             exc_info=True,
         )
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="An internal error occurred")
 
 
 @router.post("/approvals/{approval_id}:reject", response_model=AgentInvokeResponse)
@@ -592,7 +593,7 @@ async def reject_action(
             error=str(e),
             exc_info=True,
         )
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="An internal error occurred")
 
 
 @router.get("/approvals", response_model=ApprovalListResponse)
@@ -600,6 +601,7 @@ async def reject_action(
 async def list_pending_approvals(
     request: Request,
     actor_id: Optional[str] = None,
+    user: Optional[AgentUser] = Depends(get_agent_user),
 ):
     """List pending approvals.
 
@@ -642,7 +644,7 @@ async def list_pending_approvals(
 
     except Exception as e:
         logger.error("list_approvals_failed", error=str(e), exc_info=True)
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="An internal error occurred")
 
 
 @router.get("/approvals/{approval_id}", response_model=PendingApproval)
@@ -650,6 +652,7 @@ async def list_pending_approvals(
 async def get_approval(
     request: Request,
     approval_id: str,
+    user: Optional[AgentUser] = Depends(get_agent_user),
 ):
     """Get a specific approval by ID.
 
@@ -679,7 +682,7 @@ async def get_approval(
         raise
     except Exception as e:
         logger.error("get_approval_failed", approval_id=approval_id, error=str(e))
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="An internal error occurred")
 
 
 # ============================================================================
@@ -698,6 +701,7 @@ class ThreadStateResponse(BaseModel):
 async def get_thread_state(
     request: Request,
     thread_id: str,
+    user: Optional[AgentUser] = Depends(get_agent_user),
 ):
     """Get the current state of a thread.
 
@@ -745,7 +749,7 @@ async def get_thread_state(
 
     except Exception as e:
         logger.error("get_thread_state_failed", thread_id=thread_id, error=str(e))
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="An internal error occurred")
 
 
 # ============================================================================
@@ -758,6 +762,7 @@ async def get_thread_state(
 async def invoke_agent_stream(
     request: Request,
     invoke_request: AgentInvokeRequest,
+    user: Optional[AgentUser] = Depends(get_agent_user),
 ):
     """Stream agent invocation responses via SSE.
 
@@ -817,7 +822,7 @@ async def invoke_agent_stream(
                 actor_id=invoke_request.actor_id,
                 error=str(e),
             )
-            yield f"event: error\ndata: {{\"error\": \"{str(e)}\"}}\n\n"
+            yield f"event: error\ndata: {{\"error\": \"An internal error occurred\"}}\n\n"
 
     return StreamingResponse(
         event_generator(),

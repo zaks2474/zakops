@@ -28,7 +28,7 @@ from app.core.logging import logger
 AGENT_JWT_ISSUER = os.getenv("AGENT_JWT_ISSUER", "zakops-auth")
 AGENT_JWT_AUDIENCE = os.getenv("AGENT_JWT_AUDIENCE", "zakops-agent")
 AGENT_JWT_REQUIRED_ROLE = os.getenv("AGENT_JWT_REQUIRED_ROLE", "APPROVER")
-AGENT_JWT_ENFORCE = os.getenv("AGENT_JWT_ENFORCE", "false").lower() == "true"
+AGENT_JWT_ENFORCE = os.getenv("AGENT_JWT_ENFORCE", "true").lower() == "true"
 
 # Role hierarchy per Decision Lock
 ROLE_HIERARCHY = {
@@ -298,45 +298,22 @@ async def get_agent_user(
     if not credentials:
         raise HTTPException(
             status_code=401,
-            detail="Missing authentication credentials",
+            detail="Authentication required",
             headers={"WWW-Authenticate": "Bearer"},
         )
 
     try:
         return verify_agent_token(credentials.credentials)
-    except TokenExpiredError as e:
+    except InsufficientRoleError:
+        raise HTTPException(
+            status_code=403,
+            detail="Insufficient permissions",
+        )
+    except (TokenExpiredError, InvalidIssuerError, InvalidAudienceError,
+            MissingRoleError, AgentAuthError):
         raise HTTPException(
             status_code=401,
-            detail=e.message,
-            headers={"WWW-Authenticate": "Bearer error=\"invalid_token\", error_description=\"Token expired\""},
-        )
-    except InvalidIssuerError as e:
-        raise HTTPException(
-            status_code=401,
-            detail=e.message,
-            headers={"WWW-Authenticate": "Bearer error=\"invalid_token\", error_description=\"Invalid issuer\""},
-        )
-    except InvalidAudienceError as e:
-        raise HTTPException(
-            status_code=401,
-            detail=e.message,
-            headers={"WWW-Authenticate": "Bearer error=\"invalid_token\", error_description=\"Invalid audience\""},
-        )
-    except MissingRoleError as e:
-        raise HTTPException(
-            status_code=401,  # Missing role claim = invalid token
-            detail=e.message,
-            headers={"WWW-Authenticate": "Bearer error=\"invalid_token\", error_description=\"Missing role claim\""},
-        )
-    except InsufficientRoleError as e:
-        raise HTTPException(
-            status_code=403,  # Has role but insufficient = forbidden
-            detail=e.message,
-        )
-    except AgentAuthError as e:
-        raise HTTPException(
-            status_code=e.status_code,
-            detail=e.message,
+            detail="Authentication required",
             headers={"WWW-Authenticate": "Bearer"},
         )
 
