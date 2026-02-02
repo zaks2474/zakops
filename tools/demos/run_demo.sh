@@ -55,7 +55,7 @@ check_services() {
     local services_total=3
 
     # Check backend
-    if curl -s http://localhost:8090/health > /dev/null 2>&1; then
+    if curl -s http://localhost:8091/health > /dev/null 2>&1; then
         log_info "Backend: UP"
         services_up=$((services_up + 1))
     else
@@ -107,8 +107,8 @@ run_demo() {
         steps_passed=$((steps_passed + 1))
     else
         # Try to create a deal if backend is up
-        if curl -s http://localhost:8090/health > /dev/null 2>&1; then
-            deal_response=$(curl -s -X POST http://localhost:8090/api/v1/deals \
+        if curl -s http://localhost:8091/health > /dev/null 2>&1; then
+            deal_response=$(curl -s -X POST http://localhost:8091/api/v1/deals \
                 -H "Content-Type: application/json" \
                 -d '{"title": "Demo Deal", "description": "Automated demo", "priority": "medium"}' 2>/dev/null || echo '{}')
             if echo "$deal_response" | grep -q "id"; then

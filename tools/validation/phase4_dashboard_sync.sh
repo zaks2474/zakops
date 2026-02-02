@@ -133,7 +133,7 @@ echo "4. Dashboard-Backend Data Consistency"
 echo ""
 
 # Get pipeline summary from Deal API
-PIPELINE=$(curl -s http://localhost:8090/api/pipeline 2>/dev/null || echo "{}")
+PIPELINE=$(curl -s http://localhost:8091/api/pipeline 2>/dev/null || echo "{}")
 PIPELINE_VALID=$(echo "$PIPELINE" | python3 -c "
 import sys, json
 try:
@@ -153,7 +153,7 @@ else
 fi
 
 # Get deals list
-DEALS=$(curl -s http://localhost:8090/api/deals 2>/dev/null || echo "error")
+DEALS=$(curl -s http://localhost:8091/api/deals 2>/dev/null || echo "error")
 DEALS_VALID=$(echo "$DEALS" | python3 -c "
 import sys, json
 try:

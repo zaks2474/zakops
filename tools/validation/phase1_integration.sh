@@ -52,17 +52,17 @@ echo ""
 
 # Test Deal API can list deals
 run_test "Deal API - List Deals" \
-    "curl -s http://localhost:8090/api/deals" \
+    "curl -s http://localhost:8091/api/deals" \
     "python3 -c \"import sys,json; d=json.load(sys.stdin); assert isinstance(d, list) or 'deals' in d or 'items' in d\""
 
 # Test Deal API - Get Pipeline Summary
 run_test "Deal API - Pipeline Summary" \
-    "curl -s http://localhost:8090/api/pipeline" \
+    "curl -s http://localhost:8091/api/pipeline" \
     "python3 -c \"import sys,json; d=json.load(sys.stdin); assert isinstance(d, dict)\""
 
 # Test Deal API - Get Tools
 run_test "Deal API - List Tools" \
-    "curl -s http://localhost:8090/api/tools" \
+    "curl -s http://localhost:8091/api/tools" \
     "python3 -c \"import sys,json; d=json.load(sys.stdin); assert isinstance(d, (dict, list))\""
 
 echo ""
@@ -113,12 +113,12 @@ echo ""
 
 # Test that Deal API and Orchestration API schemas are compatible
 run_test "Deal API <-> Orchestration API - Health Format" \
-    "bash -c 'D1=\$(curl -s http://localhost:8090/health); D2=\$(curl -s http://localhost:8091/health); echo \"\$D1\" | python3 -c \"import sys,json; d=json.load(sys.stdin); assert '\\''status'\\'' in d\"; echo \"\$D2\" | python3 -c \"import sys,json; d=json.load(sys.stdin); assert '\\''status'\\'' in d\"'" \
+    "bash -c 'D1=\$(curl -s http://localhost:8091/health); D2=\$(curl -s http://localhost:8091/health); echo \"\$D1\" | python3 -c \"import sys,json; d=json.load(sys.stdin); assert '\\''status'\\'' in d\"; echo \"\$D2\" | python3 -c \"import sys,json; d=json.load(sys.stdin); assert '\\''status'\\'' in d\"'" \
     "echo ok"
 
 # Test that Agent API health format matches
 run_test "Agent API <-> Deal API - Health Format" \
-    "bash -c 'D1=\$(curl -s http://localhost:8095/health); D2=\$(curl -s http://localhost:8090/health); echo \"\$D1\" | python3 -c \"import sys,json; d=json.load(sys.stdin); assert '\\''status'\\'' in d\"; echo \"\$D2\" | python3 -c \"import sys,json; d=json.load(sys.stdin); assert '\\''status'\\'' in d\"'" \
+    "bash -c 'D1=\$(curl -s http://localhost:8095/health); D2=\$(curl -s http://localhost:8091/health); echo \"\$D1\" | python3 -c \"import sys,json; d=json.load(sys.stdin); assert '\\''status'\\'' in d\"; echo \"\$D2\" | python3 -c \"import sys,json; d=json.load(sys.stdin); assert '\\''status'\\'' in d\"'" \
     "echo ok"
 
 echo ""

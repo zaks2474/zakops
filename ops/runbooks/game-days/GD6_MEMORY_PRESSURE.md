@@ -69,7 +69,7 @@
 1. Container running and healthy:
    ```bash
    docker ps | grep zakops-api
-   curl -sf http://localhost:8090/health
+   curl -sf http://localhost:8091/health
    ```
 
 2. Memory usage reasonable:

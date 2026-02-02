@@ -47,15 +47,11 @@ doctor: ## Health check for all development tools
 # Installation
 # =============================================================================
 
-install: install-agent-api install-backend install-dashboard ## Install all dependencies
+install: install-agent-api install-dashboard ## Install all dependencies
 
 install-agent-api: check-uv ## Install agent-api dependencies (uv)
 	@echo "$(CYAN)[agent-api]$(RESET) Installing..."
 	cd apps/agent-api && uv sync
-
-install-backend: ## Install backend dependencies (pip)
-	@echo "$(CYAN)[backend]$(RESET) Installing..."
-	cd apps/backend && pip install -r requirements.txt
 
 install-dashboard: ## Install dashboard dependencies (npm)
 	@echo "$(CYAN)[dashboard]$(RESET) Installing..."
@@ -65,15 +61,11 @@ install-dashboard: ## Install dashboard dependencies (npm)
 # Testing
 # =============================================================================
 
-test: test-agent-api test-backend test-dashboard ## Run all tests
+test: test-agent-api test-dashboard ## Run all tests
 
 test-agent-api: check-uv ## Run agent-api tests
 	@echo "$(CYAN)[agent-api]$(RESET) Testing..."
 	cd apps/agent-api && uv run pytest evals/ -v
-
-test-backend: ## Run backend tests
-	@echo "$(CYAN)[backend]$(RESET) Testing..."
-	cd apps/backend && pytest tests/ -v
 
 test-dashboard: ## Run dashboard tests
 	@echo "$(CYAN)[dashboard]$(RESET) Testing..."
@@ -83,15 +75,11 @@ test-dashboard: ## Run dashboard tests
 # Linting
 # =============================================================================
 
-lint: lint-agent-api lint-backend lint-dashboard ## Lint all code
+lint: lint-agent-api lint-dashboard ## Lint all code
 
 lint-agent-api: check-uv ## Lint agent-api
 	@echo "$(CYAN)[agent-api]$(RESET) Linting..."
 	cd apps/agent-api && uv run ruff check app/
-
-lint-backend: ## Lint backend
-	@echo "$(CYAN)[backend]$(RESET) Linting..."
-	cd apps/backend && ruff check src/
 
 lint-dashboard: ## Lint dashboard
 	@echo "$(CYAN)[dashboard]$(RESET) Linting..."
@@ -237,9 +225,6 @@ dev: ## Start all services for development
 
 dev-agent-api: ## Start agent-api dev server
 	cd apps/agent-api && uv run uvicorn app.main:app --reload --port 8095
-
-dev-backend: ## Start backend dev server
-	cd apps/backend && python -m uvicorn src.api.deal_lifecycle.main:app --reload --port 8091
 
 dev-dashboard: ## Start dashboard dev server
 	cd apps/dashboard && npm run dev

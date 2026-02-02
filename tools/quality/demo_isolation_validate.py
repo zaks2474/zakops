@@ -19,7 +19,7 @@ ARTIFACTS_DIR = REPO_ROOT / "artifacts" / "business"
 
 # Production patterns to detect
 PROD_PATTERNS = [
-    r"port.*['\"]?8090['\"]?",  # Production API port
+    r"port.*['\"]?8091['\"]?",  # Production API port
     r"port.*['\"]?9100['\"]?",  # Production MCP port
     r"port.*['\"]?3003['\"]?",  # Production dashboard port
     r"port.*['\"]?5432['\"]?",  # Production postgres port

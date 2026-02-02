@@ -35,7 +35,7 @@ else
 fi
 
 # Check if services are running (skip actual chaos if not)
-if ! curl -sf --max-time 5 "http://localhost:8090/health" > /dev/null 2>&1; then
+if ! curl -sf --max-time 5 "http://localhost:8091/health" > /dev/null 2>&1; then
     log_warn "API not reachable - running in validation-only mode"
 
     # Create a validation artifact

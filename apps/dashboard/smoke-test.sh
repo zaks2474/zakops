@@ -170,7 +170,7 @@ test_sse_progress() {
 
     # Make SSE request and capture output (use /api/chat endpoint)
     timeout 30 curl -s -N \
-        -X POST "http://localhost:8090/api/chat" \
+        -X POST "http://localhost:8091/api/chat" \
         -H "Content-Type: application/json" \
         -H "Accept: text/event-stream" \
         -d "{\"query\":\"$query\",\"scope\":{\"type\":\"global\"}}" 2>/dev/null > /tmp/sse_output.txt || true
@@ -274,7 +274,7 @@ echo "---------------------------------------------"
 
 # Test LLM-based query (should return response or graceful degradation)
 # Uses timeout because LLM queries can take 30+ seconds
-# NOTE: Hits backend directly (port 8090) to bypass Next.js proxy timeout
+# NOTE: Hits backend directly (port 8091) to bypass Next.js proxy timeout
 test_llm_chat() {
     local name="$1"
     local query="$2"
@@ -282,7 +282,7 @@ test_llm_chat() {
     # 30 second timeout for LLM queries - hit backend directly
     # Note: Timeout is acceptable (LLM can be slow), treat as pass
     status=$(timeout 30 curl -s -o /tmp/llm_chat_response.json -w "%{http_code}" \
-        -X POST "http://localhost:8090/api/chat/complete" \
+        -X POST "http://localhost:8091/api/chat/complete" \
         -H "Content-Type: application/json" \
         -d "{\"query\":\"$query\",\"scope\":{\"type\":\"global\"}}")
 
@@ -397,7 +397,7 @@ test_sse_final_text() {
 
     # Hit backend directly for SSE
     timeout 10 curl -s -N \
-        -X POST "http://localhost:8090/api/chat" \
+        -X POST "http://localhost:8091/api/chat" \
         -H "Content-Type: application/json" \
         -H "Accept: text/event-stream" \
         -d "{\"query\":\"$query\",\"scope\":{\"type\":\"deal\",\"deal_id\":\"$deal_id\"}}" 2>/dev/null > /tmp/sse_final_text.txt || true
@@ -452,7 +452,7 @@ test_execute_proposal() {
 
     # Test execute-proposal endpoint with mock data
     response=$(curl -s -o /tmp/proposal_response.json -w "%{http_code}" \
-        -X POST "http://localhost:8090/api/chat/execute-proposal" \
+        -X POST "http://localhost:8091/api/chat/execute-proposal" \
         -H "Content-Type: application/json" \
         -d "{\"proposal_id\":\"$proposal_id\",\"approved_by\":\"test-user\",\"session_id\":\"$session_id\"}")
 
@@ -484,7 +484,7 @@ test_proposal_error_structure() {
     local name="$1"
 
     curl -s -o /tmp/proposal_error.json \
-        -X POST "http://localhost:8090/api/chat/execute-proposal" \
+        -X POST "http://localhost:8091/api/chat/execute-proposal" \
         -H "Content-Type: application/json" \
         -d '{"proposal_id":"fake","approved_by":"user","session_id":"fake"}'
 

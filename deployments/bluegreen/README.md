@@ -23,7 +23,7 @@ Zero-downtime deployment using Traefik reverse proxy for atomic traffic switchin
 
 | Service           | Blue Port | Green Port |
 |-------------------|-----------|------------|
-| Deal Lifecycle API| 8090      | 8091       |
+| Deal Lifecycle API| 8091      | 8092       |
 | MCP Server        | 9100      | 9101       |
 | Dashboard         | 3003      | 3004       |
 

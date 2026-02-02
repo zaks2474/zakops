@@ -96,7 +96,6 @@ fi
 echo ""
 echo "--- Security Tests ---"
 check_file "apps/agent-api/tests/security/test_pii_redaction.py" "PII redaction tests"
-check_file "apps/backend/tests/security/test_tenant_isolation.py" "Tenant isolation tests"
 
 # Run PII tests if pytest available
 echo "Running PII redaction tests..."
@@ -105,19 +104,6 @@ if command -v pytest &> /dev/null; then
         echo "✓ PII redaction tests passed"
     else
         echo "✗ PII redaction tests failed"
-        ERRORS=$((ERRORS + 1))
-    fi
-else
-    echo "⚠ pytest not available, skipping test execution"
-fi
-
-# Run tenant isolation tests
-echo "Running tenant isolation tests..."
-if command -v pytest &> /dev/null; then
-    if pytest "$ROOT_DIR/apps/backend/tests/security/test_tenant_isolation.py" -v --tb=short 2>/dev/null; then
-        echo "✓ Tenant isolation tests passed"
-    else
-        echo "✗ Tenant isolation tests failed"
         ERRORS=$((ERRORS + 1))
     fi
 else

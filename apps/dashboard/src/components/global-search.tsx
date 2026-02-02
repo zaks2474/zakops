@@ -348,8 +348,8 @@ export function GlobalSearch() {
       loi: 'bg-teal-500',
       diligence: 'bg-green-500',
       closing: 'bg-emerald-500',
-      closed_won: 'bg-green-700',
-      closed_lost: 'bg-red-700',
+      portfolio: 'bg-green-700',
+      junk: 'bg-red-700',
     };
     return colors[stage] || 'bg-gray-500';
   };

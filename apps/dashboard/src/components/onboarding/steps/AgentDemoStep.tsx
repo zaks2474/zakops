@@ -89,10 +89,10 @@ const CAPABILITIES: Capability[] = [
 ];
 
 // =============================================================================
-// Mock Deal Results
+// Onboarding Demo Data (static example for interactive walkthrough)
 // =============================================================================
 
-const MOCK_DEAL = {
+const DEMO_DEAL = {
   company: 'TechWidget Inc',
   asking: '$960,000',
   revenue: '$1.2M',
@@ -316,29 +316,29 @@ export function AgentDemoStep({ onDemoComplete, className = '' }: AgentDemoStepP
                     <div className="grid grid-cols-2 gap-3 text-sm">
                       <div>
                         <span className="text-muted-foreground">Company:</span>
-                        <span className="ml-2 font-medium">{MOCK_DEAL.company}</span>
+                        <span className="ml-2 font-medium">{DEMO_DEAL.company}</span>
                       </div>
                       <div>
                         <span className="text-muted-foreground">Asking:</span>
-                        <span className="ml-2 font-medium">{MOCK_DEAL.asking}</span>
+                        <span className="ml-2 font-medium">{DEMO_DEAL.asking}</span>
                       </div>
                       <div>
                         <span className="text-muted-foreground">Revenue:</span>
-                        <span className="ml-2 font-medium">{MOCK_DEAL.revenue}</span>
+                        <span className="ml-2 font-medium">{DEMO_DEAL.revenue}</span>
                       </div>
                       <div>
                         <span className="text-muted-foreground">EBITDA:</span>
-                        <span className="ml-2 font-medium">{MOCK_DEAL.ebitda}</span>
+                        <span className="ml-2 font-medium">{DEMO_DEAL.ebitda}</span>
                       </div>
                     </div>
                     <div className="mt-3 pt-3 border-t">
                       <div className="flex items-center justify-between mb-2">
                         <span className="text-sm text-muted-foreground">Buy Box Fit:</span>
-                        <Badge variant={MOCK_DEAL.buyBoxFit >= 70 ? 'default' : 'secondary'} className="bg-green-500">
-                          {MOCK_DEAL.buyBoxFit}%
+                        <Badge variant={DEMO_DEAL.buyBoxFit >= 70 ? 'default' : 'secondary'} className="bg-green-500">
+                          {DEMO_DEAL.buyBoxFit}%
                         </Badge>
                       </div>
-                      <p className="text-xs text-muted-foreground italic">{MOCK_DEAL.recommendation}</p>
+                      <p className="text-xs text-muted-foreground italic">{DEMO_DEAL.recommendation}</p>
                     </div>
                   </CardContent>
                 </Card>

@@ -42,7 +42,7 @@
 2. **Verify graceful degradation**:
    ```bash
    # API should return structured errors, not raw 500
-   curl -sf http://localhost:8090/api/agents/suggest
+   curl -sf http://localhost:8091/api/agents/suggest
    # Expected: {"error": "LLM unavailable", "status": 503}
    ```
 
@@ -69,7 +69,7 @@ If LLM consistently fails to start:
 
 2. Agent suggestion works:
    ```bash
-   curl -X POST http://localhost:8090/api/agents/analyze \
+   curl -X POST http://localhost:8091/api/agents/analyze \
      -H "Content-Type: application/json" \
      -d '{"query": "test"}'
    ```

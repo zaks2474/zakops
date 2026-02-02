@@ -16,10 +16,10 @@ echo ""
 echo "=== Test B.1: Services are healthy after reset ==="
 
 SERVICES_HEALTHY=0
-for port in 8090 8095 8091; do
+for port in 8091 8095; do
     SERVICE=""
     case $port in
-        8090) SERVICE="backend" ;;
+        8091) SERVICE="backend" ;;
         8095) SERVICE="agent-api" ;;
         8091) SERVICE="orchestration" ;;
     esac
@@ -105,7 +105,7 @@ else
     echo "[WARN] Reset report not found - verifying directly"
 
     # Direct check
-    DEALS=$(curl -s http://localhost:8090/api/deals 2>/dev/null | python3 -c "
+    DEALS=$(curl -s http://localhost:8091/api/deals 2>/dev/null | python3 -c "
 import sys,json
 try:
     d=json.load(sys.stdin)

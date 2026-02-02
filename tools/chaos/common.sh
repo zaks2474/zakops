@@ -60,7 +60,7 @@ capture_baseline() {
     log_step "Capturing baseline metrics..."
 
     local api_health
-    api_health=$(curl -sf http://localhost:8090/health 2>/dev/null || echo '{"status":"error"}')
+    api_health=$(curl -sf http://localhost:8091/health 2>/dev/null || echo '{"status":"error"}')
 
     local container_stats
     container_stats=$(docker stats --no-stream --format '{{json .}}' 2>/dev/null | head -5 || echo '[]')
@@ -78,7 +78,7 @@ EOF
 
 # Check API error rate
 check_error_rate() {
-    local endpoint="${1:-http://localhost:8090/health}"
+    local endpoint="${1:-http://localhost:8091/health}"
     local requests="${2:-10}"
     local errors=0
 
@@ -93,7 +93,7 @@ check_error_rate() {
 
 # Verify graceful degradation (no raw 500s)
 verify_graceful_degradation() {
-    local endpoint="${1:-http://localhost:8090/health}"
+    local endpoint="${1:-http://localhost:8091/health}"
 
     local response
     response=$(curl -sf -w "\n%{http_code}" --max-time 5 "$endpoint" 2>/dev/null || echo -e "\n000")
@@ -124,7 +124,7 @@ verify_graceful_degradation() {
 
 # Wait for recovery
 wait_recovery() {
-    local endpoint="${1:-http://localhost:8090/health}"
+    local endpoint="${1:-http://localhost:8091/health}"
     local timeout="${2:-120}"
     local interval=5
     local elapsed=0

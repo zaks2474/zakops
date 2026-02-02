@@ -21,7 +21,7 @@ OUTPUT_FILE = ROOT / "artifacts" / "observability" / "canary_run.json"
 # Service endpoints
 SERVICES = {
     "backend": {
-        "health": "http://localhost:8090/health",
+        "health": "http://localhost:8091/health",
         "required": False,
     },
     "orchestration": {

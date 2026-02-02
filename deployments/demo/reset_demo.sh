@@ -97,8 +97,8 @@ EOF
 # Step 6: Verify
 log_info "Step 6: Verifying demo environment..."
 
-if curl -sf http://localhost:18090/health > /dev/null 2>&1; then
-    log_info "API healthy at http://localhost:18090"
+if curl -sf http://localhost:18091/health > /dev/null 2>&1; then
+    log_info "API healthy at http://localhost:18091"
 else
     log_warn "API not responding yet (may still be starting)"
 fi
@@ -109,7 +109,7 @@ log_info "Demo environment reset complete!"
 log_info "=========================================="
 echo ""
 echo "Access points:"
-echo "  API:       http://localhost:18090"
+echo "  API:       http://localhost:18091"
 echo "  MCP:       http://localhost:19100"
 echo "  Dashboard: http://localhost:13003"
 echo ""

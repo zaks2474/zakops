@@ -118,7 +118,6 @@ DO NOT GUESS. Read docs/ARCHITECTURE.md or investigate.
 
 ```
 apps/dashboard/src/          # Frontend code
-apps/backend/src/            # Backend code
 apps/agent-api/app/          # Agent code
 docs/                        # Documentation
 deployments/                 # Docker configs

@@ -17,7 +17,7 @@
 
 1. Measure current latency:
    ```bash
-   time curl -sf http://localhost:8090/health
+   time curl -sf http://localhost:8091/health
    ```
 
 2. Check for network delay (tc netem):
@@ -71,7 +71,7 @@
 
 1. Latency back to normal (<1s):
    ```bash
-   time curl -sf http://localhost:8090/health
+   time curl -sf http://localhost:8091/health
    ```
 
 2. No pending slow queries:
@@ -83,7 +83,7 @@
 3. API responses are timely:
    ```bash
    for i in {1..5}; do
-     time curl -sf http://localhost:8090/api/deals > /dev/null
+     time curl -sf http://localhost:8091/api/deals > /dev/null
    done
    ```
 

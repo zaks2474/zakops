@@ -169,7 +169,7 @@ AGENT_API_PORT=8095
 ZAKOPS_AGENT_DB=zakops_agent
 
 # External services (host.docker.internal)
-DEAL_API_URL=http://host.docker.internal:8090
+DEAL_API_URL=http://host.docker.internal:8091
 RAG_REST_URL=http://host.docker.internal:8052
 MCP_URL=http://host.docker.internal:9100
 

@@ -39,7 +39,7 @@
 
 2. **Verify API still functions** (should work without cache):
    ```bash
-   curl -sf http://localhost:8090/health
+   curl -sf http://localhost:8091/health
    ```
 
 3. **Monitor cache reconnection**:
@@ -70,15 +70,15 @@ docker compose up -d redis
 
 2. API health check passes:
    ```bash
-   curl -sf http://localhost:8090/health
+   curl -sf http://localhost:8091/health
    ```
 
 3. Test caching is working:
    ```bash
    # First request (cache miss)
-   time curl -sf http://localhost:8090/api/deals
+   time curl -sf http://localhost:8091/api/deals
    # Second request (should be faster - cache hit)
-   time curl -sf http://localhost:8090/api/deals
+   time curl -sf http://localhost:8091/api/deals
    ```
 
 ## Escalation

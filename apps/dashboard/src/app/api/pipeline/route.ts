@@ -64,17 +64,11 @@ export async function GET() {
         });
       }
 
-      // Fallback: return mock pipeline
-      return NextResponse.json({
-        total_active: 0,
-        stages: {
-          Inbound: { count: 0, deals: [], avg_age: 0 },
-          Screening: { count: 0, deals: [], avg_age: 0 },
-          Qualified: { count: 0, deals: [], avg_age: 0 },
-          'Under Review': { count: 0, deals: [], avg_age: 0 },
-          Passed: { count: 0, deals: [], avg_age: 0 },
-        },
-      });
+      // Deals endpoint also failed - return 502
+      return NextResponse.json(
+        { error: 'backend_unavailable', message: 'Cannot build pipeline: backend returned 404 and deals endpoint failed' },
+        { status: 502 }
+      );
     }
 
     // Forward backend error
@@ -84,17 +78,10 @@ export async function GET() {
       { status: backendResponse.status }
     );
   } catch (error) {
-    // Backend not available - return empty pipeline
-    console.log('[Pipeline] Backend unavailable, returning empty pipeline');
-    return NextResponse.json({
-      total_active: 0,
-      stages: {
-        Inbound: { count: 0, deals: [], avg_age: 0 },
-        Screening: { count: 0, deals: [], avg_age: 0 },
-        Qualified: { count: 0, deals: [], avg_age: 0 },
-        'Under Review': { count: 0, deals: [], avg_age: 0 },
-        Passed: { count: 0, deals: [], avg_age: 0 },
-      },
-    });
+    console.error('[Pipeline] Backend error:', error);
+    return NextResponse.json(
+      { error: 'backend_unavailable', message: error instanceof Error ? error.message : 'Unknown error' },
+      { status: 502 }
+    );
   }
 }

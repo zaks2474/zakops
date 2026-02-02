@@ -29,36 +29,6 @@ services:
       timeout: 10s
       retries: 3
 
-  backend-deal-lifecycle:
-    build:
-      context: ../../apps/backend
-      dockerfile: infra/docker/Dockerfile.deal_lifecycle
-    ports:
-      - "8091:8091"
-    environment:
-      - DATABASE_URL=postgresql://zakops:zakops@postgres:5432/zakops
-      - REDIS_URL=redis://redis:6379/1
-    depends_on:
-      - postgres
-      - redis
-    networks:
-      - zakops-network
-
-  backend-orchestration:
-    build:
-      context: ../../apps/backend
-      dockerfile: infra/docker/Dockerfile.orchestration
-    ports:
-      - "9200:9200"
-    environment:
-      - DATABASE_URL=postgresql://zakops:zakops@postgres:5432/zakops
-      - AGENT_API_URL=http://agent-api:8095
-    depends_on:
-      - postgres
-      - agent-api
-    networks:
-      - zakops-network
-
   dashboard:
     build:
       context: ../../apps/dashboard

@@ -7,9 +7,6 @@
 # Agent API
 apps/agent-api/ @zaks2474
 
-# Backend services
-apps/backend/ @zaks2474
-
 # Dashboard
 apps/dashboard/ @zaks2474
 

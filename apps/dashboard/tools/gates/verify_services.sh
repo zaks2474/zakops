@@ -104,8 +104,8 @@ echo ""
 
 # Check HTTP services
 echo "--- HTTP Services ---"
-check_http_service "Deal API" "http://localhost:8090/health" "200" "Primary backend API"
-check_http_service "Deal API /api/deals" "http://localhost:8090/api/deals" "200" "Deals endpoint availability"
+check_http_service "Deal API" "http://localhost:8091/health" "200" "Primary backend API"
+check_http_service "Deal API /api/deals" "http://localhost:8091/api/deals" "200" "Deals endpoint availability"
 check_http_service "RAG API" "http://localhost:8052/" "200" "RAG REST API root (health at /)"
 check_http_service "Orchestration API" "http://localhost:9200/health" "200" "Orchestration API health"
 check_http_service "Dashboard" "http://localhost:3003/" "200,307" "Frontend dashboard (may redirect)"

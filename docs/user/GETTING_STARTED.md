@@ -63,7 +63,7 @@ Before you begin, ensure you have the following installed:
 
 3. Verify deployment:
    ```bash
-   curl http://localhost:8090/health
+   curl http://localhost:8091/health
    ```
 
 ## First Steps
@@ -72,7 +72,7 @@ Before you begin, ensure you have the following installed:
 
 Open your browser and navigate to:
 - **Dashboard**: http://localhost:3003
-- **API Docs**: http://localhost:8090/docs
+- **API Docs**: http://localhost:8091/docs
 
 ### 2. Create Your First Deal
 

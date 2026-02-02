@@ -63,7 +63,7 @@ for i in {1..15}; do
     fi
 
     # Check health
-    RESPONSE=$(curl -sf -w "\n%{http_code}" --max-time 5 "http://localhost:8090/health" 2>/dev/null || echo -e "\n000")
+    RESPONSE=$(curl -sf -w "\n%{http_code}" --max-time 5 "http://localhost:8091/health" 2>/dev/null || echo -e "\n000")
     HTTP_CODE=$(echo "$RESPONSE" | tail -1)
 
     case "$HTTP_CODE" in
@@ -101,7 +101,7 @@ ROLLBACK_TIME=$(date +%s)
 log_step "5. Verifying recovery..."
 RECOVERY_START=$(date +%s)
 
-if wait_recovery "http://localhost:8090/health" 60; then
+if wait_recovery "http://localhost:8091/health" 60; then
     RECOVERY_TIME=$(($(date +%s) - RECOVERY_START))
     STATUS="passed"
 else

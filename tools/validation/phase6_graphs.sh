@@ -152,7 +152,7 @@ echo "4. Action Planning/Execution Graph"
 echo ""
 
 # Check action plan endpoint
-ACTION_PLAN=$(curl -s http://localhost:8090/api/actions/plan 2>/dev/null || echo "error")
+ACTION_PLAN=$(curl -s http://localhost:8091/api/actions/plan 2>/dev/null || echo "error")
 PLAN_STATUS=$(echo "$ACTION_PLAN" | python3 -c "
 import sys, json
 try:
@@ -172,7 +172,7 @@ else
 fi
 
 # Check action runner status
-RUNNER_STATUS=$(curl -s http://localhost:8090/api/actions/runner-status 2>/dev/null || echo "error")
+RUNNER_STATUS=$(curl -s http://localhost:8091/api/actions/runner-status 2>/dev/null || echo "error")
 RUNNER_CHECK=$(echo "$RUNNER_STATUS" | python3 -c "
 import sys, json
 try:
@@ -196,7 +196,7 @@ echo "5. Deferred Actions (Scheduled Graph Nodes)"
 echo ""
 
 # Check deferred actions
-DEFERRED=$(curl -s http://localhost:8090/api/deferred-actions 2>/dev/null || echo "error")
+DEFERRED=$(curl -s http://localhost:8091/api/deferred-actions 2>/dev/null || echo "error")
 DEFERRED_STATUS=$(echo "$DEFERRED" | python3 -c "
 import sys, json
 try:
@@ -216,7 +216,7 @@ else
 fi
 
 # Check due actions
-DUE_ACTIONS=$(curl -s http://localhost:8090/api/deferred-actions/due 2>/dev/null || echo "error")
+DUE_ACTIONS=$(curl -s http://localhost:8091/api/deferred-actions/due 2>/dev/null || echo "error")
 DUE_STATUS=$(echo "$DUE_ACTIONS" | python3 -c "
 import sys, json
 try:

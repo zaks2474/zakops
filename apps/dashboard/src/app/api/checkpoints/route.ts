@@ -36,8 +36,10 @@ export async function GET() {
       { status: backendResponse.status }
     );
   } catch (error) {
-    // Backend not available - return empty array
-    console.log('[Checkpoints] Backend unavailable, returning empty array');
-    return NextResponse.json([]);
+    console.error('[checkpoints] Backend error:', error);
+    return NextResponse.json(
+      { error: 'backend_unavailable', message: error instanceof Error ? error.message : 'Unknown error' },
+      { status: 502 }
+    );
   }
 }

@@ -82,7 +82,7 @@ Create `.env.local`:
 
 ```bash
 # Backend API URL
-API_URL=http://localhost:8090
+API_URL=http://localhost:8091
 
 # Feature Flags
 NEXT_PUBLIC_ENABLE_AGENT_DEMO=true

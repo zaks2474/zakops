@@ -19,7 +19,6 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       agent-api: ${{ steps.filter.outputs.agent-api }}
-      backend: ${{ steps.filter.outputs.backend }}
       dashboard: ${{ steps.filter.outputs.dashboard }}
       contracts: ${{ steps.filter.outputs.contracts }}
     steps:
@@ -30,8 +29,6 @@ jobs:
           filters: |
             agent-api:
               - 'apps/agent-api/**'
-            backend:
-              - 'apps/backend/**'
             dashboard:
               - 'apps/dashboard/**'
             contracts:
@@ -89,52 +86,6 @@ jobs:
         run: uv run pytest evals/ -v --tb=short || test $? -eq 5
 
   # ===========================================================================
-  # Backend
-  # ===========================================================================
-  backend:
-    needs: changes
-    if: needs.changes.outputs.backend == 'true'
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: apps/backend
-    services:
-      postgres:
-        image: postgres:16-alpine
-        env:
-          POSTGRES_USER: test
-          POSTGRES_PASSWORD: test
-          POSTGRES_DB: test
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
-          cache: 'pip'
-
-      - name: Install dependencies
-        run: pip install -r dev-requirements.txt
-
-      - name: Lint
-        run: ruff check src/
-
-      - name: Test
-        env:
-          DATABASE_URL: postgresql://test:test@localhost:5432/test
-          ZAKOPS_DATABASE_URL: postgresql://test:test@localhost:5432/test
-          PYTHONPATH: src
-        run: pytest tests/unit tests/contract -v --tb=short
-
-  # ===========================================================================
   # Dashboard
   # ===========================================================================
   dashboard:
@@ -187,7 +138,7 @@ jobs:
   # Gate Check (Full Suite)
   # ===========================================================================
   gates:
-    needs: [agent-api, backend, dashboard]
+    needs: [agent-api, dashboard]
     if: always() && github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     steps:
@@ -196,7 +147,6 @@ jobs:
       - name: Check all jobs passed
         run: |
           if [[ "${{ needs.agent-api.result }}" == "failure" ]] || \
-             [[ "${{ needs.backend.result }}" == "failure" ]] || \
              [[ "${{ needs.dashboard.result }}" == "failure" ]]; then
             echo "One or more jobs failed"
             exit 1

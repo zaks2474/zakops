@@ -107,7 +107,7 @@ while [ $WAITED -lt $MAX_WAIT ]; do
     HEALTHY=0
     TOTAL=0
 
-    for port in 8090 8095 8091; do
+    for port in 8091 8095; do
         TOTAL=$((TOTAL + 1))
 
         if curl -s "http://localhost:$port/health" >/dev/null 2>&1; then
@@ -129,7 +129,7 @@ echo ""
 echo "=== Step 7: Verifying clean state ==="
 
 # Check deals count
-DEALS_COUNT=$(curl -s http://localhost:8090/api/deals 2>/dev/null | python3 -c "
+DEALS_COUNT=$(curl -s http://localhost:8091/api/deals 2>/dev/null | python3 -c "
 import sys,json
 try:
     d=json.load(sys.stdin)
@@ -142,7 +142,7 @@ except:
 " || echo "-1")
 
 # Check quarantine count
-QUARANTINE_COUNT=$(curl -s http://localhost:8090/api/quarantine 2>/dev/null | python3 -c "
+QUARANTINE_COUNT=$(curl -s http://localhost:8091/api/quarantine 2>/dev/null | python3 -c "
 import sys,json
 try:
     d=json.load(sys.stdin)

@@ -40,7 +40,7 @@
 2. **Wait for connections to recover**:
    ```bash
    # Monitor API health
-   watch -n 2 'curl -sf http://localhost:8090/health | jq .'
+   watch -n 2 'curl -sf http://localhost:8091/health | jq .'
    ```
 
 3. **Verify database is accepting connections**:
@@ -59,12 +59,12 @@ If restart fails:
 
 1. Health endpoint returns 200:
    ```bash
-   curl -sf http://localhost:8090/health
+   curl -sf http://localhost:8091/health
    ```
 
 2. Create a test record:
    ```bash
-   curl -X POST http://localhost:8090/api/deals -d '{"test": true}'
+   curl -X POST http://localhost:8091/api/deals -d '{"test": true}'
    ```
 
 3. Check no errors in last 5 minutes:

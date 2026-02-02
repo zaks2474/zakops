@@ -66,14 +66,6 @@ fi
 echo ""
 echo "=== Checking request correlation middleware ==="
 
-REQUEST_ID_BACKEND="false"
-if grep -r "request_id\|X-Request-ID\|correlation" apps/backend/src/ 2>/dev/null | grep -qi "middleware\|header"; then
-    REQUEST_ID_BACKEND="true"
-    echo "[OK] Backend has request_id handling"
-else
-    echo "[MISSING] Backend missing request_id middleware"
-fi
-
 REQUEST_ID_AGENT="false"
 if grep -r "request_id\|X-Request-ID\|correlation" apps/agent-api/ 2>/dev/null | grep -qi "middleware\|header"; then
     REQUEST_ID_AGENT="true"
@@ -127,7 +119,6 @@ cat > "$OUTPUT_DIR/discovery_report.json" << EOF
         "loki_datasource": "$LOKI_DATASOURCE_EXISTS"
     },
     "request_correlation": {
-        "backend": "$REQUEST_ID_BACKEND",
         "agent_api": "$REQUEST_ID_AGENT",
         "dashboard": "$REQUEST_ID_DASHBOARD"
     },
@@ -139,7 +130,7 @@ cat > "$OUTPUT_DIR/discovery_report.json" << EOF
         "need_loki": $([ "$LOKI_EXISTS" = "true" ] && echo "false" || echo "true"),
         "need_promtail": $([ "$PROMTAIL_EXISTS" = "true" ] && echo "false" || echo "true"),
         "need_grafana": $([ "$GRAFANA_EXISTS" = "true" ] && echo "false" || echo "true"),
-        "need_request_id_middleware": $([ "$REQUEST_ID_BACKEND" = "true" ] && [ "$REQUEST_ID_AGENT" = "true" ] && echo "false" || echo "true")
+        "need_request_id_middleware": $([ "$REQUEST_ID_AGENT" = "true" ] && echo "false" || echo "true")
     }
 }
 EOF

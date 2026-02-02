@@ -34,7 +34,7 @@ The UI is considered "perfect" as designed. The problem is functionality - many 
 ## Version Verification
 
 The backend exposes `/api/version` which returns the current git commit. This can be verified at:
-- Backend: http://localhost:8090/api/version
+- Backend: http://localhost:8091/api/version
 - Frontend proxy: http://localhost:3003/api/version
 
 ```json

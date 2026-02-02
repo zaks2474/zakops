@@ -81,7 +81,7 @@ echo "Test request_id: $TEST_REQUEST_ID"
 
 # Send request to backend with request_id
 BACKEND_RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" -H "X-Request-ID: $TEST_REQUEST_ID" \
-    http://localhost:8090/health 2>/dev/null || echo "000")
+    http://localhost:8091/health 2>/dev/null || echo "000")
 
 # Send request to agent-api with same request_id
 AGENT_RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" -H "X-Request-ID: $TEST_REQUEST_ID" \

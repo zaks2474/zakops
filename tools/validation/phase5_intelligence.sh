@@ -72,7 +72,7 @@ echo "2. Chat API Validation"
 echo ""
 
 # Check chat endpoint exists
-CHAT_ENDPOINT=$(curl -s -X POST http://localhost:8090/api/chat \
+CHAT_ENDPOINT=$(curl -s -X POST http://localhost:8091/api/chat \
     -H "Content-Type: application/json" \
     -d '{"message":"test"}' 2>/dev/null || echo "error")
 CHAT_STATUS=$(echo "$CHAT_ENDPOINT" | python3 -c "
@@ -96,7 +96,7 @@ else
 fi
 
 # Check chat completion endpoint
-CHAT_COMPLETE=$(curl -s http://localhost:8090/api/chat/llm-health 2>/dev/null || echo "error")
+CHAT_COMPLETE=$(curl -s http://localhost:8091/api/chat/llm-health 2>/dev/null || echo "error")
 CHAT_COMPLETE_STATUS=$(echo "$CHAT_COMPLETE" | python3 -c "
 import sys, json
 try:

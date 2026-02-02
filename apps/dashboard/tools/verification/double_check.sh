@@ -91,7 +91,7 @@ echo ""
 
 # Service Health Double Check
 echo "--- Service Health Double Check ---"
-check_endpoint "Deal API Health" "GET" "http://localhost:8090/health" "200"
+check_endpoint "Deal API Health" "GET" "http://localhost:8091/health" "200"
 check_endpoint "RAG API Root" "GET" "http://localhost:8052/" "200"
 check_endpoint "Orchestration Health" "GET" "http://localhost:9200/health" "200"
 check_endpoint "Dashboard" "GET" "http://localhost:3003/" "200,307"
@@ -100,28 +100,28 @@ echo ""
 echo "--- Core API Endpoints Double Check ---"
 
 # Deals endpoints
-check_endpoint "GET /api/deals" "GET" "http://localhost:8090/api/deals" "200"
-check_endpoint "GET /api/deals/:id" "GET" "http://localhost:8090/api/deals/test-id-123" "200,404"
+check_endpoint "GET /api/deals" "GET" "http://localhost:8091/api/deals" "200"
+check_endpoint "GET /api/deals/:id" "GET" "http://localhost:8091/api/deals/test-id-123" "200,404"
 
 # Actions endpoints (corrected from kinetic)
-check_endpoint "GET /api/actions" "GET" "http://localhost:8090/api/actions" "200"
-check_endpoint "GET /api/actions/:id" "GET" "http://localhost:8090/api/actions/test-id-123" "200,404"
-check_endpoint "GET /api/actions/metrics" "GET" "http://localhost:8090/api/actions/metrics" "200"
-check_endpoint "GET /api/actions/capabilities" "GET" "http://localhost:8090/api/actions/capabilities" "200"
+check_endpoint "GET /api/actions" "GET" "http://localhost:8091/api/actions" "200"
+check_endpoint "GET /api/actions/:id" "GET" "http://localhost:8091/api/actions/test-id-123" "200,404"
+check_endpoint "GET /api/actions/metrics" "GET" "http://localhost:8091/api/actions/metrics" "200"
+check_endpoint "GET /api/actions/capabilities" "GET" "http://localhost:8091/api/actions/capabilities" "200"
 
 # Quarantine endpoints (corrected path)
-check_endpoint "GET /api/quarantine" "GET" "http://localhost:8090/api/quarantine" "200"
+check_endpoint "GET /api/quarantine" "GET" "http://localhost:8091/api/quarantine" "200"
 
 # Chat endpoints
-check_endpoint "GET /api/chat/llm-health" "GET" "http://localhost:8090/api/chat/llm-health" "200"
+check_endpoint "GET /api/chat/llm-health" "GET" "http://localhost:8091/api/chat/llm-health" "200"
 
 # Tools endpoints
-check_endpoint "GET /api/tools" "GET" "http://localhost:8090/api/tools" "200"
+check_endpoint "GET /api/tools" "GET" "http://localhost:8091/api/tools" "200"
 
 echo ""
 echo "--- POST Endpoint Structure Check ---"
 # POST endpoints - check they exist (will return 400/422 for invalid data)
-check_endpoint "POST /api/chat" "POST" "http://localhost:8090/api/chat" "200,201,400,422,500"
+check_endpoint "POST /api/chat" "POST" "http://localhost:8091/api/chat" "200,201,400,422,500"
 
 echo ""
 echo "========================================"

@@ -16,7 +16,7 @@ Isolated demo environment for showcasing ZakOps without affecting production.
 docker-compose -f compose.demo.yml up -d --wait
 
 # Access points
-# API:       http://localhost:18090
+# API:       http://localhost:18091
 # MCP:       http://localhost:19100
 # Dashboard: http://localhost:13003
 ```
@@ -25,7 +25,7 @@ docker-compose -f compose.demo.yml up -d --wait
 
 | Service   | Demo Port | Production Port |
 |-----------|-----------|-----------------|
-| API       | 18090     | 8090            |
+| API       | 18091     | 8091            |
 | MCP       | 19100     | 9100            |
 | Dashboard | 13003     | 3003            |
 | Postgres  | 15432     | 5432            |
@@ -92,7 +92,7 @@ docker-compose -f compose.demo.yml up -d --build
 ```
 
 ### Port conflicts
-If ports 18090, 19100, or 13003 are in use, edit `compose.demo.yml` to use different ports.
+If ports 18091, 19100, or 13003 are in use, edit `compose.demo.yml` to use different ports.
 
 ### Data not appearing
 ```bash

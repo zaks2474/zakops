@@ -81,7 +81,7 @@ echo "2. Deal API Action Approval Flow"
 echo ""
 
 # Check action list endpoint
-ACTIONS=$(curl -s http://localhost:8090/api/actions 2>/dev/null || echo "error")
+ACTIONS=$(curl -s http://localhost:8091/api/actions 2>/dev/null || echo "error")
 ACTIONS_STATUS=$(echo "$ACTIONS" | python3 -c "
 import sys, json
 try:
@@ -101,7 +101,7 @@ else
 fi
 
 # Check action approve endpoint exists (OPTIONS or schema check)
-APPROVE_ENDPOINT=$(curl -s -o /dev/null -w "%{http_code}" -X OPTIONS http://localhost:8090/api/actions/test-id/approve 2>/dev/null || echo "000")
+APPROVE_ENDPOINT=$(curl -s -o /dev/null -w "%{http_code}" -X OPTIONS http://localhost:8091/api/actions/test-id/approve 2>/dev/null || echo "000")
 if [[ "$APPROVE_ENDPOINT" != "000" ]]; then
     run_test "Deal API - Action Approve Endpoint" "exists (HTTP $APPROVE_ENDPOINT)" "PASS"
 else
@@ -113,7 +113,7 @@ echo "3. Quarantine (Manual Review) System"
 echo ""
 
 # Check quarantine endpoints
-QUARANTINE=$(curl -s http://localhost:8090/api/quarantine 2>/dev/null || echo "error")
+QUARANTINE=$(curl -s http://localhost:8091/api/quarantine 2>/dev/null || echo "error")
 QUARANTINE_STATUS=$(echo "$QUARANTINE" | python3 -c "
 import sys, json
 try:
@@ -133,7 +133,7 @@ else
 fi
 
 # Check quarantine health
-QUARANTINE_HEALTH=$(curl -s http://localhost:8090/api/quarantine/health 2>/dev/null || echo "{}")
+QUARANTINE_HEALTH=$(curl -s http://localhost:8091/api/quarantine/health 2>/dev/null || echo "{}")
 QUARANTINE_HEALTH_OK=$(echo "$QUARANTINE_HEALTH" | python3 -c "
 import sys, json
 try:
@@ -182,7 +182,7 @@ echo ""
 
 # Validate that action states are properly defined
 # Check action quarantine for state tracking
-ACTION_QUARANTINE=$(curl -s http://localhost:8090/api/actions/quarantine 2>/dev/null || echo "{}")
+ACTION_QUARANTINE=$(curl -s http://localhost:8091/api/actions/quarantine 2>/dev/null || echo "{}")
 QUARANTINE_VALID=$(echo "$ACTION_QUARANTINE" | python3 -c "
 import sys, json
 try:
@@ -205,7 +205,7 @@ fi
 APPROVAL_FLOW_OK=true
 
 # Check that approve endpoint returns proper error for invalid ID
-INVALID_APPROVE=$(curl -s -X POST http://localhost:8090/api/actions/invalid-uuid-test/approve 2>/dev/null || echo "{}")
+INVALID_APPROVE=$(curl -s -X POST http://localhost:8091/api/actions/invalid-uuid-test/approve 2>/dev/null || echo "{}")
 INVALID_APPROVE_STATUS=$(echo "$INVALID_APPROVE" | python3 -c "
 import sys, json
 try:

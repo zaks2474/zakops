@@ -11,7 +11,7 @@ Run these commands to quickly diagnose issues:
 make doctor
 
 # Check all services
-curl http://localhost:8090/health
+curl http://localhost:8091/health
 curl http://localhost:8095/health
 curl http://localhost:3003/health
 
@@ -52,7 +52,7 @@ free -m
 **Debug**:
 ```bash
 # Test authentication
-curl -v -X POST http://localhost:8090/api/v1/auth/token \
+curl -v -X POST http://localhost:8091/api/v1/auth/token \
   -H "Content-Type: application/json" \
   -d '{"username": "test", "password": "test"}'
 ```

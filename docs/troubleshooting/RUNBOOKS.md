@@ -48,7 +48,7 @@ sudo kill -SIGUSR1 $(cat /var/run/zakops-backend.pid)
 sleep 30
 
 # Verify service is responding
-curl http://localhost:8090/health
+curl http://localhost:8091/health
 ```
 
 ## Health Checks
@@ -63,7 +63,7 @@ echo "=== ZakOps Health Check ==="
 
 # Backend
 echo -n "Backend: "
-curl -s http://localhost:8090/health | jq -r '.status' || echo "DOWN"
+curl -s http://localhost:8091/health | jq -r '.status' || echo "DOWN"
 
 # Agent API
 echo -n "Agent API: "
@@ -117,8 +117,8 @@ journalctl -u zakops-backend --since "10 minutes ago" -p err --no-pager | tail -
 # validate_endpoints.sh
 
 ENDPOINTS=(
-  "http://localhost:8090/health"
-  "http://localhost:8090/api/v1/deals"
+  "http://localhost:8091/health"
+  "http://localhost:8091/api/v1/deals"
   "http://localhost:8095/health"
   "http://localhost:8095/api/v1/agent/actions"
 )

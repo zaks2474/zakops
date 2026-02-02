@@ -16,8 +16,11 @@ export async function GET(request: NextRequest) {
     });
 
     if (!response.ok) {
-      // Return empty array on error - graceful degradation
-      return NextResponse.json([]);
+      console.error('[deferred-actions/due] Backend error: status', response.status);
+      return NextResponse.json(
+        { error: 'backend_unavailable', message: `Backend returned ${response.status}` },
+        { status: 502 }
+      );
     }
 
     const actions = await response.json();
@@ -31,7 +34,9 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(dueActions);
   } catch (error) {
     console.error('[Deferred Actions Due] Error:', error);
-    // Return empty array on error for graceful degradation
-    return NextResponse.json([]);
+    return NextResponse.json(
+      { error: 'backend_unavailable', message: error instanceof Error ? error.message : 'Unknown error' },
+      { status: 502 }
+    );
   }
 }

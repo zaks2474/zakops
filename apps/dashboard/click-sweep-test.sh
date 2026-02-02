@@ -5,7 +5,7 @@
 set -e
 
 FRONTEND_URL="${FRONTEND_URL:-http://localhost:3003}"
-BACKEND_URL="${BACKEND_URL:-http://localhost:8090}"
+BACKEND_URL="${BACKEND_URL:-http://localhost:8091}"
 
 PASSED=0
 FAILED=0

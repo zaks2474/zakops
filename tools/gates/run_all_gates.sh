@@ -32,23 +32,6 @@ if [[ -f "$ROOT_DIR/apps/agent-api/pyproject.toml" ]]; then
     popd > /dev/null
 fi
 
-# Backend Gates
-if [[ -f "$ROOT_DIR/apps/backend/pyproject.toml" ]]; then
-    echo "[backend] Running tests..."
-    pushd "$ROOT_DIR/apps/backend" > /dev/null
-    if command -v pytest &>/dev/null; then
-        if pytest tests/ -q --tb=short 2>/dev/null; then
-            echo "[backend] PASSED"
-        else
-            echo "[backend] FAILED"
-            FAILED=1
-        fi
-    else
-        echo "[backend] pytest not available, skipping"
-    fi
-    popd > /dev/null
-fi
-
 # Dashboard Gates
 if [[ -f "$ROOT_DIR/apps/dashboard/package.json" ]]; then
     echo "[dashboard] Running tests..."

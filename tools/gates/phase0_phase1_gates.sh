@@ -110,7 +110,7 @@ if [ -f "$PORTS_FILE" ]; then
     echo "PORTS.md exists: YES" >> "$OUT/ports_md_lint.log"
 
     # Check required ports
-    REQUIRED_PORTS=("8095" "8090" "8000" "8052" "9100" "3001")
+    REQUIRED_PORTS=("8095" "8091" "8000" "8052" "9100" "3001")
     for port in "${REQUIRED_PORTS[@]}"; do
         if grep -q "$port" "$PORTS_FILE"; then
             echo "Port $port: FOUND" >> "$OUT/ports_md_lint.log"
@@ -547,7 +547,7 @@ except Exception as e:
     print(json.dumps({
         "version": "1.0.0",
         "services": {
-            "deal_api": {"name": "Deal API", "base_url": "http://host.docker.internal:8090"},
+            "deal_api": {"name": "Deal API", "base_url": "http://host.docker.internal:8091"},
             "rag_rest": {"name": "RAG REST", "base_url": "http://host.docker.internal:8052"},
             "mcp": {"name": "MCP Server", "base_url": "http://host.docker.internal:9100"},
             "vllm": {"name": "vLLM Inference", "base_url": "http://host.docker.internal:8000/v1"},

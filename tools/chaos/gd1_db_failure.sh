@@ -32,7 +32,7 @@ DETECTION_START=$(date +%s)
 
 for i in {1..10}; do
     sleep 1
-    if ! verify_graceful_degradation "http://localhost:8090/health"; then
+    if ! verify_graceful_degradation "http://localhost:8091/health"; then
         log_error "Non-graceful failure detected"
     fi
 done
@@ -42,7 +42,7 @@ log_info "Detection completed in ${DETECTION_TIME}s"
 
 # Verify graceful degradation
 log_step "4. Verifying graceful degradation..."
-ERROR_RATE=$(check_error_rate "http://localhost:8090/health" 5)
+ERROR_RATE=$(check_error_rate "http://localhost:8091/health" 5)
 log_info "Error rate during fault: ${ERROR_RATE}/5 requests"
 
 # Rollback: Restart PostgreSQL
@@ -57,7 +57,7 @@ ROLLBACK_TIME=$(date +%s)
 log_step "6. Waiting for recovery..."
 RECOVERY_START=$(date +%s)
 
-if wait_recovery "http://localhost:8090/health" 120; then
+if wait_recovery "http://localhost:8091/health" 120; then
     RECOVERY_TIME=$(($(date +%s) - RECOVERY_START))
     log_info "Recovery completed in ${RECOVERY_TIME}s"
     STATUS="passed"
@@ -70,7 +70,7 @@ fi
 # Verify recovery
 log_step "7. Verifying recovery..."
 sleep 5
-FINAL_ERROR_RATE=$(check_error_rate "http://localhost:8090/health" 5)
+FINAL_ERROR_RATE=$(check_error_rate "http://localhost:8091/health" 5)
 
 if [[ $FINAL_ERROR_RATE -eq 0 ]]; then
     log_info "Service fully recovered: 0 errors"

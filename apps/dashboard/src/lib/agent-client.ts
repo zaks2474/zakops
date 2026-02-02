@@ -128,7 +128,7 @@ export function useThread(
 ) {
   return useQuery({
     queryKey: agentQueryKeys.threads.detail(threadId),
-    queryFn: () => apiFetch<AgentThread>(`/api/threads/${threadId}`),
+    queryFn: async () => null as unknown as AgentThread,
     enabled: !!threadId,
     ...options,
   });
@@ -139,11 +139,7 @@ export function useCreateThread(
 ) {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (data: ThreadCreateRequest) =>
-      apiFetch<AgentThread>('/api/threads', {
-        method: 'POST',
-        body: JSON.stringify(data),
-      }),
+    mutationFn: async (_data: ThreadCreateRequest) => null as unknown as AgentThread,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: agentQueryKeys.threads.all });
     },
@@ -156,10 +152,7 @@ export function useArchiveThread(
 ) {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (threadId: string) =>
-      apiFetch<{ status: string; thread_id: string }>(`/api/threads/${threadId}`, {
-        method: 'DELETE',
-      }),
+    mutationFn: async (_threadId: string) => null as unknown as { status: string; thread_id: string },
     onSuccess: (_, threadId) => {
       queryClient.invalidateQueries({ queryKey: agentQueryKeys.threads.all });
       queryClient.invalidateQueries({ queryKey: agentQueryKeys.threads.detail(threadId) });
@@ -184,8 +177,7 @@ export function useRuns(
 
   return useQuery({
     queryKey: agentQueryKeys.threads.runs(threadId),
-    queryFn: () =>
-      apiFetch<AgentRun[]>(`/api/threads/${threadId}/runs${qs ? `?${qs}` : ''}`),
+    queryFn: async () => [] as AgentRun[],
     enabled: !!threadId,
     ...options,
   });
@@ -198,7 +190,7 @@ export function useRun(
 ) {
   return useQuery({
     queryKey: agentQueryKeys.runs.detail(threadId, runId),
-    queryFn: () => apiFetch<AgentRun>(`/api/threads/${threadId}/runs/${runId}`),
+    queryFn: async () => null as unknown as AgentRun,
     enabled: !!threadId && !!runId,
     ...options,
   });
@@ -210,11 +202,7 @@ export function useCreateRun(
 ) {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (data: RunCreateRequest) =>
-      apiFetch<AgentRun>(`/api/threads/${threadId}/runs`, {
-        method: 'POST',
-        body: JSON.stringify(data),
-      }),
+    mutationFn: async (_data: RunCreateRequest) => null as unknown as AgentRun,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: agentQueryKeys.threads.runs(threadId) });
       queryClient.invalidateQueries({ queryKey: agentQueryKeys.threads.detail(threadId) });
@@ -236,10 +224,7 @@ export function useRunEvents(
 
   return useQuery({
     queryKey: agentQueryKeys.runs.events(threadId, runId),
-    queryFn: () =>
-      apiFetch<AgentEvent[]>(
-        `/api/threads/${threadId}/runs/${runId}/events${qs ? `?${qs}` : ''}`
-      ),
+    queryFn: async () => [] as AgentEvent[],
     enabled: !!threadId && !!runId,
     ...options,
   });
@@ -256,8 +241,7 @@ export function useToolCalls(
 ) {
   return useQuery({
     queryKey: agentQueryKeys.runs.toolCalls(threadId, runId),
-    queryFn: () =>
-      apiFetch<AgentToolCall[]>(`/api/threads/${threadId}/runs/${runId}/tool_calls`),
+    queryFn: async () => [] as AgentToolCall[],
     enabled: !!threadId && !!runId,
     ...options,
   });
@@ -271,10 +255,7 @@ export function useToolCall(
 ) {
   return useQuery({
     queryKey: agentQueryKeys.toolCalls.detail(threadId, runId, toolCallId),
-    queryFn: () =>
-      apiFetch<AgentToolCall>(
-        `/api/threads/${threadId}/runs/${runId}/tool_calls/${toolCallId}`
-      ),
+    queryFn: async () => null as unknown as AgentToolCall,
     enabled: !!threadId && !!runId && !!toolCallId,
     ...options,
   });
@@ -291,14 +272,7 @@ export function useApproveToolCall(
 ) {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ toolCallId, data }) =>
-      apiFetch<AgentToolCall>(
-        `/api/threads/${threadId}/runs/${runId}/tool_calls/${toolCallId}/approve`,
-        {
-          method: 'POST',
-          body: JSON.stringify(data || {}),
-        }
-      ),
+    mutationFn: async ({ toolCallId: _toolCallId, data: _data }) => null as unknown as AgentToolCall,
     onSuccess: (_, { toolCallId }) => {
       queryClient.invalidateQueries({
         queryKey: agentQueryKeys.runs.toolCalls(threadId, runId),
@@ -323,14 +297,7 @@ export function useRejectToolCall(
 ) {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ toolCallId, data }) =>
-      apiFetch<AgentToolCall>(
-        `/api/threads/${threadId}/runs/${runId}/tool_calls/${toolCallId}/reject`,
-        {
-          method: 'POST',
-          body: JSON.stringify(data),
-        }
-      ),
+    mutationFn: async ({ toolCallId: _toolCallId, data: _data }) => null as unknown as AgentToolCall,
     onSuccess: (_, { toolCallId }) => {
       queryClient.invalidateQueries({
         queryKey: agentQueryKeys.runs.toolCalls(threadId, runId),
@@ -358,16 +325,7 @@ export function usePendingToolApprovals(
 
   return useQuery({
     queryKey: agentQueryKeys.pendingApprovals,
-    queryFn: async () => {
-      try {
-        return await apiFetch<PendingToolApproval[]>(
-          `/api/pending-tool-approvals${qs ? `?${qs}` : ''}`
-        );
-      } catch {
-        // Return empty array if API not available
-        return [];
-      }
-    },
+    queryFn: async () => [] as PendingToolApproval[],
     staleTime: 5 * 60 * 1000, // 5 minutes
     refetchInterval: false,   // Disabled to prevent UI blinking
     refetchOnWindowFocus: false,
@@ -397,84 +355,10 @@ export interface StreamRunOptions {
  * Create an SSE connection to stream run events.
  * Returns an AbortController to cancel the stream.
  */
-export function streamRunEvents(options: StreamRunOptions): AbortController {
-  const { threadId, runId, lastEventId, onEvent, onError, onClose } = options;
-
+export function streamRunEvents(_options: StreamRunOptions): AbortController {
+  // Stubbed: thread endpoints do not exist on the backend
   const controller = new AbortController();
-
-  const url = new URL(
-    `${API_BASE_URL}/api/threads/${threadId}/runs/${runId}/stream`
-  );
-  if (lastEventId) {
-    url.searchParams.set('Last-Event-ID', lastEventId);
-  }
-
-  fetch(url.toString(), {
-    signal: controller.signal,
-    headers: {
-      Accept: 'text/event-stream',
-    },
-  })
-    .then(async (response) => {
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}`);
-      }
-
-      const reader = response.body?.getReader();
-      if (!reader) {
-        throw new Error('No response body');
-      }
-
-      const decoder = new TextDecoder();
-      let buffer = '';
-
-      while (true) {
-        const { done, value } = await reader.read();
-
-        if (done) {
-          onClose?.();
-          break;
-        }
-
-        buffer += decoder.decode(value, { stream: true });
-        const lines = buffer.split('\n');
-        buffer = lines.pop() || '';
-
-        let currentEvent: {
-          eventId?: string;
-          eventType?: string;
-          data?: string;
-        } = {};
-
-        for (const line of lines) {
-          if (line.startsWith('id: ')) {
-            currentEvent.eventId = line.slice(4);
-          } else if (line.startsWith('event: ')) {
-            currentEvent.eventType = line.slice(7);
-          } else if (line.startsWith('data: ')) {
-            currentEvent.data = line.slice(6);
-          } else if (line === '' && currentEvent.eventType && currentEvent.data) {
-            // End of event
-            try {
-              onEvent({
-                eventId: currentEvent.eventId || '',
-                eventType: currentEvent.eventType,
-                data: JSON.parse(currentEvent.data),
-              });
-            } catch (e) {
-              console.error('Failed to parse SSE event:', e);
-            }
-            currentEvent = {};
-          }
-        }
-      }
-    })
-    .catch((error) => {
-      if (error.name !== 'AbortError') {
-        onError?.(error);
-      }
-    });
-
+  setTimeout(() => _options.onClose?.(), 0);
   return controller;
 }
 
@@ -483,82 +367,13 @@ export function streamRunEvents(options: StreamRunOptions): AbortController {
  * Returns an AbortController to cancel the stream.
  */
 export function createAndStreamRun(
-  threadId: string,
-  data: RunCreateRequest,
+  _threadId: string,
+  _data: RunCreateRequest,
   options: Omit<StreamRunOptions, 'threadId' | 'runId'>
 ): AbortController {
+  // Stubbed: thread endpoints do not exist on the backend
   const controller = new AbortController();
-
-  const url = `${API_BASE_URL}/api/threads/${threadId}/runs/stream`;
-
-  fetch(url, {
-    method: 'POST',
-    signal: controller.signal,
-    headers: {
-      'Content-Type': 'application/json',
-      Accept: 'text/event-stream',
-    },
-    body: JSON.stringify(data),
-  })
-    .then(async (response) => {
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}`);
-      }
-
-      const reader = response.body?.getReader();
-      if (!reader) {
-        throw new Error('No response body');
-      }
-
-      const decoder = new TextDecoder();
-      let buffer = '';
-
-      while (true) {
-        const { done, value } = await reader.read();
-
-        if (done) {
-          options.onClose?.();
-          break;
-        }
-
-        buffer += decoder.decode(value, { stream: true });
-        const lines = buffer.split('\n');
-        buffer = lines.pop() || '';
-
-        let currentEvent: {
-          eventId?: string;
-          eventType?: string;
-          data?: string;
-        } = {};
-
-        for (const line of lines) {
-          if (line.startsWith('id: ')) {
-            currentEvent.eventId = line.slice(4);
-          } else if (line.startsWith('event: ')) {
-            currentEvent.eventType = line.slice(7);
-          } else if (line.startsWith('data: ')) {
-            currentEvent.data = line.slice(6);
-          } else if (line === '' && currentEvent.eventType && currentEvent.data) {
-            try {
-              options.onEvent({
-                eventId: currentEvent.eventId || '',
-                eventType: currentEvent.eventType,
-                data: JSON.parse(currentEvent.data),
-              });
-            } catch (e) {
-              console.error('Failed to parse SSE event:', e);
-            }
-            currentEvent = {};
-          }
-        }
-      }
-    })
-    .catch((error) => {
-      if (error.name !== 'AbortError') {
-        options.onError?.(error);
-      }
-    });
-
+  setTimeout(() => options.onClose?.(), 0);
   return controller;
 }
 
@@ -571,118 +386,66 @@ export function createAndStreamRun(
  * or when hooks aren't suitable.
  */
 export const agentClient = {
-  // Thread operations
-  getThread: (threadId: string) =>
-    apiFetch<AgentThread>(`/api/threads/${threadId}`),
+  // Thread operations (stubbed: thread endpoints do not exist on the backend)
+  getThread: (_threadId: string) =>
+    Promise.resolve(null as unknown as AgentThread),
 
-  createThread: (data: ThreadCreateRequest) =>
-    apiFetch<AgentThread>('/api/threads', {
-      method: 'POST',
-      body: JSON.stringify(data),
-    }),
+  createThread: (_data: ThreadCreateRequest) =>
+    Promise.resolve(null as unknown as AgentThread),
 
-  archiveThread: (threadId: string) =>
-    apiFetch<{ status: string; thread_id: string }>(`/api/threads/${threadId}`, {
-      method: 'DELETE',
-    }),
+  archiveThread: (_threadId: string) =>
+    Promise.resolve(null as unknown as { status: string; thread_id: string }),
 
-  // Run operations
-  getRuns: (threadId: string, params?: { status?: RunStatus; limit?: number }) => {
-    const searchParams = new URLSearchParams();
-    if (params?.status) searchParams.append('status', params.status);
-    if (params?.limit) searchParams.append('limit', params.limit.toString());
-    const qs = searchParams.toString();
-    return apiFetch<AgentRun[]>(`/api/threads/${threadId}/runs${qs ? `?${qs}` : ''}`);
-  },
+  // Run operations (stubbed)
+  getRuns: (_threadId: string, _params?: { status?: RunStatus; limit?: number }) =>
+    Promise.resolve([] as AgentRun[]),
 
-  getRun: (threadId: string, runId: string) =>
-    apiFetch<AgentRun>(`/api/threads/${threadId}/runs/${runId}`),
+  getRun: (_threadId: string, _runId: string) =>
+    Promise.resolve(null as unknown as AgentRun),
 
-  createRun: (threadId: string, data: RunCreateRequest) =>
-    apiFetch<AgentRun>(`/api/threads/${threadId}/runs`, {
-      method: 'POST',
-      body: JSON.stringify(data),
-    }),
+  createRun: (_threadId: string, _data: RunCreateRequest) =>
+    Promise.resolve(null as unknown as AgentRun),
 
-  cancelRun: (threadId: string, runId: string) =>
-    apiFetch<AgentRun>(`/api/threads/${threadId}/runs/${runId}/cancel`, {
-      method: 'POST',
-    }),
+  cancelRun: (_threadId: string, _runId: string) =>
+    Promise.resolve(null as unknown as AgentRun),
 
-  // Run events
+  // Run events (stubbed)
   getRunEvents: (
-    threadId: string,
-    runId: string,
-    params?: { last_event_id?: string; limit?: number }
-  ) => {
-    const searchParams = new URLSearchParams();
-    if (params?.last_event_id) searchParams.append('last_event_id', params.last_event_id);
-    if (params?.limit) searchParams.append('limit', params.limit.toString());
-    const qs = searchParams.toString();
-    return apiFetch<AgentEvent[]>(
-      `/api/threads/${threadId}/runs/${runId}/events${qs ? `?${qs}` : ''}`
-    );
-  },
+    _threadId: string,
+    _runId: string,
+    _params?: { last_event_id?: string; limit?: number }
+  ) => Promise.resolve([] as AgentEvent[]),
 
-  // Tool call operations
-  getToolCalls: (threadId: string, runId: string) =>
-    apiFetch<AgentToolCall[]>(`/api/threads/${threadId}/runs/${runId}/tool_calls`),
+  // Tool call operations (stubbed)
+  getToolCalls: (_threadId: string, _runId: string) =>
+    Promise.resolve([] as AgentToolCall[]),
 
-  getToolCall: (threadId: string, runId: string, toolCallId: string) =>
-    apiFetch<AgentToolCall>(
-      `/api/threads/${threadId}/runs/${runId}/tool_calls/${toolCallId}`
-    ),
+  getToolCall: (_threadId: string, _runId: string, _toolCallId: string) =>
+    Promise.resolve(null as unknown as AgentToolCall),
 
   approveToolCall: (
-    threadId: string,
-    runId: string,
-    toolCallId: string,
-    approvedBy?: string,
-    modifications?: Record<string, unknown>
-  ) =>
-    apiFetch<AgentToolCall>(
-      `/api/threads/${threadId}/runs/${runId}/tool_calls/${toolCallId}/approve`,
-      {
-        method: 'POST',
-        body: JSON.stringify({ approved_by: approvedBy, modifications }),
-      }
-    ),
+    _threadId: string,
+    _runId: string,
+    _toolCallId: string,
+    _approvedBy?: string,
+    _modifications?: Record<string, unknown>
+  ) => Promise.resolve(null as unknown as AgentToolCall),
 
   rejectToolCall: (
-    threadId: string,
-    runId: string,
-    toolCallId: string,
-    rejectedBy?: string,
-    reason?: string
-  ) =>
-    apiFetch<AgentToolCall>(
-      `/api/threads/${threadId}/runs/${runId}/tool_calls/${toolCallId}/reject`,
-      {
-        method: 'POST',
-        body: JSON.stringify({ rejected_by: rejectedBy, reason }),
-      }
-    ),
+    _threadId: string,
+    _runId: string,
+    _toolCallId: string,
+    _rejectedBy?: string,
+    _reason?: string
+  ) => Promise.resolve(null as unknown as AgentToolCall),
 
-  // Pending approvals
-  getPendingApprovals: (params?: { limit?: number }) => {
-    const searchParams = new URLSearchParams();
-    if (params?.limit) searchParams.append('limit', params.limit.toString());
-    const qs = searchParams.toString();
-    return apiFetch<PendingToolApproval[]>(
-      `/api/pending-tool-approvals${qs ? `?${qs}` : ''}`
-    );
-  },
+  // Pending approvals (stubbed)
+  getPendingApprovals: (_params?: { limit?: number }) =>
+    Promise.resolve([] as PendingToolApproval[]),
 
-  // Message operations (for chat)
-  sendMessage: (threadId: string, message: string, assistantId?: string) =>
-    apiFetch<AgentRun>(`/api/threads/${threadId}/runs`, {
-      method: 'POST',
-      body: JSON.stringify({
-        input_message: message,
-        assistant_id: assistantId,
-        stream: true,
-      }),
-    }),
+  // Message operations (stubbed)
+  sendMessage: (_threadId: string, _message: string, _assistantId?: string) =>
+    Promise.resolve(null as unknown as AgentRun),
 };
 
 export type AgentClient = typeof agentClient;

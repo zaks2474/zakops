@@ -37,7 +37,7 @@ echo "1. Tool Enumeration"
 echo ""
 
 # Get tools from Deal API
-DEAL_API_TOOLS=$(curl -s http://localhost:8090/api/tools 2>/dev/null || echo "{}")
+DEAL_API_TOOLS=$(curl -s http://localhost:8091/api/tools 2>/dev/null || echo "{}")
 DEAL_TOOL_COUNT=$(echo "$DEAL_API_TOOLS" | python3 -c "
 import sys, json
 try:
@@ -154,7 +154,7 @@ echo "3. Tool Health Check"
 echo ""
 
 # Check tool health endpoint
-TOOL_HEALTH=$(curl -s http://localhost:8090/api/tools/health 2>/dev/null || echo "{}")
+TOOL_HEALTH=$(curl -s http://localhost:8091/api/tools/health 2>/dev/null || echo "{}")
 TOOL_HEALTH_STATUS=$(echo "$TOOL_HEALTH" | python3 -c "
 import sys, json
 try:
@@ -186,7 +186,7 @@ echo "4. Tool Error Handling"
 echo ""
 
 # Test that invalid tool calls return proper error structure
-ERROR_RESPONSE=$(curl -s -X POST "http://localhost:8090/api/tools/nonexistent" \
+ERROR_RESPONSE=$(curl -s -X POST "http://localhost:8091/api/tools/nonexistent" \
     -H "Content-Type: application/json" \
     -d '{"test": true}' 2>/dev/null || echo "{}")
 
@@ -214,7 +214,7 @@ echo "5. Action/Capability Registry"
 echo ""
 
 # Check action capabilities
-CAPABILITIES=$(curl -s http://localhost:8090/api/actions/capabilities 2>/dev/null || echo "{}")
+CAPABILITIES=$(curl -s http://localhost:8091/api/actions/capabilities 2>/dev/null || echo "{}")
 CAP_COUNT=$(echo "$CAPABILITIES" | python3 -c "
 import sys, json
 try:

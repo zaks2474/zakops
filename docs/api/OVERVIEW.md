@@ -10,7 +10,7 @@ The ZakOps API provides programmatic access to all ZakOps functionality. It foll
 
 | Environment | Base URL |
 |-------------|----------|
-| Development | `http://localhost:8090/api/v1` |
+| Development | `http://localhost:8091/api/v1` |
 | Staging | `https://api.staging.zakops.example.com/api/v1` |
 | Production | `https://api.zakops.example.com/api/v1` |
 

@@ -1,7 +1,7 @@
 # ZakOps API Contract Audit
 
 **Date**: 2025-12-29
-**Backend**: http://localhost:8090
+**Backend**: http://localhost:8091
 **Frontend Proxy**: http://localhost:3003/api/*
 
 ## Backend API Catalog
@@ -141,11 +141,11 @@ Configured in `next.config.ts`:
 
 ```javascript
 rewrites: [
-  { source: '/api/:path*', destination: 'http://localhost:8090/api/:path*' }
+  { source: '/api/:path*', destination: 'http://localhost:8091/api/:path*' }
 ]
 ```
 
-All `/api/*` calls are proxied to backend at port 8090.
+All `/api/*` calls are proxied to backend at port 8091.
 
 ---
 

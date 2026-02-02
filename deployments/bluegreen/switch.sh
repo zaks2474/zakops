@@ -74,7 +74,7 @@ http:
     api-service:
       loadBalancer:
         servers:
-          - url: "http://zakops-api-blue:8090"
+          - url: "http://zakops-api-blue:8091"
         healthCheck:
           path: /health
           interval: "10s"
@@ -135,7 +135,7 @@ http:
     api-service:
       loadBalancer:
         servers:
-          - url: "http://zakops-api-green:8090"
+          - url: "http://zakops-api-green:8091"
         healthCheck:
           path: /health
           interval: "10s"

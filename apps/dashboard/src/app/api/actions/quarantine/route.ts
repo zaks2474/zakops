@@ -88,10 +88,17 @@ export async function GET(request: NextRequest) {
       return NextResponse.json(quarantineItems);
     }
 
-    // Return empty array if both fail
-    return NextResponse.json([]);
+    // Both endpoints failed
+    console.error('[actions/quarantine] Backend error: both /api/quarantine and /api/actions returned non-OK');
+    return NextResponse.json(
+      { error: 'backend_unavailable', message: 'Both quarantine and actions endpoints failed' },
+      { status: 502 }
+    );
   } catch (error) {
-    console.error('[Actions Quarantine] Error:', error);
-    return NextResponse.json([]);
+    console.error('[actions/quarantine] Backend error:', error);
+    return NextResponse.json(
+      { error: 'backend_unavailable', message: error instanceof Error ? error.message : 'Unknown error' },
+      { status: 502 }
+    );
   }
 }

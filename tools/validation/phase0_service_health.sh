@@ -107,8 +107,8 @@ check_rag_service() {
 echo "Checking services..."
 echo ""
 
-# Deal API (8090)
-check_service "Deal API" 8090 "/health" 200
+# Deal API (8091)
+check_service "Deal API" 8091 "/health" 200
 
 # Agent API (8095)
 check_service "Agent API" 8095 "/health" 200

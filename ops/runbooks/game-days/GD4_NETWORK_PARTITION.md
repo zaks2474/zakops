@@ -22,7 +22,7 @@
 
 2. Test internal connectivity:
    ```bash
-   curl -sf http://localhost:8090/health
+   curl -sf http://localhost:8091/health
    docker exec zakops-api curl -sf http://zakops-postgres:5432
    ```
 
@@ -37,8 +37,8 @@
 1. **Verify internal operations work**:
    ```bash
    # These should succeed
-   curl -sf http://localhost:8090/health
-   curl -sf http://localhost:8090/api/deals
+   curl -sf http://localhost:8091/health
+   curl -sf http://localhost:8091/api/deals
    ```
 
 2. **Check DNS resolution**:
@@ -80,13 +80,13 @@ If network issue:
 
 2. Internal services still healthy:
    ```bash
-   curl -sf http://localhost:8090/health
+   curl -sf http://localhost:8091/health
    ```
 
 3. Integrations working:
    ```bash
    # Test webhook endpoint
-   curl -X POST http://localhost:8090/api/webhooks/test
+   curl -X POST http://localhost:8091/api/webhooks/test
    ```
 
 ## Escalation

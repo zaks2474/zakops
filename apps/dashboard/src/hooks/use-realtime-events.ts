@@ -443,7 +443,8 @@ export function useGlobalEvents(options: UseGlobalEventsOptions = {}) {
   const connect = useCallback(() => {
     if (!enabled || wsRef.current) return;
 
-    const wsUrl = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:9200')
+    if (!process.env.NEXT_PUBLIC_API_URL) throw new Error('NEXT_PUBLIC_API_URL is required');
+    const wsUrl = process.env.NEXT_PUBLIC_API_URL
       .replace(/^http/, 'ws') + '/ws/updates';
 
     try {

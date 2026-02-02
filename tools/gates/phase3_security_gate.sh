@@ -99,12 +99,6 @@ echo "=== Output Sanitization ==="
 check_file "apps/agent-api/app/core/security/output_validation.py" "Output validation module exists" || ((ERRORS++))
 check_file "apps/agent-api/tests/security/test_output_sanitization.py" "Output sanitization tests exist" || ((ERRORS++))
 
-# === OWASP API Security Tests ===
-echo ""
-echo "=== OWASP API Security Tests ==="
-
-check_file "apps/backend/tests/security/test_owasp_api_top10.py" "OWASP API Top 10 tests exist" || ((ERRORS++))
-
 # === Run Security Checklist Validation ===
 echo ""
 echo "=== Running Security Checklist Validation ==="

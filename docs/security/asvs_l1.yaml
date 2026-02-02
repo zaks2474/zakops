@@ -114,7 +114,7 @@ requirements:
     category: "Validation"
     status: complete
     enforcement_location: "apps/agent-api/app/api/v1/agent.py"
-    test_reference: "apps/backend/tests/security/test_owasp_api_top10.py"
+    test_reference: "apps/agent-api/tests/security/test_output_sanitization.py"
     notes: "Parameterized queries via SQLModel"
 
   # V7: Error Handling

@@ -18,13 +18,20 @@ export async function GET(request: NextRequest) {
     });
 
     if (!response.ok) {
-      return NextResponse.json([]);
+      console.error('[deferred-actions] Backend error: status', response.status);
+      return NextResponse.json(
+        { error: 'backend_unavailable', message: `Backend returned ${response.status}` },
+        { status: 502 }
+      );
     }
 
     const data = await response.json();
     return NextResponse.json(data);
   } catch (error) {
     console.error('[Deferred Actions] Error:', error);
-    return NextResponse.json([]);
+    return NextResponse.json(
+      { error: 'backend_unavailable', message: error instanceof Error ? error.message : 'Unknown error' },
+      { status: 502 }
+    );
   }
 }

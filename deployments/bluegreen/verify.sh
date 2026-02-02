@@ -20,7 +20,7 @@ log_fail() { echo -e "${RED}[FAIL]${NC} $1"; }
 
 # Port mappings
 declare -A BLUE_PORTS=(
-    [api]=8090
+    [api]=8091
     [mcp]=9100
     [dashboard]=3003
 )
@@ -43,7 +43,7 @@ usage() {
     echo "Verifies health of the specified deployment."
     echo ""
     echo "Options:"
-    echo "  blue       Verify blue stack directly (ports 8090, 9100, 3003)"
+    echo "  blue       Verify blue stack directly (ports 8091, 9100, 3003)"
     echo "  green      Verify green stack directly (ports 8091, 9101, 3004)"
     echo "  production Verify through Traefik proxy (port 80)"
     exit 1

@@ -46,7 +46,7 @@ for i in {1..5}; do
     REQUEST_START=$(date +%s)
 
     # Use longer timeout to detect delay
-    RESPONSE=$(curl -sf -w "\n%{http_code}" --max-time 10 "http://localhost:8090/health" 2>/dev/null || echo -e "\n000")
+    RESPONSE=$(curl -sf -w "\n%{http_code}" --max-time 10 "http://localhost:8091/health" 2>/dev/null || echo -e "\n000")
     HTTP_CODE=$(echo "$RESPONSE" | tail -1)
 
     REQUEST_DURATION=$(($(date +%s) - REQUEST_START))
@@ -85,7 +85,7 @@ ROLLBACK_TIME=$(date +%s)
 log_step "5. Verifying recovery..."
 RECOVERY_START=$(date +%s)
 
-if wait_recovery "http://localhost:8090/health" 30; then
+if wait_recovery "http://localhost:8091/health" 30; then
     RECOVERY_TIME=$(($(date +%s) - RECOVERY_START))
     STATUS="passed"
 else

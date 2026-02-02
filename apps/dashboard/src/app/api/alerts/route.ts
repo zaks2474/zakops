@@ -98,7 +98,9 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(alerts);
   } catch (error) {
     console.error('[Alerts] Error:', error);
-    // Return empty array on error
-    return NextResponse.json([]);
+    return NextResponse.json(
+      { error: 'backend_unavailable', message: error instanceof Error ? error.message : 'Unknown error' },
+      { status: 502 }
+    );
   }
 }

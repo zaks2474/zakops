@@ -5,7 +5,7 @@
 | Service        | Port  | Protocol | Description                          |
 |----------------|-------|----------|--------------------------------------|
 | Agent API      | 8095  | HTTP     | Agent orchestration, approvals, tools|
-| Deal API       | 8090  | HTTP     | Deal CRUD and transitions (existing) |
+| Deal API       | 8091  | HTTP     | Deal CRUD and transitions (existing) |
 | vLLM           | 8000  | HTTP     | Local LLM inference (Qwen2.5-32B)    |
 | RAG REST       | 8052  | HTTP     | Retrieval frontend                   |
 | MCP            | 9100  | HTTP     | External tool server (streamable-http)|
@@ -34,7 +34,7 @@ extra_hosts:
 ## External Service URLs
 
 Default configuration (container mode):
-- `DEAL_API_URL=http://host.docker.internal:8090`
+- `DEAL_API_URL=http://host.docker.internal:8091`
 - `RAG_REST_URL=http://host.docker.internal:8052`
 - `MCP_URL=http://host.docker.internal:9100`
 - `VLLM_BASE_URL=http://host.docker.internal:8000/v1`

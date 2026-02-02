@@ -11,13 +11,13 @@ Before the demo, ensure:
 1. **Services running**: All ZakOps services are healthy
    ```bash
    make doctor
-   curl http://localhost:8090/health
+   curl http://localhost:8091/health
    ```
 
 2. **Test data ready**: Demo user and sample deals exist
    ```bash
    # Create demo user (if needed)
-   curl -X POST http://localhost:8090/api/v1/users \
+   curl -X POST http://localhost:8091/api/v1/users \
      -H "Content-Type: application/json" \
      -d '{"username": "demo_user", "role": "operator"}'
    ```
@@ -114,7 +114,7 @@ After the demo:
 
 ```bash
 # Remove demo data
-curl -X DELETE http://localhost:8090/api/v1/deals/demo_deal_id
+curl -X DELETE http://localhost:8091/api/v1/deals/demo_deal_id
 
 # Or run cleanup script
 ./tools/demos/run_demo.sh --cleanup
