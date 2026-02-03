@@ -242,6 +242,11 @@ async def approve_action(
             # Reclaim any stale approvals first (crash recovery)
             await _reclaim_stale_approvals(db)
 
+            # UF-003: Ownership check before claiming
+            pre_check = db.get(Approval, approval_id)
+            if pre_check and user and pre_check.actor_id != user.subject:
+                raise HTTPException(status_code=403, detail="Insufficient permissions")
+
             # ATOMIC CLAIM: Single UPDATE with WHERE status='pending'
             # Only one concurrent caller can win this race
             result = db.exec(
@@ -514,6 +519,11 @@ async def reject_action(
 
     try:
         with database_service.get_session_maker() as db:
+            # UF-003: Ownership check before rejecting
+            pre_check = db.get(Approval, approval_id)
+            if pre_check and user and pre_check.actor_id != user.subject:
+                raise HTTPException(status_code=403, detail="Insufficient permissions")
+
             # ATOMIC REJECT: Single UPDATE with WHERE status='pending'
             result = db.exec(
                 text("""
@@ -619,7 +629,10 @@ async def list_pending_approvals(
 
             statement = select(Approval).where(Approval.status == ApprovalStatus.PENDING)
 
-            if actor_id:
+            # UF-003: Scope approvals to authenticated user when JWT enforced
+            if user:
+                statement = statement.where(Approval.actor_id == user.subject)
+            elif actor_id:
                 statement = statement.where(Approval.actor_id == actor_id)
 
             approvals = db.exec(statement).all()
@@ -669,6 +682,10 @@ async def get_approval(
             if not approval:
                 raise HTTPException(status_code=404, detail="Approval not found")
 
+            # UF-003: Ownership check
+            if user and approval.actor_id != user.subject:
+                raise HTTPException(status_code=403, detail="Insufficient permissions")
+
             return PendingApproval(
                 approval_id=approval.id,
                 tool=approval.tool_name,
@@ -717,12 +734,14 @@ async def get_thread_state(
     try:
         with database_service.get_session_maker() as db:
             # Check for pending approvals on this thread
-            approval = db.exec(
-                select(Approval).where(
-                    Approval.thread_id == thread_id,
-                    Approval.status.in_([ApprovalStatus.PENDING, ApprovalStatus.CLAIMED])
-                )
-            ).first()
+            thread_query = select(Approval).where(
+                Approval.thread_id == thread_id,
+                Approval.status.in_([ApprovalStatus.PENDING, ApprovalStatus.CLAIMED])
+            )
+            # UF-003: Scope thread state to authenticated user
+            if user:
+                thread_query = thread_query.where(Approval.actor_id == user.subject)
+            approval = db.exec(thread_query).first()
 
             if approval:
                 pending = PendingApproval(

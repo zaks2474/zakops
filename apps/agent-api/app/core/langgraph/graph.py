@@ -782,7 +782,14 @@ class LangGraphAgent:
                 stream_mode="messages",
             ):
                 try:
-                    yield token.content
+                    # UF-004: Sanitize streaming tokens before yielding
+                    content = token.content
+                    if content:
+                        sanitization_result = sanitize_llm_output(content)
+                        if sanitization_result.was_modified:
+                            logger.warning("llm_stream_output_sanitized", session_id=session_id)
+                        content = sanitization_result.sanitized
+                    yield content
                 except Exception as token_error:
                     logger.error("Error processing token", error=str(token_error), session_id=session_id)
                     continue
