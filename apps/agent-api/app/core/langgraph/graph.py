@@ -24,7 +24,7 @@ from langchain_core.messages import (
     ToolMessage,
     convert_to_openai_messages,
 )
-from langfuse.langchain import CallbackHandler
+from app.core.tracing import get_callbacks
 from langgraph.checkpoint.postgres.aio import AsyncPostgresSaver
 from langgraph.graph import (
     END,
@@ -491,7 +491,7 @@ class LangGraphAgent:
 
         config = {
             "configurable": {"thread_id": thread_id},
-            "callbacks": [CallbackHandler()],
+            "callbacks": get_callbacks(),
             "metadata": {
                 "actor_id": actor_id,
                 "thread_id": thread_id,
@@ -621,26 +621,42 @@ class LangGraphAgent:
             "configurable": {
                 "thread_id": thread_id,
             },
-            "callbacks": [CallbackHandler()],
+            "callbacks": get_callbacks(),
         }
 
         if checkpoint_id:
             config["configurable"]["checkpoint_id"] = checkpoint_id
 
         try:
-            # Resume with approval granted
+            # Resume with approval granted using Command(resume=...)
+            # The resume value becomes the return value of interrupt() in _approval_gate
             result = await self._graph.ainvoke(
-                input=None,  # Resume from checkpoint
+                Command(resume={"approved": True, "approval_id": approval_id}),
                 config=config,
-                interrupt_resume={"approved": True, "approval_id": approval_id},
             )
 
             messages = result.get("messages", [])
             response_text = ""
+            tool_result = None
+            tool_executed = False
+
+            # Extract tool result and AI response from messages
             for msg in reversed(messages):
-                if isinstance(msg, AIMessage) and msg.content:
+                if isinstance(msg, ToolMessage) and tool_result is None:
+                    # Found the tool execution result
+                    tool_executed = True
+                    try:
+                        tool_result = json.loads(msg.content) if isinstance(msg.content, str) else msg.content
+                    except json.JSONDecodeError:
+                        tool_result = {"raw": msg.content}
+                    logger.info(
+                        "tool_result_extracted",
+                        thread_id=thread_id,
+                        tool_name=msg.name,
+                        tool_result=tool_result,
+                    )
+                elif isinstance(msg, AIMessage) and msg.content and not response_text:
                     response_text = str(msg.content)
-                    break
 
             # Sanitize LLM output (UF-004)
             if response_text:
@@ -653,9 +669,14 @@ class LangGraphAgent:
                 "resume_after_approval_success",
                 thread_id=thread_id,
                 approval_id=approval_id,
+                tool_executed=tool_executed,
             )
 
-            return {"response": response_text}
+            return {
+                "response": response_text,
+                "tool_executed": tool_executed,
+                "tool_result": tool_result,
+            }
 
         except Exception as e:
             logger.error(f"resume_after_approval failed: {str(e)}", exc_info=True)
@@ -684,18 +705,17 @@ class LangGraphAgent:
 
         config = {
             "configurable": {"thread_id": thread_id},
-            "callbacks": [CallbackHandler()],
+            "callbacks": get_callbacks(),
         }
 
         if checkpoint_id:
             config["configurable"]["checkpoint_id"] = checkpoint_id
 
         try:
-            # Resume with rejection
+            # Resume with rejection using Command(resume=...)
             await self._graph.ainvoke(
-                input=None,
+                Command(resume={"approved": False, "reason": rejection_reason}),
                 config=config,
-                interrupt_resume={"approved": False, "reason": rejection_reason},
             )
 
             logger.info(
@@ -723,7 +743,7 @@ class LangGraphAgent:
             self._graph = await self.create_graph()
         config = {
             "configurable": {"thread_id": session_id},
-            "callbacks": [CallbackHandler()],
+            "callbacks": get_callbacks(),
             "metadata": {
                 "user_id": user_id,
                 "session_id": session_id,
@@ -755,11 +775,9 @@ class LangGraphAgent:
         """Get a stream response from the LLM (original method preserved)."""
         config = {
             "configurable": {"thread_id": session_id},
-            "callbacks": [
-                CallbackHandler(
-                    environment=settings.ENVIRONMENT.value, debug=False, user_id=user_id, session_id=session_id
-                )
-            ],
+            "callbacks": get_callbacks(
+                environment=settings.ENVIRONMENT.value, debug=False, user_id=user_id, session_id=session_id
+            ),
             "metadata": {
                 "user_id": user_id,
                 "session_id": session_id,

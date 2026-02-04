@@ -48,6 +48,8 @@ import {
   normalizeChatProposalType,
 } from '@/lib/api';
 import { ProviderSelector, getSelectedProvider, type ProviderType } from '@/components/chat/ProviderSelector';
+import { z } from 'zod';
+import { loadFromStorage, saveToStorage, removeFromStorage } from '@/lib/storage-utils';
 
 // ═══════════════════════════════════════════════════════════════════════════
 // Types
@@ -91,31 +93,37 @@ interface ProgressStep {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
-// localStorage Persistence
+// localStorage Persistence (RT-STORE-1 Compliant)
+// F003-P1-002 Remediation: Using loadFromStorage with Zod validation + quarantine
 // ═══════════════════════════════════════════════════════════════════════════
 
 const STORAGE_KEY = 'zakops-chat-session';
 const STORAGE_VERSION = 1;
 
-interface StoredSession {
-  version: number;
-  sessionId: string | null;
-  scopeType: 'global' | 'deal' | 'document';
-  selectedDealId: string;
-  messages: Array<{
-    id: string;
-    role: 'user' | 'assistant';
-    content: string;
-    timestamp: string;
-    citations?: ChatCitation[];
-    proposals?: ChatProposal[];
-    evidenceSummary?: ChatEvidenceSummary;
-    timings?: TimingData;
-    warnings?: string[];
-  }>;
-  lastTimings: TimingData | null;
-  savedAt: string;
-}
+// Zod schema for stored session (RT-STORE-1 requirement)
+const StoredMessageSchema = z.object({
+  id: z.string(),
+  role: z.enum(['user', 'assistant']),
+  content: z.string(),
+  timestamp: z.string(),
+  citations: z.array(z.any()).optional(),
+  proposals: z.array(z.any()).optional(),
+  evidenceSummary: z.any().optional(),
+  timings: z.any().optional(),
+  warnings: z.array(z.string()).optional(),
+});
+
+const StoredSessionSchema = z.object({
+  version: z.number(),
+  sessionId: z.string().nullable(),
+  scopeType: z.enum(['global', 'deal', 'document']),
+  selectedDealId: z.string(),
+  messages: z.array(StoredMessageSchema),
+  lastTimings: z.any().nullable(),
+  savedAt: z.string(),
+});
+
+type StoredSession = z.infer<typeof StoredSessionSchema>;
 
 // Async save using requestIdleCallback to avoid blocking UI
 function saveSession(
@@ -126,30 +134,26 @@ function saveSession(
   lastTimings: TimingData | null
 ) {
   const doSave = () => {
-    try {
-      const data: StoredSession = {
-        version: STORAGE_VERSION,
-        sessionId,
-        scopeType,
-        selectedDealId,
-        messages: messages.map(m => ({
-          id: m.id,
-          role: m.role,
-          content: m.content,
-          timestamp: m.timestamp.toISOString(),
-          citations: m.citations,
-          proposals: m.proposals,
-          evidenceSummary: m.evidenceSummary,
-          timings: m.timings,
-          warnings: m.warnings,
-        })),
-        lastTimings,
-        savedAt: new Date().toISOString(),
-      };
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-    } catch (e) {
-      console.warn('Failed to save chat session:', e);
-    }
+    const data: StoredSession = {
+      version: STORAGE_VERSION,
+      sessionId,
+      scopeType,
+      selectedDealId,
+      messages: messages.map(m => ({
+        id: m.id,
+        role: m.role,
+        content: m.content,
+        timestamp: m.timestamp.toISOString(),
+        citations: m.citations,
+        proposals: m.proposals,
+        evidenceSummary: m.evidenceSummary,
+        timings: m.timings,
+        warnings: m.warnings,
+      })),
+      lastTimings,
+      savedAt: new Date().toISOString(),
+    };
+    saveToStorage(STORAGE_KEY, data);
   };
 
   // Use requestIdleCallback if available for non-blocking save
@@ -161,25 +165,18 @@ function saveSession(
   }
 }
 
+// RT-STORE-1: Load with Zod validation and quarantine on failure
 function loadSession(): StoredSession | null {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return null;
-    const data = JSON.parse(raw) as StoredSession;
-    if (data.version !== STORAGE_VERSION) return null;
-    return data;
-  } catch (e) {
-    console.warn('Failed to load chat session:', e);
-    return null;
-  }
+  const fallback = null;
+  const result = loadFromStorage(STORAGE_KEY, StoredSessionSchema, {
+    version: STORAGE_VERSION,
+    fallback,
+  });
+  return result;
 }
 
 function clearStoredSession() {
-  try {
-    localStorage.removeItem(STORAGE_KEY);
-  } catch (e) {
-    console.warn('Failed to clear chat session:', e);
-  }
+  removeFromStorage(STORAGE_KEY);
 }
 
 // ═══════════════════════════════════════════════════════════════════════════

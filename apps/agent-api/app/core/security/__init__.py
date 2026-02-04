@@ -18,6 +18,10 @@ from app.core.security.agent_auth import (
     AGENT_JWT_ISSUER,
     AGENT_JWT_REQUIRED_ROLE,
     ROLE_HIERARCHY,
+    # F-001/F-002 remediation: service token auth for /agent/* endpoints
+    ServiceUser,
+    get_service_token_user,
+    require_service_token,
 )
 
 __all__ = [
@@ -38,4 +42,8 @@ __all__ = [
     "AGENT_JWT_ISSUER",
     "AGENT_JWT_REQUIRED_ROLE",
     "ROLE_HIERARCHY",
+    # F-001/F-002 remediation: service token auth for /agent/* endpoints
+    "ServiceUser",
+    "get_service_token_user",
+    "require_service_token",
 ]

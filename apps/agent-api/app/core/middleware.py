@@ -11,6 +11,9 @@ from jose import (
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.responses import Response
 
+# Server header value to mask version disclosure (F-008 fix)
+MASKED_SERVER_HEADER = "ZakOps"
+
 from app.core.config import settings
 from app.core.logging import (
     bind_context,
@@ -106,3 +109,25 @@ class LoggingContextMiddleware(BaseHTTPMiddleware):
         finally:
             # Always clear context after request is complete to avoid leaking to other requests
             clear_context()
+
+
+class MaskServerHeaderMiddleware(BaseHTTPMiddleware):
+    """Middleware to mask server version header (F-008 fix).
+
+    Replaces the default uvicorn server header with a generic value
+    to reduce fingerprinting attack surface.
+    """
+
+    async def dispatch(self, request: Request, call_next: Callable) -> Response:
+        """Mask the server header in all responses.
+
+        Args:
+            request: The incoming request
+            call_next: The next middleware or route handler
+
+        Returns:
+            Response: The response with masked server header
+        """
+        response = await call_next(request)
+        response.headers["server"] = MASKED_SERVER_HEADER
+        return response

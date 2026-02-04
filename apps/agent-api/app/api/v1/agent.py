@@ -27,7 +27,15 @@ from app.core.idempotency import tool_idempotency_key
 from app.core.langgraph.graph import LangGraphAgent
 from app.core.limiter import limiter
 from app.core.logging import logger
-from app.core.security import get_agent_user, require_approve_role, AgentUser
+from app.core.security import (
+    get_agent_user,
+    require_approve_role,
+    AgentUser,
+    # F-001/F-002 remediation: use service token auth for /agent/* endpoints
+    ServiceUser,
+    get_service_token_user,
+    require_service_token,
+)
 from app.models.approval import Approval, ApprovalStatus, ToolExecution, AuditLog, AuditEventType
 from app.schemas.agent import (
     AgentInvokeRequest,
@@ -130,7 +138,7 @@ async def _reclaim_stale_approvals(db: Session) -> int:
 async def invoke_agent(
     request: Request,
     invoke_request: AgentInvokeRequest,
-    user: Optional[AgentUser] = Depends(get_agent_user),
+    user: ServiceUser = Depends(require_service_token),
 ):
     """Invoke the agent with a message.
 
@@ -212,7 +220,7 @@ async def approve_action(
     request: Request,
     approval_id: str,
     action_request: ApprovalActionRequest,
-    user: Optional[AgentUser] = Depends(require_approve_role),
+    user: ServiceUser = Depends(require_service_token),
 ):
     """Approve a pending action and resume the agent.
 
@@ -234,17 +242,18 @@ async def approve_action(
     Raises:
         HTTPException: 404 if not found, 409 if already claimed/resolved
     """
-    # Bind actor_id to JWT subject when enforcement is enabled (prevents spoofing)
-    actor_id = user.subject if user else action_request.actor_id
+    # F-001/F-002: With service token auth, trust the actor_id from the request
+    # The dashboard is a trusted internal service that passes the UI user's identity
+    actor_id = action_request.actor_id
 
     try:
         with database_service.get_session_maker() as db:
             # Reclaim any stale approvals first (crash recovery)
             await _reclaim_stale_approvals(db)
 
-            # UF-003: Ownership check before claiming
+            # UF-003: Ownership check — verify request actor matches approval actor
             pre_check = db.get(Approval, approval_id)
-            if pre_check and user and pre_check.actor_id != user.subject:
+            if pre_check and actor_id and pre_check.actor_id != actor_id:
                 raise HTTPException(status_code=403, detail="Insufficient permissions")
 
             # ATOMIC CLAIM: Single UPDATE with WHERE status='pending'
@@ -275,11 +284,20 @@ async def approve_action(
                 if approval.status == ApprovalStatus.EXPIRED or (
                     approval.expires_at and datetime.now(UTC) > approval.expires_at
                 ):
-                    # Update to expired if not already
-                    approval.status = ApprovalStatus.EXPIRED
-                    db.add(approval)
-                    db.commit()
-                    raise HTTPException(status_code=400, detail="Approval has expired")
+                    # F003-P2-001: Lazy expiry enforcement - mark as expired and return 410
+                    if approval.status != ApprovalStatus.EXPIRED:
+                        approval.status = ApprovalStatus.EXPIRED
+                        db.add(approval)
+                        _write_audit_log(
+                            db=db,
+                            event_type=AuditEventType.APPROVAL_EXPIRED,
+                            actor_id=actor_id,
+                            thread_id=approval.thread_id,
+                            approval_id=approval_id,
+                            payload={"expires_at": approval.expires_at.isoformat() if approval.expires_at else None},
+                        )
+                        db.commit()
+                    raise HTTPException(status_code=410, detail="Approval has expired")
                 if approval.status in (ApprovalStatus.APPROVED, ApprovalStatus.REJECTED):
                     raise HTTPException(
                         status_code=409,
@@ -392,11 +410,21 @@ async def approve_action(
                 approval_id=approval_id,
             )
 
-            # Mark execution as successful
+            # Extract execution status and tool result (No-Illusions Gate)
+            tool_executed = result.get("tool_executed", False)
+            tool_result = result.get("tool_result")
+
+            # Determine actual success based on tool execution (RT-A.1)
+            actual_success = tool_executed and tool_result is not None
+            if tool_result and isinstance(tool_result, dict):
+                # Check if tool itself reported failure
+                actual_success = actual_success and tool_result.get("ok", True)
+
+            # Mark execution with ACTUAL status (not assumed success)
             with database_service.get_session_maker() as db:
                 execution = db.get(ToolExecution, execution_id)
-                execution.success = True
-                execution.result = result.get("response")
+                execution.success = actual_success
+                execution.result = json.dumps(tool_result) if tool_result else result.get("response")
                 db.add(execution)
 
                 # Mark approval as approved
@@ -406,7 +434,7 @@ async def approve_action(
                 approval.resolved_by = actor_id
                 db.add(approval)
 
-                # Write audit logs for completion
+                # Write audit logs for completion with actual status
                 _write_audit_log(
                     db=db,
                     event_type=AuditEventType.TOOL_EXECUTION_COMPLETED,
@@ -414,7 +442,7 @@ async def approve_action(
                     thread_id=thread_id,
                     approval_id=approval_id,
                     tool_execution_id=execution_id,
-                    payload={"success": True},
+                    payload={"success": actual_success, "tool_executed": tool_executed},
                 )
                 _write_audit_log(
                     db=db,
@@ -432,16 +460,18 @@ async def approve_action(
                 actor_id=actor_id,
                 thread_id=thread_id,
                 execution_id=execution_id,
+                tool_executed=tool_executed,
+                actual_success=actual_success,
             )
 
-            # Return MDv2-compliant response with status="completed"
+            # Return MDv2-compliant response with ACTUAL tool result (not hardcoded)
             return AgentInvokeResponse(
                 thread_id=thread_id,
                 status="completed",
                 content=result.get("response"),
                 pending_approval=None,
-                actions_taken=[ActionTaken(tool=tool_name, result={"ok": True})],
-                error=None,
+                actions_taken=[ActionTaken(tool=tool_name, result=tool_result or {"ok": actual_success})],
+                error=None if actual_success else "Tool execution did not complete",
             )
 
         except Exception as resume_error:
@@ -498,7 +528,7 @@ async def reject_action(
     request: Request,
     approval_id: str,
     action_request: ApprovalActionRequest,
-    user: Optional[AgentUser] = Depends(require_approve_role),
+    user: ServiceUser = Depends(require_service_token),
 ):
     """Reject a pending action.
 
@@ -514,14 +544,14 @@ async def reject_action(
     Returns:
         AgentInvokeResponse: MDv2-compliant response indicating rejection
     """
-    # Bind actor_id to JWT subject when enforcement is enabled (prevents spoofing)
-    actor_id = user.subject if user else action_request.actor_id
+    # F-001/F-002: With service token auth, trust the actor_id from the request
+    actor_id = action_request.actor_id
 
     try:
         with database_service.get_session_maker() as db:
-            # UF-003: Ownership check before rejecting
+            # UF-003: Ownership check — verify request actor matches approval actor
             pre_check = db.get(Approval, approval_id)
-            if pre_check and user and pre_check.actor_id != user.subject:
+            if pre_check and actor_id and pre_check.actor_id != actor_id:
                 raise HTTPException(status_code=403, detail="Insufficient permissions")
 
             # ATOMIC REJECT: Single UPDATE with WHERE status='pending'
@@ -554,18 +584,22 @@ async def reject_action(
                     detail=f"Cannot reject approval (status: {approval.status})"
                 )
 
-            # Write audit log for rejection
+            # F-006 FIX: Extract values BEFORE writing audit log
+            _, thread_id, checkpoint_id, tool_name = rejected
+
+            # Write audit log for rejection with proper thread_id
             _write_audit_log(
                 db=db,
                 event_type=AuditEventType.APPROVAL_REJECTED,
                 actor_id=actor_id,
-                thread_id=None,  # Will set after extraction
+                thread_id=thread_id,  # F-006: Include thread_id for traceability
                 approval_id=approval_id,
-                payload={"reason": action_request.reason or "No reason provided"},
+                payload={
+                    "reason": action_request.reason or "No reason provided",
+                    "tool_name": tool_name,
+                },
             )
             db.commit()
-
-            _, thread_id, checkpoint_id, tool_name = rejected
 
             logger.info(
                 "approval_rejected",
@@ -611,7 +645,7 @@ async def reject_action(
 async def list_pending_approvals(
     request: Request,
     actor_id: Optional[str] = None,
-    user: Optional[AgentUser] = Depends(get_agent_user),
+    user: ServiceUser = Depends(require_service_token),
 ):
     """List pending approvals.
 
@@ -627,12 +661,26 @@ async def list_pending_approvals(
             # Reclaim stale approvals first
             await _reclaim_stale_approvals(db)
 
+            # F003-P2-001: Lazy expiry - mark expired approvals before listing
+            now = datetime.now(UTC)
+            expired_count = db.exec(
+                text("""
+                    UPDATE approvals
+                    SET status = 'expired'
+                    WHERE status = 'pending'
+                      AND expires_at IS NOT NULL
+                      AND expires_at < :now
+                """),
+                params={"now": now}
+            )
+            if expired_count.rowcount > 0:
+                logger.info("lazy_expiry_cleanup", expired_count=expired_count.rowcount)
+                db.commit()
+
             statement = select(Approval).where(Approval.status == ApprovalStatus.PENDING)
 
-            # UF-003: Scope approvals to authenticated user when JWT enforced
-            if user:
-                statement = statement.where(Approval.actor_id == user.subject)
-            elif actor_id:
+            # Filter by actor_id if provided (optional — dashboard can see all pending approvals)
+            if actor_id:
                 statement = statement.where(Approval.actor_id == actor_id)
 
             approvals = db.exec(statement).all()
@@ -647,7 +695,8 @@ async def list_pending_approvals(
                     requested_at=a.created_at or datetime.now(UTC),
                 )
                 for a in approvals
-                if not a.expires_at or datetime.now(UTC) < a.expires_at
+                # Double-check expiry (should all be valid after cleanup, but belt-and-suspenders)
+                if not a.expires_at or now < a.expires_at
             ]
 
             return ApprovalListResponse(
@@ -665,7 +714,7 @@ async def list_pending_approvals(
 async def get_approval(
     request: Request,
     approval_id: str,
-    user: Optional[AgentUser] = Depends(get_agent_user),
+    user: ServiceUser = Depends(require_service_token),
 ):
     """Get a specific approval by ID.
 
@@ -682,9 +731,7 @@ async def get_approval(
             if not approval:
                 raise HTTPException(status_code=404, detail="Approval not found")
 
-            # UF-003: Ownership check
-            if user and approval.actor_id != user.subject:
-                raise HTTPException(status_code=403, detail="Insufficient permissions")
+            # F-001/F-002: Dashboard service token has full visibility to all approvals
 
             return PendingApproval(
                 approval_id=approval.id,
@@ -718,7 +765,7 @@ class ThreadStateResponse(BaseModel):
 async def get_thread_state(
     request: Request,
     thread_id: str,
-    user: Optional[AgentUser] = Depends(get_agent_user),
+    user: ServiceUser = Depends(require_service_token),
 ):
     """Get the current state of a thread.
 
@@ -738,9 +785,7 @@ async def get_thread_state(
                 Approval.thread_id == thread_id,
                 Approval.status.in_([ApprovalStatus.PENDING, ApprovalStatus.CLAIMED])
             )
-            # UF-003: Scope thread state to authenticated user
-            if user:
-                thread_query = thread_query.where(Approval.actor_id == user.subject)
+            # F-001/F-002: Dashboard service token has full visibility
             approval = db.exec(thread_query).first()
 
             if approval:
@@ -781,7 +826,7 @@ async def get_thread_state(
 async def invoke_agent_stream(
     request: Request,
     invoke_request: AgentInvokeRequest,
-    user: Optional[AgentUser] = Depends(get_agent_user),
+    user: ServiceUser = Depends(require_service_token),
 ):
     """Stream agent invocation responses via SSE.
 
@@ -852,3 +897,171 @@ async def invoke_agent_stream(
             "X-Accel-Buffering": "no",
         },
     )
+
+
+# ============================================================================
+# Activity Endpoint (RT-ACT-1 Compliant)
+# F003-P1-001 + F003-CL-003 Remediation
+# ============================================================================
+
+
+class ActivityEvent(BaseModel):
+    """Single activity event from audit_log."""
+    id: str
+    event_type: str
+    label: str  # Human-readable label
+    timestamp: str  # ISO format
+    thread_id: Optional[str] = None
+    approval_id: Optional[str] = None
+    tool_execution_id: Optional[str] = None
+    tool_name: Optional[str] = None
+
+
+class ActivityStats(BaseModel):
+    """Aggregated activity stats."""
+    total_events: int
+    approvals_today: int
+    tool_executions_today: int
+    events_last_24h: int
+
+
+class ActivityResponse(BaseModel):
+    """Activity endpoint response with pagination."""
+    events: list[ActivityEvent]
+    stats: ActivityStats
+    pagination: dict  # {limit, offset, total, has_more}
+
+
+def _event_to_label(event_type: str, payload: dict) -> str:
+    """Generate human-readable label from event type and payload.
+
+    RT-ACT-1: Labels are generated server-side for consistency.
+    """
+    labels = {
+        "approval_created": "Approval requested",
+        "approval_claimed": "Approval processing started",
+        "approval_approved": "Approval granted",
+        "approval_rejected": "Approval rejected",
+        "approval_expired": "Approval expired",
+        "tool_execution_started": "Tool execution started",
+        "tool_execution_completed": "Tool execution completed",
+        "tool_execution_failed": "Tool execution failed",
+        "stale_claim_reclaimed": "Stale claim recovered",
+    }
+    base_label = labels.get(event_type, event_type.replace("_", " ").title())
+
+    # Add tool name if present
+    tool_name = payload.get("tool_name")
+    if tool_name:
+        base_label = f"{base_label}: {tool_name}"
+
+    return base_label
+
+
+def _redact_payload(payload: dict) -> Optional[str]:
+    """Extract safe tool_name from payload, redact sensitive data.
+
+    RT-ACT-1: Never return raw payloads, tokens, or full error stacks.
+    """
+    return payload.get("tool_name")
+
+
+@router.get("/activity", response_model=ActivityResponse)
+@limiter.limit("60 per minute")
+async def get_activity(
+    request: Request,
+    limit: int = 50,
+    offset: int = 0,
+    user: ServiceUser = Depends(require_service_token),
+):
+    """Get agent activity feed from audit_log.
+
+    F003-P1-001 + F003-CL-003 Remediation: Wires activity endpoint to real audit_log data.
+
+    RT-ACT-1 Specs:
+    - Pagination: limit/offset with default limit=50
+    - Ordering: newest-first (created_at DESC, id DESC)
+    - Redaction: Only safe fields returned (no raw payloads/tokens)
+    - Correlation: Each event has at least one correlation key
+
+    Args:
+        request: The FastAPI request object
+        limit: Max events to return (default 50, max 100)
+        offset: Number of events to skip
+
+    Returns:
+        ActivityResponse: Paginated activity events with stats
+    """
+    # Clamp limit to reasonable bounds
+    limit = min(max(1, limit), 100)
+    offset = max(0, offset)
+
+    try:
+        with database_service.get_session_maker() as db:
+            # Query audit_log with pagination and deterministic ordering
+            # RT-ACT-1: ORDER BY created_at DESC, id DESC for stable tie-break
+            query = text("""
+                SELECT id, event_type, created_at, thread_id, approval_id,
+                       tool_execution_id, payload
+                FROM audit_log
+                ORDER BY created_at DESC, id DESC
+                LIMIT :limit OFFSET :offset
+            """)
+
+            result = db.exec(query, params={"limit": limit, "offset": offset})
+            rows = result.fetchall()
+
+            # Get total count for pagination
+            count_query = text("SELECT COUNT(*) FROM audit_log")
+            total = db.exec(count_query).scalar() or 0
+
+            # Get stats (events in last 24h, approvals today, tool executions today)
+            stats_query = text("""
+                SELECT
+                    COUNT(*) FILTER (WHERE created_at > NOW() - INTERVAL '24 hours') as events_24h,
+                    COUNT(*) FILTER (
+                        WHERE event_type LIKE 'approval_%'
+                        AND created_at > DATE_TRUNC('day', NOW())
+                    ) as approvals_today,
+                    COUNT(*) FILTER (
+                        WHERE event_type LIKE 'tool_execution_%'
+                        AND created_at > DATE_TRUNC('day', NOW())
+                    ) as tool_executions_today
+                FROM audit_log
+            """)
+            stats_result = db.exec(stats_query).fetchone()
+
+            # Transform rows to ActivityEvent
+            events = []
+            for row in rows:
+                payload = row.payload if isinstance(row.payload, dict) else {}
+                events.append(ActivityEvent(
+                    id=row.id,
+                    event_type=row.event_type,
+                    label=_event_to_label(row.event_type, payload),
+                    timestamp=row.created_at.isoformat() if row.created_at else "",
+                    thread_id=row.thread_id,
+                    approval_id=row.approval_id,
+                    tool_execution_id=row.tool_execution_id,
+                    tool_name=_redact_payload(payload),
+                ))
+
+            return ActivityResponse(
+                events=events,
+                stats=ActivityStats(
+                    total_events=total,
+                    approvals_today=stats_result.approvals_today if stats_result else 0,
+                    tool_executions_today=stats_result.tool_executions_today if stats_result else 0,
+                    events_last_24h=stats_result.events_24h if stats_result else 0,
+                ),
+                pagination={
+                    "limit": limit,
+                    "offset": offset,
+                    "total": total,
+                    "has_more": offset + len(events) < total,
+                },
+            )
+
+    except Exception as e:
+        logger.error("get_activity_failed", error=str(e), exc_info=True)
+        raise HTTPException(status_code=500, detail="An internal error occurred")

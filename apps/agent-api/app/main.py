@@ -17,7 +17,6 @@ from fastapi import (
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
-from langfuse import Langfuse
 from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 
@@ -29,6 +28,7 @@ from app.core.logging import logger
 from app.core.metrics import setup_metrics
 from app.core.middleware import (
     LoggingContextMiddleware,
+    MaskServerHeaderMiddleware,
     MetricsMiddleware,
 )
 from app.services.database import database_service
@@ -36,12 +36,9 @@ from app.services.database import database_service
 # Load environment variables
 load_dotenv()
 
-# Initialize Langfuse
-langfuse = Langfuse(
-    public_key=os.getenv("LANGFUSE_PUBLIC_KEY"),
-    secret_key=os.getenv("LANGFUSE_SECRET_KEY"),
-    host=os.getenv("LANGFUSE_HOST", "https://cloud.langfuse.com"),
-)
+# Initialize Langfuse conditionally (F-001 fix: zero-code-change activation)
+from app.core.tracing import get_langfuse, shutdown as shutdown_tracing
+langfuse = get_langfuse()  # Returns None if not configured
 
 
 @asynccontextmanager
@@ -54,6 +51,8 @@ async def lifespan(app: FastAPI):
         api_prefix=settings.API_V1_STR,
     )
     yield
+    # Flush Langfuse traces on shutdown (no-op if not configured)
+    shutdown_tracing()
     logger.info("application_shutdown")
 
 
@@ -72,6 +71,9 @@ app = FastAPI(
 
 # Set up Prometheus metrics
 setup_metrics(app)
+
+# Add server header masking middleware (F-008 fix - reduce fingerprinting surface)
+app.add_middleware(MaskServerHeaderMiddleware)
 
 # Add logging context middleware (must be added before other middleware to capture context)
 app.add_middleware(LoggingContextMiddleware)

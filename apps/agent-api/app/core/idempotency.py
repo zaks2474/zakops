@@ -34,17 +34,17 @@ def tool_idempotency_key(thread_id: str, tool_name: str, tool_args: Dict[str, An
         >>> # Same inputs always produce same key across restarts
     """
     # Canonical JSON: sorted keys, no extra whitespace, ASCII-safe
+    # Include thread_id and tool_name in the hash input for uniqueness
     canonical = json.dumps(
-        tool_args,
+        {"thread_id": thread_id, "tool_name": tool_name, "args": tool_args},
         sort_keys=True,
         separators=(",", ":"),
         ensure_ascii=False
     )
 
     # SHA-256 hash for deterministic, collision-resistant key
-    args_hash = hashlib.sha256(canonical.encode("utf-8")).hexdigest()
-
-    return f"{thread_id}:{tool_name}:{args_hash}"
+    # Return only the hash (64 chars) to comply with backend max length
+    return hashlib.sha256(canonical.encode("utf-8")).hexdigest()
 
 
 def approval_idempotency_key(thread_id: str, tool_name: str, tool_args: Dict[str, Any]) -> str:
@@ -71,20 +71,14 @@ def validate_idempotency_key(key: str) -> bool:
         key: The idempotency key to validate
 
     Returns:
-        bool: True if key matches expected format
+        bool: True if key matches expected format (64 char hex SHA-256)
     """
-    parts = key.split(":")
-    if len(parts) != 3:
-        return False
-
-    thread_id, tool_name, hash_part = parts
-
-    # Hash should be 64 hex characters (SHA-256)
-    if len(hash_part) != 64:
+    # Key should be exactly 64 hex characters (SHA-256 hash)
+    if len(key) != 64:
         return False
 
     try:
-        int(hash_part, 16)  # Verify it's valid hex
+        int(key, 16)  # Verify it's valid hex
         return True
     except ValueError:
         return False

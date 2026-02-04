@@ -1,19 +1,21 @@
-"""Agent API JWT authentication with iss/aud/role enforcement.
+"""Agent API authentication with service token and JWT support.
 
-This module provides strict JWT validation for agent endpoints including:
-- Issuer (iss) claim validation
-- Audience (aud) claim validation
+This module provides:
+- Service token validation for /agent/* endpoints (dashboard → agent)
+- JWT validation for agent endpoints (legacy, being deprecated)
 - Role claim validation for approve/reject actions
 - Token expiration validation
 
-This is separate from the chatbot auth to allow stricter controls on agent operations.
+IMPORTANT: /agent/* endpoints use X-Service-Token authentication, NOT Bearer JWT.
+This prevents confused deputy attacks per F-002 remediation.
 """
 
+import hmac
 import os
 from datetime import datetime, timedelta, UTC
 from typing import Optional, List
 
-from fastapi import Depends, HTTPException, Request
+from fastapi import Depends, Header, HTTPException, Request
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from jose import JWTError, jwt, ExpiredSignatureError
 
@@ -423,3 +425,101 @@ def generate_test_tokens() -> dict:
         "no_role": no_role,
         "insufficient_role": insufficient_role,
     }
+
+
+# =============================================================================
+# SERVICE TOKEN AUTHENTICATION (F-001/F-002 REMEDIATION)
+# =============================================================================
+# /agent/* endpoints ONLY accept X-Service-Token, NOT Bearer JWT.
+# This prevents confused deputy attacks and aligns with dashboard auth model.
+
+class ServiceUser:
+    """Represents a service-authenticated caller (e.g., dashboard)."""
+
+    def __init__(self, service_name: str = "dashboard"):
+        self.service_name = service_name
+        self.subject = f"service:{service_name}"
+
+
+async def get_service_token_user(
+    request: Request,
+    x_service_token: Optional[str] = Header(None, alias="X-Service-Token"),
+    authorization: Optional[str] = Header(None),
+) -> ServiceUser:
+    """FastAPI dependency for /agent/* endpoints using service token auth.
+
+    SECURITY (F-001/F-002 remediation):
+    - ONLY accepts X-Service-Token header
+    - REJECTS requests with Authorization: Bearer header (confused deputy prevention)
+    - Uses hmac.compare_digest for timing-safe comparison (UF-008)
+
+    Args:
+        request: The FastAPI request
+        x_service_token: The service token from X-Service-Token header
+        authorization: The Authorization header (to detect and reject Bearer tokens)
+
+    Returns:
+        ServiceUser: The authenticated service caller
+
+    Raises:
+        HTTPException 401: If service token is missing or invalid
+        HTTPException 401: If Bearer token is present (confused deputy prevention)
+    """
+    # F-002: Reject Bearer JWT tokens on /agent/* endpoints
+    if authorization and authorization.lower().startswith("bearer "):
+        logger.warning(
+            "agent_bearer_rejected",
+            reason="Bearer tokens not accepted on /agent/* endpoints",
+            path=request.url.path,
+        )
+        raise HTTPException(
+            status_code=401,
+            detail="Authentication required",
+            headers={"WWW-Authenticate": "X-Service-Token"},
+        )
+
+    # F-001: Require and validate X-Service-Token
+    if not x_service_token:
+        logger.warning(
+            "agent_no_service_token",
+            path=request.url.path,
+        )
+        raise HTTPException(
+            status_code=401,
+            detail="Authentication required",
+            headers={"WWW-Authenticate": "X-Service-Token"},
+        )
+
+    # Validate against configured service token
+    expected_token = getattr(settings, 'DASHBOARD_SERVICE_TOKEN', None)
+    if not expected_token:
+        logger.error("service_token_not_configured")
+        raise HTTPException(
+            status_code=401,
+            detail="Authentication required",
+        )
+
+    # UF-008: Timing-safe comparison
+    if not hmac.compare_digest(x_service_token, expected_token):
+        logger.warning(
+            "service_token_invalid",
+            token_prefix=x_service_token[:8] + "..." if len(x_service_token) > 8 else "short",
+        )
+        raise HTTPException(
+            status_code=401,
+            detail="Authentication required",
+        )
+
+    logger.info("agent_service_auth_success", source="dashboard")
+    return ServiceUser(service_name="dashboard")
+
+
+async def require_service_token(
+    user: ServiceUser = Depends(get_service_token_user),
+) -> ServiceUser:
+    """Dependency that requires valid service token authentication.
+
+    This is the primary auth dependency for /agent/* endpoints.
+    Use this instead of get_agent_user for /agent/* routes.
+    """
+    return user
