@@ -699,7 +699,7 @@ export default function ActionsCommandCenter() {
                 )}
               </CardDescription>
               <CardTitle className="text-3xl text-amber-500">
-                {metrics.queue_lengths?.PENDING_APPROVAL ?? statusCounts['PENDING_APPROVAL'] ?? 0}
+                {metrics.pending_approval ?? statusCounts['PENDING_APPROVAL'] ?? 0}
               </CardTitle>
             </CardHeader>
           </button>
@@ -719,7 +719,7 @@ export default function ActionsCommandCenter() {
                 )}
               </CardDescription>
               <CardTitle className="text-3xl text-purple-500">
-                {metrics.queue_lengths?.PROCESSING ?? statusCounts['PROCESSING'] ?? 0}
+                {statusCounts['RUNNING'] ?? statusCounts['PROCESSING'] ?? 0}
               </CardTitle>
             </CardHeader>
           </button>
@@ -739,8 +739,8 @@ export default function ActionsCommandCenter() {
                 )}
               </CardDescription>
               <CardTitle className="text-3xl text-green-500">
-                {metrics.total_24h > 0
-                  ? `${Math.round(metrics.success_rate_24h * 100)}%`
+                {(metrics.completed_today + metrics.failed_today) > 0
+                  ? `${Math.round((metrics.completed_today / (metrics.completed_today + metrics.failed_today)) * 100)}%`
                   : '-'}
               </CardTitle>
             </CardHeader>
@@ -761,7 +761,7 @@ export default function ActionsCommandCenter() {
                 )}
               </CardDescription>
               <CardTitle className="text-3xl text-destructive">
-                {metrics.failed_24h ?? statusCounts['FAILED'] ?? 0}
+                {metrics.failed_today ?? statusCounts['FAILED'] ?? 0}
               </CardTitle>
             </CardHeader>
           </button>

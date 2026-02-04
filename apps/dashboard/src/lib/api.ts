@@ -86,6 +86,7 @@ export const DealSchema = z.object({
 export type Deal = z.infer<typeof DealSchema>;
 
 // Deal detail schema (expanded)
+// REMEDIATION-V3 [ZK-ISSUE-0018]: Added .passthrough() to avoid silent field drops
 export const DealDetailSchema = z.object({
   deal_id: z.string(),
   canonical_name: z.string().nullable(),
@@ -98,11 +99,11 @@ export const DealDetailSchema = z.object({
     email: z.string().nullable(),
     company: z.string().nullable(),
     phone: z.string().nullable(),
-  }).nullable().optional(),
+  }).passthrough().nullable().optional(),
   company_info: z.object({
     sector: z.string().nullable().optional(),
     location: z.any().nullable().optional(),
-  }).nullable().optional(),
+  }).passthrough().nullable().optional(),
   metadata: z.object({
     priority: z.string().nullable().optional(),
     asking_price: coercedNumber,
@@ -117,125 +118,135 @@ export const DealDetailSchema = z.object({
     is_terminal: z.boolean(),
     allowed_transitions: z.array(z.string()),
     advisory_context: z.string().nullable().optional(),
-  }).nullable().optional(),
+  }).passthrough().nullable().optional(),
   case_file: z.any().nullable().optional(),
   event_count: z.number().optional(),
   pending_actions: z.number().optional(),
   created_at: z.string().nullable().optional(),
   updated_at: z.string().nullable().optional(),
-});
+}).passthrough();
 
 export type DealDetail = z.infer<typeof DealDetailSchema>;
 
 // Deferred action schema
+// REMEDIATION-V3 [ZK-ISSUE-0018]: Added .passthrough() to avoid silent field drops
+// FIX: Changed to .nullable().optional() to handle backend null values
 export const ActionSchema = z.object({
   action_id: z.string(),
-  deal_id: z.string(),
+  deal_id: z.string().nullable().optional(),
   action_type: z.string(),
-  scheduled_for: z.string(),
+  scheduled_for: z.string().nullable().optional(),
   status: z.string(),
-  priority: z.string().optional(),
-  is_due: z.boolean().optional(),
-  data: z.any().optional(),
-});
+  priority: z.string().nullable().optional(),
+  is_due: z.boolean().nullable().optional(),
+  data: z.any().nullable().optional(),
+}).passthrough();
 
 export type Action = z.infer<typeof ActionSchema>;
 
 // Event schema — matches backend deal_events response
+// REMEDIATION-V3 [ZK-ISSUE-0018]: Added .passthrough() to avoid silent field drops
+// FIX: Changed to .nullable().optional() to handle backend null values
 export const EventSchema = z.object({
   id: z.string(),
-  deal_id: z.string().optional(),
+  deal_id: z.string().nullable().optional(),
   event_type: z.string(),
-  source: z.string().optional(),
+  source: z.string().nullable().optional(),
   actor: z.string().nullable().optional(),
   details: z.record(z.unknown()).nullable().optional(),
   created_at: z.string(),
-});
+}).passthrough();
 
 export type DealEvent = z.infer<typeof EventSchema>;
 
 // Quarantine item schema
+// REMEDIATION-V3 [ZK-ISSUE-0018]: Added .passthrough() to avoid silent field drops
+// FIX: Changed all .optional() to .nullable().optional() to handle backend null values
 export const QuarantineItemSchema = z.object({
-  id: z.string().optional(),
-  quarantine_id: z.string().optional(),
-  action_id: z.string().optional(),
-  email_subject: z.string().optional(),
-  subject: z.string().optional(),
-  sender: z.string().optional(),
-  from: z.string().optional(),
-  received_at: z.string().optional(),
-  timestamp: z.string().optional(),
-  quarantine_reason: z.string().optional(),
-  reason: z.string().optional(),
-  status: z.string().optional(),
-  classification: z.string().optional(),
-  urgency: z.string().optional(),
-  company: z.string().optional().nullable(),
-  links: z.array(z.record(z.unknown())).optional(),
-  attachments: z.array(z.record(z.unknown())).optional(),
-  quarantine_dir: z.string().optional().nullable(),
-  capability_id: z.string().optional().nullable(),
-});
+  id: z.string().nullable().optional(),
+  quarantine_id: z.string().nullable().optional(),
+  action_id: z.string().nullable().optional(),
+  email_subject: z.string().nullable().optional(),
+  subject: z.string().nullable().optional(),
+  sender: z.string().nullable().optional(),
+  from: z.string().nullable().optional(),
+  received_at: z.string().nullable().optional(),
+  timestamp: z.string().nullable().optional(),
+  quarantine_reason: z.string().nullable().optional(),
+  reason: z.string().nullable().optional(),
+  status: z.string().nullable().optional(),
+  classification: z.string().nullable().optional(),
+  urgency: z.string().nullable().optional(),
+  company: z.string().nullable().optional(),
+  links: z.array(z.record(z.unknown())).nullable().optional(),
+  attachments: z.array(z.record(z.unknown())).nullable().optional(),
+  quarantine_dir: z.string().nullable().optional(),
+  capability_id: z.string().nullable().optional(),
+}).passthrough();
 
 export type QuarantineItem = z.infer<typeof QuarantineItemSchema>;
 
 // Quarantine health schema
+// REMEDIATION-V3 [ZK-ISSUE-0018]: Added .passthrough() to avoid silent field drops
 export const QuarantineHealthSchema = z.object({
   status: z.string(),
   pending_items: z.number(),
   oldest_pending_days: z.number().optional(),
-});
+}).passthrough();
 
 export type QuarantineHealth = z.infer<typeof QuarantineHealthSchema>;
 
 // Quarantine preview schema (right-side panel)
+// FIX: Changed all .optional() to .nullable().optional() to handle backend null values
 export const QuarantinePreviewSchema = z.object({
-  action_id: z.string(),
-  status: z.string(),
-  created_at: z.string().optional(),
-  deal_id: z.string(),
-  message_id: z.string().optional(),
-  thread_id: z.string().optional(),
-  from: z.string().optional(),
-  to: z.string().optional(),
-  received_at: z.string().optional(),
-  subject: z.string().optional(),
-  summary: z.array(z.string()).default([]),
-  extracted_fields: z.record(z.unknown()).optional(),
-  attachments: z.record(z.unknown()).optional(),
-  links: z.record(z.unknown()).optional(),
-  email: z.record(z.unknown()).optional(),
-  quarantine_dir: z.string().nullish(),
+  action_id: z.string().nullable().optional(),
+  status: z.string().nullable().optional(),
+  created_at: z.string().nullable().optional(),
+  deal_id: z.string().nullable().optional(),
+  message_id: z.string().nullable().optional(),
+  thread_id: z.string().nullable().optional(),
+  from: z.string().nullable().optional(),
+  to: z.string().nullable().optional(),
+  received_at: z.string().nullable().optional(),
+  subject: z.string().nullable().optional(),
+  summary: z.array(z.string()).nullable().optional().default([]),
+  extracted_fields: z.record(z.unknown()).nullable().optional(),
+  attachments: z.record(z.unknown()).nullable().optional(),
+  links: z.record(z.unknown()).nullable().optional(),
+  email: z.record(z.unknown()).nullable().optional(),
+  quarantine_dir: z.string().nullable().optional(),
   thread_resolution: z
     .object({
-      thread_to_deal: z.string().nullish(),
-      thread_to_non_deal: z.string().nullish(),
+      thread_to_deal: z.string().nullable().optional(),
+      thread_to_non_deal: z.string().nullable().optional(),
     })
-    .nullish(),
+    .nullable().optional(),
 }).passthrough();
 
 export type QuarantinePreview = z.infer<typeof QuarantinePreviewSchema>;
 
 // Deal materials (filesystem-backed correspondence bundles)
+// FIX: deal_path can be null for deals without folder_path
 export const DealMaterialsSchema = z.object({
   deal_id: z.string(),
-  deal_path: z.string(),
-  correspondence: z.array(z.record(z.unknown())).default([]),
-  aggregate_links: z.record(z.unknown()).optional(),
-  pending_auth: z.array(z.record(z.unknown())).default([]),
+  deal_path: z.string().nullable().optional(),
+  correspondence: z.array(z.record(z.unknown())).nullable().optional().default([]),
+  aggregate_links: z.record(z.unknown()).nullable().optional(),
+  pending_auth: z.array(z.record(z.unknown())).nullable().optional().default([]),
 }).passthrough();
 
 export type DealMaterials = z.infer<typeof DealMaterialsSchema>;
 
 // Alert schema
+// FIX: Changed to .nullable().optional() to handle backend null values
 export const AlertSchema = z.object({
   type: z.string(),
   severity: z.string(),
   message: z.string(),
-  deal_id: z.string().optional(),
-  count: z.number().optional(),
-  actions: z.array(z.string()).optional(),
-});
+  deal_id: z.string().nullable().optional(),
+  count: z.number().nullable().optional(),
+  actions: z.array(z.string()).nullable().optional(),
+}).passthrough();
 
 export type Alert = z.infer<typeof AlertSchema>;
 
@@ -690,12 +701,18 @@ export async function resolveQuarantineItem(
   resolution: 'link_to_deal' | 'create_new_deal' | 'discard',
   dealId?: string
 ): Promise<{ success: boolean; deal_id?: string }> {
-  return apiFetch('/api/quarantine/' + itemId + '/resolve', {
+  // Map frontend resolution actions to backend action values
+  const actionMap: Record<string, string> = {
+    'link_to_deal': 'approve',
+    'create_new_deal': 'approve',
+    'discard': 'reject',
+  };
+  return apiFetch('/api/quarantine/' + itemId + '/process', {
     method: 'POST',
     body: JSON.stringify({
-      resolution,
+      action: actionMap[resolution],
       deal_id: dealId,
-      resolved_by: 'operator',
+      processed_by: 'operator',
     }),
   });
 }
@@ -965,7 +982,7 @@ export async function addDealNote(
   content: string,
   category?: string
 ): Promise<{ success: boolean; event_id?: string }> {
-  return apiFetch(`/api/deals/${dealId}/note`, {
+  return apiFetch(`/api/deals/${dealId}/notes`, {
     method: 'POST',
     body: JSON.stringify({
       content,
@@ -1381,15 +1398,17 @@ export interface KineticAction {
 
 /**
  * Action metrics from /api/actions/metrics
+ * Aligned with backend response structure (SCHEMA-ALIGN-001)
  */
 export interface ActionMetrics {
-  queue_lengths: Record<KineticActionStatus, number>;
-  avg_duration_by_type: Record<string, { avg_seconds: number; count: number }>;
-  success_rate_24h: number;
-  total_24h: number;
-  completed_24h: number;
-  failed_24h: number;
-  error_breakdown: Array<{ error: string; count: number }>;
+  total_actions: number;
+  pending_approval: number;
+  completed_today: number;
+  failed_today: number;
+  avg_approval_time_seconds?: number | null;
+  avg_execution_time_seconds?: number | null;
+  by_capability?: Record<string, unknown>;
+  version?: string;
 }
 
 // Zod schemas for Kinetic Actions API
@@ -1477,21 +1496,18 @@ const CapabilitiesResponseSchema = z.object({
   count: z.number(),
 });
 
+// ActionMetricsSchema: Aligned with backend /api/actions/metrics response
+// Backend returns: {total_actions, pending_approval, completed_today, failed_today, ...}
 const ActionMetricsSchema = z.object({
-  queue_lengths: z.record(z.number()),
-  avg_duration_by_type: z.record(z.object({
-    avg_seconds: z.number(),
-    count: z.number(),
-  })),
-  success_rate_24h: z.number(),
-  total_24h: z.number(),
-  completed_24h: z.number(),
-  failed_24h: z.number(),
-  error_breakdown: z.array(z.object({
-    error: z.string(),
-    count: z.number(),
-  })),
-});
+  total_actions: z.number(),
+  pending_approval: z.number(),
+  completed_today: z.number(),
+  failed_today: z.number(),
+  avg_approval_time_seconds: z.number().nullable().optional(),
+  avg_execution_time_seconds: z.number().nullable().optional(),
+  by_capability: z.record(z.unknown()).optional(),
+  version: z.string().optional(),
+}).passthrough();
 
 /**
  * Check if Kinetic Actions API is available (mock mode detection)
@@ -1814,30 +1830,31 @@ export async function getCompletedActionsCount(
 // ============================================================================
 
 // Zod schemas for Agent Activity
+// FIX: Changed all .optional() to .nullable().optional() to handle backend null values
 const AgentActivityEventSchema = z.object({
   id: z.string(),
   type: z.string(),
   label: z.string(),
   timestamp: z.string(),
-  dealId: z.string().optional(),
-  dealName: z.string().optional(),
-  metadata: z.record(z.unknown()).optional(),
-});
+  dealId: z.string().nullable().optional(),
+  dealName: z.string().nullable().optional(),
+  metadata: z.record(z.unknown()).nullable().optional(),
+}).passthrough();
 
 const AgentActivityStatsSchema = z.object({
   toolsCalledToday: z.number(),
   approvalsProcessed: z.number(),
   dealsAnalyzed: z.number(),
   runsCompleted24h: z.number(),
-});
+}).passthrough();
 
 const AgentLastActivitySchema = z.object({
   label: z.string(),
   timestamp: z.string(),
-  dealId: z.string().optional(),
-  threadId: z.string().optional(),
-  runId: z.string().optional(),
-});
+  dealId: z.string().nullable().optional(),
+  threadId: z.string().nullable().optional(),
+  runId: z.string().nullable().optional(),
+}).passthrough();
 
 const AgentCurrentRunSchema = z.object({
   runId: z.string(),
@@ -1845,9 +1862,9 @@ const AgentCurrentRunSchema = z.object({
   status: z.enum(['running', 'waiting_approval']),
   progressLabel: z.string(),
   startedAt: z.string(),
-  dealId: z.string().optional(),
-  dealName: z.string().optional(),
-});
+  dealId: z.string().nullable().optional(),
+  dealName: z.string().nullable().optional(),
+}).passthrough();
 
 const AgentRecentRunSchema = z.object({
   runId: z.string(),
@@ -1856,11 +1873,11 @@ const AgentRecentRunSchema = z.object({
   summary: z.string(),
   startedAt: z.string(),
   completedAt: z.string(),
-  dealId: z.string().optional(),
-  dealName: z.string().optional(),
+  dealId: z.string().nullable().optional(),
+  dealName: z.string().nullable().optional(),
   toolsCalled: z.number(),
   approvalsRequested: z.number(),
-});
+}).passthrough();
 
 const AgentActivityResponseSchema = z.object({
   status: z.enum(['idle', 'working', 'waiting_approval']),
