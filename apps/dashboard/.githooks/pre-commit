@@ -1,0 +1,89 @@
+#!/usr/bin/env bash
+#
+# SCHEMA-GUARD-001 — Pre-commit hook for schema change warnings
+#
+# Purpose:
+#   Warn developers when Zod schema files are modified to ensure:
+#   1. .nullable().optional() pattern is followed for optional fields
+#   2. .safeParse() is used instead of .parse() at API boundaries
+#   3. .passthrough() is added to response schemas
+#
+# Installation:
+#   git config core.hooksPath apps/dashboard/.githooks
+#   OR
+#   ln -sf ../../.githooks/pre-commit .git/hooks/pre-commit
+#
+
+set -euo pipefail
+
+# Colors
+YELLOW='\033[1;33m'
+CYAN='\033[0;36m'
+NC='\033[0m'
+
+# Schema files to monitor
+SCHEMA_FILES=(
+    "apps/dashboard/src/lib/api.ts"
+    "apps/dashboard/src/lib/api-schemas.ts"
+    "apps/dashboard/src/lib/schemas/"
+)
+
+# Check if any schema files are staged
+STAGED_SCHEMA_FILES=""
+for pattern in "${SCHEMA_FILES[@]}"; do
+    matches=$(git diff --cached --name-only | grep -E "$pattern" 2>/dev/null || true)
+    if [[ -n "$matches" ]]; then
+        STAGED_SCHEMA_FILES="$STAGED_SCHEMA_FILES $matches"
+    fi
+done
+
+if [[ -z "$STAGED_SCHEMA_FILES" ]]; then
+    # No schema files changed, proceed
+    exit 0
+fi
+
+echo ""
+echo -e "${YELLOW}========================================${NC}"
+echo -e "${YELLOW}  SCHEMA CHANGE DETECTED${NC}"
+echo -e "${YELLOW}========================================${NC}"
+echo ""
+echo "The following schema files have been modified:"
+echo "$STAGED_SCHEMA_FILES" | tr ' ' '\n' | grep -v '^$' | sed 's/^/  - /'
+echo ""
+echo -e "${CYAN}CHECKLIST:${NC}"
+echo "  [ ] Optional fields use .nullable().optional() pattern"
+echo "  [ ] API boundaries use .safeParse() not .parse()"
+echo "  [ ] Response schemas include .passthrough()"
+echo "  [ ] Tested with data containing null values"
+echo ""
+echo "Reference: docs/KNOWN_ISSUES.md#zk-schema-001"
+echo ""
+
+# Check for potential issues
+ISSUES_FOUND=0
+
+for file in $STAGED_SCHEMA_FILES; do
+    if [[ -f "$file" ]]; then
+        # Check for .optional() without .nullable()
+        if grep -E "z\.(string|number|array)\(\)\.optional\(\)" "$file" 2>/dev/null | grep -v "nullable" > /dev/null; then
+            echo -e "${YELLOW}[WARN]${NC} $file may have .optional() without .nullable()"
+            ISSUES_FOUND=1
+        fi
+
+        # Check for unsafe .parse() usage
+        if grep -E "Schema\.parse\(" "$file" 2>/dev/null > /dev/null; then
+            echo -e "${YELLOW}[WARN]${NC} $file may use unsafe .parse() — consider .safeParse()"
+            ISSUES_FOUND=1
+        fi
+    fi
+done
+
+if [[ "$ISSUES_FOUND" -eq 1 ]]; then
+    echo ""
+    echo "Review the warnings above before committing."
+    echo "To bypass this check: git commit --no-verify"
+    echo ""
+fi
+
+# Don't block the commit, just warn
+exit 0
