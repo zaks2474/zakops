@@ -165,6 +165,12 @@ class Settings:
         self.LONG_TERM_MEMORY_MODEL = os.getenv("LONG_TERM_MEMORY_MODEL", "gpt-5-nano")
         self.LONG_TERM_MEMORY_EMBEDDER_MODEL = os.getenv("LONG_TERM_MEMORY_EMBEDDER_MODEL", "text-embedding-3-small")
         self.LONG_TERM_MEMORY_COLLECTION_NAME = os.getenv("LONG_TERM_MEMORY_COLLECTION_NAME", "longterm_memory")
+
+        # R3 REMEDIATION [P3.3]: Local embedding provider configuration
+        # When set, uses local embeddings instead of OpenAI
+        self.LOCAL_EMBEDDER_URL = os.getenv("LOCAL_EMBEDDER_URL", "")  # e.g., http://localhost:8000/v1
+        self.LOCAL_EMBEDDER_MODEL = os.getenv("LOCAL_EMBEDDER_MODEL", "BAAI/bge-small-en-v1.5")
+        self.USE_LOCAL_EMBEDDINGS = os.getenv("USE_LOCAL_EMBEDDINGS", "false").lower() in ("true", "1", "yes")
         # JWT Configuration
         self.JWT_SECRET_KEY = os.getenv("JWT_SECRET_KEY", "")
         self.JWT_ALGORITHM = os.getenv("JWT_ALGORITHM", "HS256")

@@ -1,0 +1,42 @@
+{
+  "id": "GT-022",
+  "version": "1.0",
+  "name": "Stage transition - loi to due_diligence",
+  "description": "User requests transition from LOI to due diligence",
+  "category": "transition",
+  "tags": ["transition", "HITL", "loi", "due_diligence"],
+  "input": {
+    "user_message": "Start due diligence on deal DL-0088",
+    "context": {
+      "deal_id": "DL-0088",
+      "current_stage": "loi"
+    }
+  },
+  "expected": {
+    "tool_calls": [
+      {
+        "tool_name": "transition_deal",
+        "required_parameters": ["deal_id", "to_stage"]
+      }
+    ],
+    "requires_approval": true
+  },
+  "mock_response": {
+    "tool_calls": [
+      {
+        "tool_name": "transition_deal",
+        "parameters": {
+          "deal_id": "DL-0088",
+          "to_stage": "due_diligence"
+        }
+      }
+    ],
+    "response_text": "I'll transition deal DL-0088 to the due diligence stage. This requires your approval.",
+    "requires_approval": true
+  },
+  "metadata": {
+    "created_at": "2026-02-05",
+    "author": "R3 Remediation",
+    "jira_ticket": "ZK-BRAIN-P4.5"
+  }
+}

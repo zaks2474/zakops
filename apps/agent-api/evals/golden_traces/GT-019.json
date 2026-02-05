@@ -1,0 +1,40 @@
+{
+  "id": "GT-019",
+  "version": "1.0",
+  "name": "Grounding - general deal info request",
+  "description": "User asks generally about a deal. Agent MUST call get_deal before providing any info",
+  "category": "query",
+  "tags": ["grounding", "deal", "P0-R3"],
+  "input": {
+    "user_message": "Tell me about DL-0048",
+    "context": {
+      "deal_id": "DL-0048"
+    }
+  },
+  "expected": {
+    "tool_calls": [
+      {
+        "tool_name": "get_deal",
+        "required_parameters": ["deal_id"]
+      }
+    ],
+    "requires_approval": false
+  },
+  "mock_response": {
+    "tool_calls": [
+      {
+        "tool_name": "get_deal",
+        "parameters": {
+          "deal_id": "DL-0048"
+        }
+      }
+    ],
+    "response_text": "DL-0048 is a deal currently in screening stage for TechCorp Inc.",
+    "requires_approval": false
+  },
+  "metadata": {
+    "created_at": "2026-02-04",
+    "author": "R3 Remediation",
+    "jira_ticket": "ZK-BRAIN-ISSUE-0002"
+  }
+}

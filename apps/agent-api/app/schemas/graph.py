@@ -60,3 +60,6 @@ class GraphState(BaseModel):
     )
     actor_id: Optional[str] = Field(None, description="ID of the actor")
     metadata: Dict[str, Any] = Field(default_factory=dict, description="Additional metadata")
+
+    # R3 REMEDIATION [P1.4]: Tool call budget tracking
+    tool_call_count: int = Field(default=0, description="Number of tool calls in current turn")

@@ -1,0 +1,40 @@
+{
+  "id": "GT-030",
+  "version": "1.0",
+  "name": "Deal history query",
+  "description": "User asks about deal history/timeline",
+  "category": "query",
+  "tags": ["history", "timeline", "deal"],
+  "input": {
+    "user_message": "Show me the history of deal DL-0034",
+    "context": {
+      "deal_id": "DL-0034"
+    }
+  },
+  "expected": {
+    "tool_calls": [
+      {
+        "tool_name": "get_deal",
+        "required_parameters": ["deal_id"]
+      }
+    ],
+    "requires_approval": false
+  },
+  "mock_response": {
+    "tool_calls": [
+      {
+        "tool_name": "get_deal",
+        "parameters": {
+          "deal_id": "DL-0034"
+        }
+      }
+    ],
+    "response_text": "Deal DL-0034 history: Created on Jan 15, moved to qualified on Jan 28, LOI signed on Feb 5. Currently in LOI stage.",
+    "requires_approval": false
+  },
+  "metadata": {
+    "created_at": "2026-02-05",
+    "author": "R3 Remediation",
+    "jira_ticket": "ZK-BRAIN-P4.5"
+  }
+}

@@ -1,0 +1,52 @@
+{
+  "id": "GT-013",
+  "version": "1.0",
+  "name": "HITL - transition deal with grounding",
+  "description": "User requests to move a deal to a different stage. Agent should call get_deal first (grounding) then transition_deal (requires HITL)",
+  "category": "approval_required",
+  "tags": ["hitl", "transition_deal", "grounding", "mutation", "P0-R3"],
+  "input": {
+    "user_message": "Move DL-0048 from screening to qualified",
+    "context": {
+      "deal_id": "DL-0048"
+    }
+  },
+  "expected": {
+    "tool_calls": [
+      {
+        "tool_name": "get_deal",
+        "required_parameters": ["deal_id"]
+      },
+      {
+        "tool_name": "transition_deal",
+        "required_parameters": ["deal_id", "to_stage"]
+      }
+    ],
+    "requires_approval": true
+  },
+  "mock_response": {
+    "tool_calls": [
+      {
+        "tool_name": "get_deal",
+        "parameters": {
+          "deal_id": "DL-0048"
+        }
+      },
+      {
+        "tool_name": "transition_deal",
+        "parameters": {
+          "deal_id": "DL-0048",
+          "from_stage": "screening",
+          "to_stage": "qualified"
+        }
+      }
+    ],
+    "response_text": "I'll move DL-0048 from screening to qualified. This requires your approval.",
+    "requires_approval": true
+  },
+  "metadata": {
+    "created_at": "2026-02-04",
+    "author": "R3 Remediation",
+    "jira_ticket": "ZK-BRAIN-ISSUE-0001"
+  }
+}

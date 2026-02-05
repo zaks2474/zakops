@@ -1,0 +1,37 @@
+{
+  "id": "GT-025",
+  "version": "1.0",
+  "name": "Multiple deal query",
+  "description": "User asks about multiple deals - should use search_deals",
+  "category": "search",
+  "tags": ["search", "multiple", "deals"],
+  "input": {
+    "user_message": "What deals do we have in the pipeline right now?",
+    "context": {}
+  },
+  "expected": {
+    "tool_calls": [
+      {
+        "tool_name": "search_deals"
+      }
+    ],
+    "requires_approval": false
+  },
+  "mock_response": {
+    "tool_calls": [
+      {
+        "tool_name": "search_deals",
+        "parameters": {
+          "query": "active deals"
+        }
+      }
+    ],
+    "response_text": "You have 5 active deals in the pipeline: 2 in screening, 1 in qualified, 1 in LOI, and 1 in due diligence.",
+    "requires_approval": false
+  },
+  "metadata": {
+    "created_at": "2026-02-05",
+    "author": "R3 Remediation",
+    "jira_ticket": "ZK-BRAIN-P4.5"
+  }
+}

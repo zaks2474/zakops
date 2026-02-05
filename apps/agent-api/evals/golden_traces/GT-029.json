@@ -1,0 +1,42 @@
+{
+  "id": "GT-029",
+  "version": "1.0",
+  "name": "Transition to closed won",
+  "description": "User wants to mark deal as closed won after due diligence",
+  "category": "transition",
+  "tags": ["transition", "HITL", "closed_won"],
+  "input": {
+    "user_message": "We've completed the acquisition of deal DL-0067, mark it as closed won",
+    "context": {
+      "deal_id": "DL-0067",
+      "current_stage": "due_diligence"
+    }
+  },
+  "expected": {
+    "tool_calls": [
+      {
+        "tool_name": "transition_deal",
+        "required_parameters": ["deal_id", "to_stage"]
+      }
+    ],
+    "requires_approval": true
+  },
+  "mock_response": {
+    "tool_calls": [
+      {
+        "tool_name": "transition_deal",
+        "parameters": {
+          "deal_id": "DL-0067",
+          "to_stage": "closed_won"
+        }
+      }
+    ],
+    "response_text": "Congratulations! I'll mark deal DL-0067 as closed won. This requires your approval.",
+    "requires_approval": true
+  },
+  "metadata": {
+    "created_at": "2026-02-05",
+    "author": "R3 Remediation",
+    "jira_ticket": "ZK-BRAIN-P4.5"
+  }
+}

@@ -1,0 +1,41 @@
+{
+  "id": "GT-011",
+  "version": "1.0",
+  "name": "Grounding - deal stage query",
+  "description": "User asks about a deal's stage. Agent MUST call get_deal before answering (grounding enforcement)",
+  "category": "query",
+  "tags": ["grounding", "deal", "stage", "P0-R3"],
+  "input": {
+    "user_message": "What stage is deal DL-0048 in?",
+    "context": {
+      "deal_id": "DL-0048"
+    }
+  },
+  "expected": {
+    "tool_calls": [
+      {
+        "tool_name": "get_deal",
+        "required_parameters": ["deal_id"]
+      }
+    ],
+    "requires_approval": false,
+    "response_not_contains": ["I don't have", "I'm not sure", "hallucinate"]
+  },
+  "mock_response": {
+    "tool_calls": [
+      {
+        "tool_name": "get_deal",
+        "parameters": {
+          "deal_id": "DL-0048"
+        }
+      }
+    ],
+    "response_text": "Deal DL-0048 is currently in the screening stage.",
+    "requires_approval": false
+  },
+  "metadata": {
+    "created_at": "2026-02-04",
+    "author": "R3 Remediation",
+    "jira_ticket": "ZK-BRAIN-ISSUE-0002"
+  }
+}

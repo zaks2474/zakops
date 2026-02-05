@@ -1,0 +1,27 @@
+{
+  "id": "GT-021",
+  "version": "1.0",
+  "name": "M&A terminology question",
+  "description": "User asks about M&A terminology - no tool call needed",
+  "category": "general",
+  "tags": ["M&A", "terminology", "no-tool", "P4.1-R3"],
+  "input": {
+    "user_message": "What does LOI mean in the context of M&A?",
+    "context": {}
+  },
+  "expected": {
+    "tool_calls": [],
+    "requires_approval": false,
+    "response_contains": ["letter of intent", "LOI"]
+  },
+  "mock_response": {
+    "tool_calls": [],
+    "response_text": "LOI stands for Letter of Intent. In M&A, it's a document outlining the preliminary understanding between a buyer and seller before conducting due diligence. It typically covers the proposed price, deal structure, and exclusivity period.",
+    "requires_approval": false
+  },
+  "metadata": {
+    "created_at": "2026-02-05",
+    "author": "R3 Remediation",
+    "jira_ticket": "ZK-BRAIN-P4.5"
+  }
+}

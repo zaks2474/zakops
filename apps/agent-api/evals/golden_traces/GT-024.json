@@ -1,0 +1,38 @@
+{
+  "id": "GT-024",
+  "version": "1.0",
+  "name": "Web search for industry information",
+  "description": "User asks for industry research requiring web search",
+  "category": "search",
+  "tags": ["web_search", "research"],
+  "input": {
+    "user_message": "What are the current M&A trends in the SaaS industry?",
+    "context": {}
+  },
+  "expected": {
+    "tool_calls": [
+      {
+        "tool_name": "duckduckgo_search",
+        "required_parameters": ["query"]
+      }
+    ],
+    "requires_approval": false
+  },
+  "mock_response": {
+    "tool_calls": [
+      {
+        "tool_name": "duckduckgo_search",
+        "parameters": {
+          "query": "M&A trends SaaS industry 2026"
+        }
+      }
+    ],
+    "response_text": "Based on current research, SaaS M&A trends include increased focus on vertical SaaS, rising valuations, and consolidation in the market.",
+    "requires_approval": false
+  },
+  "metadata": {
+    "created_at": "2026-02-05",
+    "author": "R3 Remediation",
+    "jira_ticket": "ZK-BRAIN-P4.5"
+  }
+}

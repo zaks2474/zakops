@@ -1,0 +1,42 @@
+{
+  "id": "GT-014",
+  "version": "1.0",
+  "name": "Grounding - deal value query",
+  "description": "User asks about a deal's value. Agent MUST call get_deal before answering",
+  "category": "query",
+  "tags": ["grounding", "deal", "value", "P0-R3"],
+  "input": {
+    "user_message": "How much is the TechStart acquisition worth?",
+    "context": {
+      "deal_id": "DL-0099",
+      "deal_name": "TechStart"
+    }
+  },
+  "expected": {
+    "tool_calls": [
+      {
+        "tool_name": "get_deal",
+        "required_parameters": ["deal_id"]
+      }
+    ],
+    "requires_approval": false,
+    "response_not_contains": ["I don't have", "I'm not sure"]
+  },
+  "mock_response": {
+    "tool_calls": [
+      {
+        "tool_name": "get_deal",
+        "parameters": {
+          "deal_id": "DL-0099"
+        }
+      }
+    ],
+    "response_text": "The TechStart acquisition has a current value of $2.3 million.",
+    "requires_approval": false
+  },
+  "metadata": {
+    "created_at": "2026-02-05",
+    "author": "R3 Remediation",
+    "jira_ticket": "ZK-BRAIN-P4.5"
+  }
+}

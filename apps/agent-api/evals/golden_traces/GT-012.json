@@ -1,0 +1,39 @@
+{
+  "id": "GT-012",
+  "version": "1.0",
+  "name": "HITL - create deal requires approval",
+  "description": "User requests to create a new deal. This MUST trigger HITL approval workflow",
+  "category": "approval_required",
+  "tags": ["hitl", "create_deal", "mutation", "P0-R3"],
+  "input": {
+    "user_message": "Create a new deal for Acme Corp",
+    "context": {}
+  },
+  "expected": {
+    "tool_calls": [
+      {
+        "tool_name": "create_deal",
+        "required_parameters": ["canonical_name"]
+      }
+    ],
+    "requires_approval": true
+  },
+  "mock_response": {
+    "tool_calls": [
+      {
+        "tool_name": "create_deal",
+        "parameters": {
+          "canonical_name": "Acme Corp",
+          "stage": "inbound"
+        }
+      }
+    ],
+    "response_text": "I'll create a new deal for Acme Corp. This requires your approval before proceeding.",
+    "requires_approval": true
+  },
+  "metadata": {
+    "created_at": "2026-02-04",
+    "author": "R3 Remediation",
+    "jira_ticket": "ZK-BRAIN-ISSUE-0001"
+  }
+}

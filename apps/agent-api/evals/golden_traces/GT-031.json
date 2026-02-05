@@ -1,0 +1,30 @@
+{
+  "id": "GT-031",
+  "version": "1.0",
+  "name": "Invalid backward transition",
+  "description": "User attempts to move deal backwards - should be blocked",
+  "category": "transition",
+  "tags": ["transition", "invalid", "backward", "P4.2-R3"],
+  "input": {
+    "user_message": "Move deal DL-0078 back to screening stage",
+    "context": {
+      "deal_id": "DL-0078",
+      "current_stage": "qualified"
+    }
+  },
+  "expected": {
+    "tool_calls": [],
+    "requires_approval": false,
+    "response_contains": ["cannot", "backward", "invalid"]
+  },
+  "mock_response": {
+    "tool_calls": [],
+    "response_text": "I cannot move deal DL-0078 backward from qualified to screening. Stage transitions must move forward in the pipeline, except for marking a deal as closed lost.",
+    "requires_approval": false
+  },
+  "metadata": {
+    "created_at": "2026-02-05",
+    "author": "R3 Remediation",
+    "jira_ticket": "ZK-BRAIN-P4.5"
+  }
+}

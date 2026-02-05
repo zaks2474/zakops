@@ -37,7 +37,13 @@ from app.services.database import database_service
 load_dotenv()
 
 # Initialize Langfuse conditionally (F-001 fix: zero-code-change activation)
-from app.core.tracing import get_langfuse, shutdown as shutdown_tracing
+# R3 REMEDIATION [P2.2]: Added startup health check
+from app.core.tracing import (
+    get_langfuse,
+    shutdown as shutdown_tracing,
+    check_health as check_tracing_health,
+    get_health_status as get_tracing_status,
+)
 langfuse = get_langfuse()  # Returns None if not configured
 
 
@@ -50,6 +56,21 @@ async def lifespan(app: FastAPI):
         version=settings.VERSION,
         api_prefix=settings.API_V1_STR,
     )
+
+    # R3 REMEDIATION [P2.2]: Check Langfuse connectivity on startup
+    tracing_health = check_tracing_health()
+    if tracing_health.configured and not tracing_health.connected:
+        logger.warning(
+            "langfuse_startup_warning",
+            error=tracing_health.error,
+            message="Langfuse is configured but connection failed. Traces will not be recorded.",
+        )
+    elif tracing_health.connected:
+        logger.info(
+            "langfuse_startup_success",
+            latency_ms=tracing_health.latency_ms,
+        )
+
     yield
     # Flush Langfuse traces on shutdown (no-op if not configured)
     shutdown_tracing()
@@ -161,6 +182,8 @@ async def root(request: Request):
 async def health_check(request: Request) -> Dict[str, Any]:
     """Health check endpoint with environment-specific information.
 
+    R3 REMEDIATION [P2.2]: Added tracing health status.
+
     Returns:
         Dict[str, Any]: Health status information
     """
@@ -169,11 +192,31 @@ async def health_check(request: Request) -> Dict[str, Any]:
     # Check database connectivity
     db_healthy = await database_service.health_check()
 
+    # R3 REMEDIATION [P2.2]: Get tracing health status
+    tracing_status = get_tracing_status()
+    tracing_healthy = (
+        tracing_status is None or  # Not configured = healthy (optional component)
+        not tracing_status.get("configured") or  # Not configured
+        tracing_status.get("connected")  # Configured and connected
+    )
+
+    # Determine tracing component status
+    if tracing_status is None or not tracing_status.get("configured"):
+        tracing_component = "disabled"
+    elif tracing_status.get("connected"):
+        tracing_component = "healthy"
+    else:
+        tracing_component = "degraded"
+
     response = {
         "status": "healthy" if db_healthy else "degraded",
         "version": settings.VERSION,
         "environment": settings.ENVIRONMENT.value,
-        "components": {"api": "healthy", "database": "healthy" if db_healthy else "unhealthy"},
+        "components": {
+            "api": "healthy",
+            "database": "healthy" if db_healthy else "unhealthy",
+            "tracing": tracing_component,
+        },
         "timestamp": datetime.now().isoformat(),
     }
 

@@ -1,0 +1,42 @@
+{
+  "id": "GT-017",
+  "version": "1.0",
+  "name": "Grounding - non-existent deal",
+  "description": "User asks about a deal that doesn't exist. Agent MUST call get_deal (returns 404) and report deal not found",
+  "category": "error_handling",
+  "tags": ["grounding", "deal", "404", "error", "P0-R3"],
+  "input": {
+    "user_message": "What's the status of deal DL-9999?",
+    "context": {
+      "deal_id": "DL-9999"
+    }
+  },
+  "expected": {
+    "tool_calls": [
+      {
+        "tool_name": "get_deal",
+        "required_parameters": ["deal_id"]
+      }
+    ],
+    "requires_approval": false,
+    "response_contains": ["not found", "doesn't exist", "could not find"],
+    "response_not_contains": ["hallucinate", "make up"]
+  },
+  "mock_response": {
+    "tool_calls": [
+      {
+        "tool_name": "get_deal",
+        "parameters": {
+          "deal_id": "DL-9999"
+        }
+      }
+    ],
+    "response_text": "Deal DL-9999 was not found. The deal may not exist or the ID might be incorrect.",
+    "requires_approval": false
+  },
+  "metadata": {
+    "created_at": "2026-02-04",
+    "author": "R3 Remediation",
+    "jira_ticket": "ZK-BRAIN-ISSUE-0002"
+  }
+}

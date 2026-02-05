@@ -1,0 +1,30 @@
+{
+  "id": "GT-016",
+  "version": "1.0",
+  "name": "Invalid transition - skip stages",
+  "description": "User attempts to skip stages (screening direct to closed_won) - should be blocked",
+  "category": "transition",
+  "tags": ["transition", "invalid", "validation", "P4.2-R3"],
+  "input": {
+    "user_message": "Mark deal DL-0077 as closed won",
+    "context": {
+      "deal_id": "DL-0077",
+      "current_stage": "screening"
+    }
+  },
+  "expected": {
+    "tool_calls": [],
+    "requires_approval": false,
+    "response_contains": ["cannot", "invalid", "transition"]
+  },
+  "mock_response": {
+    "tool_calls": [],
+    "response_text": "I cannot transition deal DL-0077 directly from screening to closed_won. Deals must progress through: screening -> qualified -> loi -> due_diligence -> closed_won. Please transition through the intermediate stages first.",
+    "requires_approval": false
+  },
+  "metadata": {
+    "created_at": "2026-02-05",
+    "author": "R3 Remediation",
+    "jira_ticket": "ZK-BRAIN-P4.5"
+  }
+}
