@@ -75,7 +75,9 @@ from app.core.idempotency import tool_idempotency_key
 from app.core.security.output_validation import sanitize_llm_output
 from app.core.langgraph.tools.schemas import ToolResult
 from app.core.langgraph.tools.deal_tools import set_correlation_id
+from app.models.decision_ledger import DecisionLedgerService, TriggerType
 import os
+import time
 
 # Approval timeout in seconds (default 1 hour)
 APPROVAL_TIMEOUT = int(getattr(settings, 'HITL_APPROVAL_TIMEOUT_SECONDS', 3600))
@@ -205,20 +207,38 @@ class LangGraphAgent:
             user_id: The user ID to validate
 
         Returns:
-            bool: True if valid, False otherwise
+            bool: True if valid
+
+        Raises:
+            ValueError: If user_id is invalid (for security enforcement)
         """
         import re
 
         if not user_id or not isinstance(user_id, str):
-            return False
+            logger.warning(
+                "tenant_isolation_violation",
+                user_id_preview="None" if not user_id else str(user_id)[:20],
+                reason="empty_or_invalid_type",
+            )
+            raise ValueError("Invalid user_id: must be a non-empty string")
 
         # Max length check
         if len(user_id) > 255:
-            return False
+            logger.warning(
+                "tenant_isolation_violation",
+                user_id_preview=user_id[:20],
+                reason="exceeds_max_length",
+            )
+            raise ValueError("Invalid user_id: exceeds maximum length (255)")
 
         # Block path traversal and special characters
         if any(char in user_id for char in ['..', '/', '\\', '\x00', '\n', '\r']):
-            return False
+            logger.warning(
+                "tenant_isolation_violation",
+                user_id_preview=user_id[:20],
+                reason="contains_forbidden_chars",
+            )
+            raise ValueError("Invalid user_id: contains forbidden characters")
 
         # Allow UUIDs or alphanumeric with hyphens/underscores
         uuid_pattern = r'^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$'
@@ -228,11 +248,11 @@ class LangGraphAgent:
             return True
 
         logger.warning(
-            "invalid_user_id_format",
+            "tenant_isolation_violation",
             user_id_preview=user_id[:20] if len(user_id) > 20 else user_id,
-            reason="failed_validation_pattern"
+            reason="failed_validation_pattern",
         )
-        return False
+        raise ValueError("Invalid user_id: must be UUID or alphanumeric")
 
     async def _get_relevant_memory(self, user_id: str, query: str) -> str:
         """Get the relevant memory for the user and query.
@@ -245,10 +265,13 @@ class LangGraphAgent:
             return ""
 
         # R3 REMEDIATION [P3.1]: Validate user_id to prevent tenant isolation bypass
-        if not self._validate_user_id(user_id):
+        try:
+            self._validate_user_id(user_id)
+        except ValueError as e:
             logger.warning(
                 "memory_access_blocked_invalid_user_id",
                 user_id_preview=str(user_id)[:20] if user_id else "None",
+                error=str(e),
             )
             return ""
 
@@ -271,10 +294,13 @@ class LangGraphAgent:
             return
 
         # R3 REMEDIATION [P3.1]: Validate user_id to prevent tenant isolation bypass
-        if not self._validate_user_id(user_id):
+        try:
+            self._validate_user_id(user_id)
+        except ValueError as e:
             logger.warning(
                 "memory_update_blocked_invalid_user_id",
                 user_id_preview=str(user_id)[:20] if user_id else "None",
+                error=str(e),
             )
             return
 
@@ -302,10 +328,13 @@ class LangGraphAgent:
             return True  # Nothing to delete
 
         # R3 REMEDIATION [P3.1]: Validate user_id to prevent tenant isolation bypass
-        if not self._validate_user_id(user_id):
+        try:
+            self._validate_user_id(user_id)
+        except ValueError as e:
             logger.warning(
                 "memory_delete_blocked_invalid_user_id",
                 user_id_preview=str(user_id)[:20] if user_id else "None",
+                error=str(e),
             )
             return False
 
@@ -573,7 +602,33 @@ class LangGraphAgent:
                         "tool_call_executed",
                         tool_name=tool_name,
                         success=result.success,
+                        correlation_id=correlation_id,
                     )
+
+                    # R3 REMEDIATION [D-7]: Log decision to decision ledger
+                    try:
+                        prompt_info = get_prompt_info()
+                        user_id = state.metadata.get("actor_id") or state.metadata.get("user_id", "unknown")
+                        with database_service.get_session_maker() as ledger_session:
+                            DecisionLedgerService.log_decision_sync(
+                                ledger_session,
+                                decision_id=str(uuid.uuid4()),
+                                correlation_id=correlation_id,
+                                thread_id=thread_id,
+                                user_id=user_id,
+                                trigger_type=TriggerType.USER_MESSAGE,
+                                prompt_version=prompt_info.version,
+                                tool_name=tool_name,
+                                tool_args=json.dumps(tool_args) if tool_args else None,
+                                tool_result_preview=result.to_json_string()[:500] if result else None,
+                                success=result.success if result else False,
+                            )
+                    except Exception as ledger_err:
+                        logger.warning(
+                            "decision_ledger_write_failed",
+                            error=str(ledger_err),
+                            correlation_id=correlation_id,
+                        )
 
             except Exception as e:
                 # R3 REMEDIATION [P1.2]: Graceful error handling
@@ -581,6 +636,7 @@ class LangGraphAgent:
                     "tool_call_exception",
                     tool_name=tool_name,
                     error=str(e),
+                    correlation_id=correlation_id,
                     exc_info=True,
                 )
                 result = ToolResult.error_result(
@@ -690,6 +746,7 @@ class LangGraphAgent:
                     tool_name=pending_call.tool_name,
                     idempotency_key=idempotency_key,
                     execution_id=execution_id,
+                    correlation_id=correlation_id,
                 )
 
                 # Execute the tool
@@ -707,7 +764,34 @@ class LangGraphAgent:
                         "tool_execution_success",
                         tool_name=pending_call.tool_name,
                         execution_id=execution_id,
+                        correlation_id=correlation_id,
                     )
+
+                    # R3 REMEDIATION [D-7]: Log HITL decision to decision ledger
+                    try:
+                        prompt_info = get_prompt_info()
+                        user_id = state.metadata.get("actor_id") or state.metadata.get("user_id", "unknown")
+                        with database_service.get_session_maker() as ledger_session:
+                            DecisionLedgerService.log_decision_sync(
+                                ledger_session,
+                                decision_id=execution_id,
+                                correlation_id=correlation_id,
+                                thread_id=thread_id,
+                                user_id=user_id,
+                                trigger_type=TriggerType.HITL_RESUME,
+                                prompt_version=prompt_info.version,
+                                tool_name=pending_call.tool_name,
+                                tool_args=json.dumps(pending_call.tool_args) if pending_call.tool_args else None,
+                                tool_result_preview=str(result)[:500] if result else None,
+                                hitl_required=True,
+                                success=True,
+                            )
+                    except Exception as ledger_err:
+                        logger.warning(
+                            "decision_ledger_write_failed",
+                            error=str(ledger_err),
+                            correlation_id=correlation_id,
+                        )
                 else:
                     outputs.append(
                         ToolMessage(
@@ -722,6 +806,7 @@ class LangGraphAgent:
                     "tool_execution_failed",
                     tool_name=pending_call.tool_name,
                     error=str(e),
+                    correlation_id=correlation_id,
                 )
                 outputs.append(
                     ToolMessage(
@@ -1187,3 +1272,23 @@ class LangGraphAgent:
         except Exception as e:
             logger.error("Failed to clear chat history", error=str(e))
             raise
+
+
+async def build_graph() -> Optional[CompiledStateGraph]:
+    """Convenience builder for tests/import checks."""
+    agent = LangGraphAgent()
+    return await agent.create_graph()
+
+
+def _redact_pii(text: str) -> str:
+    """Redact PII like email, phone, and API keys from text."""
+    if not text:
+        return text
+    import re
+    # Email pattern
+    text = re.sub(r"[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}", "[REDACTED]", text)
+    # Phone pattern (basic US formats)
+    text = re.sub(r"\b\d{3}[-.\s]?\d{3}[-.\s]?\d{4}\b", "[REDACTED]", text)
+    # API key pattern (e.g., sk-...)
+    text = re.sub(r"\bsk-[A-Za-z0-9]{10,}\b", "[REDACTED]", text)
+    return text

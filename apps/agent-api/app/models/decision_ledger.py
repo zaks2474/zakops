@@ -235,3 +235,66 @@ class DecisionLedgerService:
         await session.refresh(entry)
 
         return entry
+
+    @classmethod
+    def log_decision_sync(
+        cls,
+        session,
+        *,
+        decision_id: str,
+        correlation_id: Optional[str],
+        thread_id: str,
+        user_id: str,
+        deal_id: Optional[str] = None,
+        trigger_type: TriggerType,
+        trigger_content: Optional[str] = None,
+        prompt_version: Optional[str] = None,
+        tools_considered: Optional[List[str]] = None,
+        tool_selected: Optional[str] = None,
+        selection_reason: Optional[str] = None,
+        tool_name: Optional[str] = None,
+        tool_args: Optional[str] = None,
+        tool_result_preview: Optional[str] = None,
+        hitl_required: bool = False,
+        approval_id: Optional[str] = None,
+        approval_status: Optional[str] = None,
+        success: bool = True,
+        error: Optional[str] = None,
+        response_preview: Optional[str] = None,
+        latency_ms: Optional[int] = None,
+        token_count: Optional[int] = None,
+    ) -> DecisionLedgerEntry:
+        """Synchronous version of log_decision for use with sync sessions.
+
+        R3 REMEDIATION [P2.6/D-7]: Provides sync writes for existing sync DB infra.
+        """
+        entry = DecisionLedgerEntry(
+            id=decision_id,
+            correlation_id=correlation_id,
+            thread_id=thread_id,
+            user_id=user_id,
+            deal_id=deal_id,
+            trigger_type=trigger_type,
+            trigger_content=cls._truncate(trigger_content),
+            prompt_version=prompt_version,
+            tools_considered=tools_considered,
+            tool_selected=tool_selected,
+            selection_reason=cls._truncate(selection_reason),
+            tool_name=tool_name,
+            tool_args=tool_args,
+            tool_result_preview=cls._truncate(tool_result_preview),
+            hitl_required=hitl_required,
+            approval_id=approval_id,
+            approval_status=approval_status,
+            success=success,
+            error=cls._truncate(error),
+            response_preview=cls._truncate(response_preview),
+            latency_ms=latency_ms,
+            token_count=token_count,
+        )
+
+        session.add(entry)
+        session.commit()
+        session.refresh(entry)
+
+        return entry
